@@ -65,20 +65,21 @@ export default function FamilyAliasApp() {
   const handleNextWord = (isSkip = false) => {
     setScore(prev => isSkip ? prev - 1 : prev + 1);
     setCurrentWordIndex(prev => prev + 1);
-    setIsDragging(false); // איפוס גרירה לביטחון
+    setIsDragging(false);
     setActiveHover(null);
   };
 
-  const startDrag = (e: React.PointerEvent) => {
+  // --- לוגיקת גרירה משופרת ---
+  const handlePointerDown = (e: React.PointerEvent) => {
     if (isPaused || !gameWords[currentWordIndex]) return;
     setIsDragging(true);
     setDragPos({ x: e.clientX, y: e.clientY });
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
   };
 
-  const onDrag = (e: React.PointerEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
     setDragPos({ x: e.clientX, y: e.clientY });
+
     let hovered: string | null = null;
     if (skipRef.current) {
       const r = skipRef.current.getBoundingClientRect();
@@ -93,7 +94,7 @@ export default function FamilyAliasApp() {
     setActiveHover(hovered);
   };
 
-  const endDrag = () => {
+  const handlePointerUp = () => {
     if (!isDragging) return;
     if (activeHover === "SKIP") handleNextWord(true);
     else if (activeHover) handleNextWord(false);
@@ -106,7 +107,7 @@ export default function FamilyAliasApp() {
   const timerColor = timeLeft <= 15 ? '#ef4444' : '#ffffff';
 
   return (
-    <div style={containerStyle}>
+    <div style={containerStyle} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
       <div style={safeAreaWrapper}>
         
         {step === 1 && (
@@ -142,12 +143,10 @@ export default function FamilyAliasApp() {
 
         {step === 4 && (
           <div style={gameLayout}>
-            {/* 1. שעון הכי למעלה */}
             <div style={{...timerDisplay, color: timerColor}}>
               00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
             </div>
 
-            {/* 2. כפתור דלג מעוצב ועבה */}
             <div 
               ref={skipRef}
               onClick={() => handleNextWord(true)}
@@ -163,7 +162,7 @@ export default function FamilyAliasApp() {
             <div style={wordCardArea}>
               {currentWord && (
                 <div 
-                  onPointerDown={startDrag} onPointerMove={onDrag} onPointerUp={endDrag}
+                  onPointerDown={handlePointerDown}
                   style={{
                     ...wordItemStyle,
                     position: isDragging ? 'fixed' : 'relative',
@@ -206,9 +205,7 @@ export default function FamilyAliasApp() {
 
             {isPaused && (
               <div style={pauseOverlay}>
-                <button onClick={() => setIsPaused(false)} style={hugePlayBtn}>
-                  ▶️
-                </button>
+                <button onClick={() => setIsPaused(false)} style={hugePlayBtn}>▶️</button>
               </div>
             )}
           </div>
@@ -219,7 +216,7 @@ export default function FamilyAliasApp() {
 }
 
 // === Styles ===
-const containerStyle: CSSProperties = { display: 'flex', justifyContent: 'center', height: '100dvh', width: '100vw', backgroundColor: '#05081c', direction: 'rtl', overflow: 'hidden', position: 'fixed' };
+const containerStyle: CSSProperties = { display: 'flex', justifyContent: 'center', height: '100dvh', width: '100vw', backgroundColor: '#05081c', direction: 'rtl', overflow: 'hidden', position: 'fixed', touchAction: 'none' };
 const safeAreaWrapper: CSSProperties = { width: '100%', maxWidth: '360px', height: '100%', display: 'flex', flexDirection: 'column', padding: '10px 20px' };
 const flexLayout: CSSProperties = { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' };
 const logoFlexBox: CSSProperties = { marginBottom: '20px' };
@@ -229,27 +226,17 @@ const formStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap
 const inputStyle: CSSProperties = { width: '100%', padding: '12px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', textAlign: 'right' };
 const goldButtonStyle: CSSProperties = { width: '100%', padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #ffd700 0%, #b8860b 100%)', color: '#05081c', fontWeight: 'bold', fontSize: '18px', border: 'none' };
 const gameLayout: CSSProperties = { display: 'flex', flexDirection: 'column', height: '100%', gap: '8px', paddingBottom: '10px' };
-
-const timerDisplay: CSSProperties = { fontSize: '56px', fontWeight: 'bold', textAlign: 'center', fontFamily: 'monospace', textShadow: '0 0 15px rgba(255,255,255,0.2)' };
-
-const skipButtonStyle: CSSProperties = { 
-  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-  width: '100%', padding: '16px', borderRadius: '16px', border: '3px solid #ef4444', 
-  color: 'white', fontWeight: 'bold', cursor: 'pointer', transition: '0.2s'
-};
-
+const timerDisplay: CSSProperties = { fontSize: '56px', fontWeight: 'bold', textAlign: 'center', fontFamily: 'monospace' };
+const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', padding: '16px', borderRadius: '16px', border: '3px solid #ef4444', color: 'white', fontWeight: 'bold', cursor: 'pointer' };
 const wordCardArea: CSSProperties = { flex: 0.8, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' };
 const wordItemStyle: CSSProperties = { cursor: 'pointer', touchAction: 'none', userSelect: 'none', textAlign: 'center' };
 const wordImgStyle: CSSProperties = { width: '60px', height: '60px', marginBottom: '5px', objectFit: 'contain', pointerEvents: 'none' };
-
 const guessersBox: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px' };
-const guesserButton: CSSProperties = { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '15px', border: '2px solid transparent', cursor: 'pointer', transition: '0.15s' };
+const guesserButton: CSSProperties = { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '15px', border: '2px solid transparent', cursor: 'pointer' };
 const miniAvatar: CSSProperties = { width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' };
-
 const gameFooter: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', padding: '10px 0' };
 const bottomScore: CSSProperties = { color: '#ffd700', fontSize: '28px', fontWeight: 'bold' };
 const modernPauseBtn: CSSProperties = { background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', width: '55px', height: '55px', borderRadius: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' };
-
 const pauseOverlay: CSSProperties = { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 8, 28, 0.98)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 3000 };
-const hugePlayBtn: CSSProperties = { backgroundColor: '#10b981', color: 'white', border: 'none', width: '140px', height: '140px', borderRadius: '50%', fontSize: '64px', cursor: 'pointer', boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const hugePlayBtn: CSSProperties = { backgroundColor: '#10b981', color: 'white', border: 'none', width: '140px', height: '140px', borderRadius: '50%', fontSize: '64px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const scoreCircle: CSSProperties = { fontSize: '48px', color: '#ffd700', border: '3px solid #ffd700', width: '130px', height: '130px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '20px 0' };
