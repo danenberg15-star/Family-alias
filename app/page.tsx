@@ -27,11 +27,11 @@ export default function FamilyAliasApp() {
   const [isPaused, setIsPaused] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [activeHover, setActiveHover] = useState<string | null>(null);
+  const wordRef = useRef<HTMLDivElement | null>(null);
   const playersRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const skipRef = useRef<HTMLDivElement | null>(null);
+  const isDragging = useRef(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -62,23 +62,43 @@ export default function FamilyAliasApp() {
     }
   };
 
+  const resetWordPosition = () => {
+    if (wordRef.current) {
+      wordRef.current.style.position = 'relative';
+      wordRef.current.style.left = 'auto';
+      wordRef.current.style.top = 'auto';
+      wordRef.current.style.zIndex = '1';
+    }
+  };
+
   const handleNextWord = (isSkip = false) => {
     setScore(prev => isSkip ? prev - 1 : prev + 1);
     setCurrentWordIndex(prev => prev + 1);
-    setIsDragging(false);
+    isDragging.current = false;
     setActiveHover(null);
+    resetWordPosition();
   };
 
-  // --- לוגיקת גרירה משופרת ---
   const handlePointerDown = (e: React.PointerEvent) => {
     if (isPaused || !gameWords[currentWordIndex]) return;
-    setIsDragging(true);
-    setDragPos({ x: e.clientX, y: e.clientY });
+    isDragging.current = true;
+    if (wordRef.current) {
+      wordRef.current.style.position = 'fixed';
+      wordRef.current.style.zIndex = '1000';
+      updatePosition(e.clientX, e.clientY);
+    }
+  };
+
+  const updatePosition = (x: number, y: number) => {
+    if (wordRef.current) {
+      wordRef.current.style.left = `${x - 75}px`;
+      wordRef.current.style.top = `${y - 50}px`;
+    }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    setDragPos({ x: e.clientX, y: e.clientY });
+    if (!isDragging.current) return;
+    updatePosition(e.clientX, e.clientY);
 
     let hovered: string | null = null;
     if (skipRef.current) {
@@ -95,10 +115,13 @@ export default function FamilyAliasApp() {
   };
 
   const handlePointerUp = () => {
-    if (!isDragging) return;
+    if (!isDragging.current) return;
     if (activeHover === "SKIP") handleNextWord(true);
     else if (activeHover) handleNextWord(false);
-    setIsDragging(false);
+    else {
+      isDragging.current = false;
+      resetWordPosition();
+    }
     setActiveHover(null);
   };
 
@@ -107,7 +130,7 @@ export default function FamilyAliasApp() {
   const timerColor = timeLeft <= 15 ? '#ef4444' : '#ffffff';
 
   return (
-    <div style={containerStyle} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
+    <div style={containerStyle} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp}>
       <div style={safeAreaWrapper}>
         
         {step === 1 && (
@@ -162,20 +185,15 @@ export default function FamilyAliasApp() {
             <div style={wordCardArea}>
               {currentWord && (
                 <div 
+                  ref={wordRef}
                   onPointerDown={handlePointerDown}
-                  style={{
-                    ...wordItemStyle,
-                    position: isDragging ? 'fixed' : 'relative',
-                    left: isDragging ? dragPos.x - 70 : 'auto',
-                    top: isDragging ? dragPos.y - 50 : 'auto',
-                    zIndex: 1000,
-                    backgroundColor: 'rgba(255,255,255,0.05)',
-                    padding: '12px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', minWidth: '140px'
-                  }}
+                  style={wordItemStyle}
                 >
-                  {currentWord.img && <img src={`/words/${currentWord.img}`} alt="" style={wordImgStyle} />}
-                  <h1 style={{ color: 'white', fontSize: '24px', margin: '0', pointerEvents: 'none' }}>{currentWord.word}</h1>
-                  <p style={{ color: '#ffd700', fontSize: '13px', fontWeight: 'bold', pointerEvents: 'none' }}>{currentWord.en}</p>
+                  <div style={wordInnerCard}>
+                    {currentWord.img && <img src={`/words/${currentWord.img}`} alt="" style={wordImgStyle} />}
+                    <h1 style={{ color: 'white', fontSize: '24px', margin: '0', pointerEvents: 'none' }}>{currentWord.word}</h1>
+                    <p style={{ color: '#ffd700', fontSize: '13px', fontWeight: 'bold', pointerEvents: 'none' }}>{currentWord.en}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -230,6 +248,7 @@ const timerDisplay: CSSProperties = { fontSize: '56px', fontWeight: 'bold', text
 const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', width: '100%', padding: '16px', borderRadius: '16px', border: '3px solid #ef4444', color: 'white', fontWeight: 'bold', cursor: 'pointer' };
 const wordCardArea: CSSProperties = { flex: 0.8, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' };
 const wordItemStyle: CSSProperties = { cursor: 'pointer', touchAction: 'none', userSelect: 'none', textAlign: 'center' };
+const wordInnerCard: CSSProperties = { backgroundColor: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.1)', minWidth: '140px' };
 const wordImgStyle: CSSProperties = { width: '60px', height: '60px', marginBottom: '5px', objectFit: 'contain', pointerEvents: 'none' };
 const guessersBox: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '8px' };
 const guesserButton: CSSProperties = { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '15px', border: '2px solid transparent', cursor: 'pointer' };
