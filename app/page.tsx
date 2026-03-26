@@ -17,18 +17,18 @@ export default function FamilyAliasApp() {
 
   return (
     <div style={containerStyle}>
-      <div style={contentWrapper}>
+      <div style={safeAreaWrapper}>
         
         {step === 1 && (
-          <div style={stepOneLayout}>
-            {/* לוגו ממורכז ומוקטן */}
-            <div style={logoCenterer}>
-              <div style={miniLogoArea}>
+          <div style={flexLayout}>
+            {/* מרכוז לוגו מוחלט */}
+            <div style={logoFlexBox}>
+              <div style={logoSizer}>
                 <Logo />
               </div>
             </div>
 
-            {/* כרטיס טופס */}
+            {/* כרטיס טופס מורם */}
             <div style={formCardStyle}>
               <form style={formStyle} onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
                 <input
@@ -56,12 +56,10 @@ export default function FamilyAliasApp() {
         )}
 
         {step === 2 && (
-          <div style={{ textAlign: 'center', width: '100%' }}>
-            <div style={logoCenterer}>
-               <div style={{ width: '80px' }}><Logo /></div>
-            </div>
+          <div style={flexLayout}>
+            <div style={{ width: '100px', marginBottom: '20px' }}><Logo /></div>
             <div style={formCardStyle}>
-              <h2 style={{ color: 'white' }}>שלום {name}!</h2>
+              <h2 style={{ color: 'white', margin: '0 0 10px' }}>שלום {name}!</h2>
               <button style={goldButtonStyle} onClick={() => setStep(1)}>חזרה</button>
             </div>
           </div>
@@ -71,7 +69,7 @@ export default function FamilyAliasApp() {
   );
 }
 
-// === Styles - Final Layout Fix ===
+// === Styles: Optimized for Android Chrome with Toolbar ===
 
 const containerStyle: CSSProperties = {
   display: 'flex',
@@ -85,45 +83,47 @@ const containerStyle: CSSProperties = {
   position: 'fixed'
 };
 
-const contentWrapper: CSSProperties = {
+const safeAreaWrapper: CSSProperties = {
   width: '100%',
-  maxWidth: '350px',
+  maxWidth: '360px',
+  height: '90%', // משאיר 10% מרווח בטחון מלמטה לשורת הניווט של אנדרואיד
   display: 'flex',
   flexDirection: 'column',
-  paddingTop: '8vh', // העליתי את זה עוד קצת למעלה (מ-10 ל-8)
-  paddingLeft: '20px',
-  paddingRight: '20px',
+  padding: '0 20px',
   boxSizing: 'border-box'
 };
 
-const stepOneLayout: CSSProperties = {
+const flexLayout: CSSProperties = {
+  flex: 1,
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'center', // מרכז הכל אנכית במסך הפנוי
   alignItems: 'center',
   width: '100%'
 };
 
-const logoCenterer: CSSProperties = {
+const logoFlexBox: CSSProperties = {
   width: '100%',
   display: 'flex',
   justifyContent: 'center',
-  marginBottom: '30px'
+  alignItems: 'center',
+  marginBottom: '20px'
 };
 
-const miniLogoArea: CSSProperties = {
-  width: '160px', // גודל מאוזן
-  display: 'block'
+const logoSizer: CSSProperties = {
+  width: '180px', // גודל לוגו ברור
+  display: 'flex',
+  justifyContent: 'center'
 };
 
 const formCardStyle: CSSProperties = {
   width: '100%',
   padding: '25px',
-  backgroundColor: 'rgba(17, 24, 39, 0.9)',
+  backgroundColor: 'rgba(17, 24, 39, 0.95)',
   borderRadius: '24px',
   border: '1px solid rgba(255,255,255,0.1)',
-  backdropFilter: 'blur(10px)',
   boxSizing: 'border-box',
-  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
+  boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
 };
 
 const formStyle: CSSProperties = {
@@ -155,7 +155,5 @@ const goldButtonStyle: CSSProperties = {
   fontWeight: 'bold',
   fontSize: '18px',
   border: 'none',
-  marginTop: '10px',
-  cursor: 'pointer',
-  boxShadow: '0 4px 10px rgba(212, 175, 55, 0.2)'
+  cursor: 'pointer'
 };
