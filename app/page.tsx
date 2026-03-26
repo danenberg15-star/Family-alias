@@ -3,23 +3,43 @@
 import { useState, useEffect, CSSProperties, useRef } from "react";
 import Logo from "./components/Logo";
 
-type WordEntry = { word: string; en: string };
-const WORD_DATABASE = [
-  { word: "כַּדּוּר", en: "Ball" }, { word: "מָטוֹס", en: "Airplane" }, 
-  { word: "מַחְשֵׁב", en: "Computer" }, { word: "הַשְׁרָאָה", en: "Inspiration" }
-];
+const WORD_DATABASE = {
+  KIDS: [
+    { word: "פָּרָה", en: "Cow", img: "cow.png" },
+    { word: "גִּ'ירָפָה", en: "Giraffe", img: "giraffe.png" },
+    { word: "כֶּלֶב", en: "Dog", img: "dog.png" },
+    { word: "תּוּכִּי", en: "Parrot", img: "parrot.png" },
+    { word: "פִּיל", en: "Elephant", img: "elephant.png" },
+    { word: "צָב", en: "Turtle", img: "turtle.png" },
+    { word: "קוֹף", en: "Monkey", img: "monkey.png" },
+    { word: "פַּרְפַּר", en: "Butterfly", img: "butterfly.png" },
+    { word: "סוּס", en: "Horse", img: "horse.png" },
+    { word: "תַּרְנְגוֹלֶת", en: "Chicken", img: "chicken.png" }
+  ],
+  JUNIOR: [
+    { word: "מָטוֹס", en: "Airplane" }, { word: "מַחְשֵׁב", en: "Computer" },
+    { word: "פִּיצָה", en: "Pizza" }, { word: "סֵפֶר", en: "Book" }
+  ],
+  TEEN: [
+    { word: "הַשְׁרָאָה", en: "Inspiration" }, { word: "תַּרְבּוּת", en: "Culture" },
+    { word: "טֶכְנוֹלוֹגְיָה", en: "Technology" }, { word: "מוּזִיקָה", en: "Music" }
+  ],
+  ADULT: [
+    { word: "אַלְתְּרוּאִיזְם", en: "Altruism" }, { word: "פָּרָדִיגְמָה", en: "Paradigm" },
+    { word: "דִּיסוֹנַנְס", en: "Dissonance" }, { word: "קונסנזוס", en: "Consensus" }
+  ]
+};
 
 export default function FamilyAliasApp() {
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState(1); 
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
+  const [gameWords, setGameWords] = useState<any[]>([]);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isPaused, setIsPaused] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
-  
-  // לוגיקת גרירה מיידית
   const [isDragging, setIsDragging] = useState(false);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [activePlayerHover, setActivePlayerHover] = useState<string | null>(null);
@@ -39,12 +59,43 @@ export default function FamilyAliasApp() {
 
   if (!mounted) return null;
 
-  const players = [name, "אבא", "אמא", "יעל"];
-  const currentWord = WORD_DATABASE[currentWordIndex % WORD_DATABASE.length];
+  const generateGameWords = (selectedGroup: keyof typeof WORD_DATABASE) => {
+    const currentPool = [...WORD_DATABASE[selectedGroup]];
+    let finalPool = [];
+    const order: (keyof typeof WORD_DATABASE)[] = ["KIDS", "JUNIOR", "TEEN", "ADULT"];
+    const currentIndex = order.indexOf(selectedGroup);
 
-  // פונקציות גרירה מהירות (Touch/Pointer)
+    if (currentIndex > 0) {
+      const lowerGroup = order[currentIndex - 1];
+      const lowerPool = [...WORD_DATABASE[lowerGroup]];
+      for (let i = 0; i < 20; i++) {
+        finalPool.push(i % 2 === 0 ? 
+          currentPool[Math.floor(Math.random() * currentPool.length)] : 
+          lowerPool[Math.floor(Math.random() * lowerPool.length)]
+        );
+      }
+    } else {
+      finalPool = currentPool;
+    }
+    setGameWords(finalPool);
+  };
+
+  const handleEntry = (e: React.FormEvent) => {
+    e.preventDefault();
+    const n = parseInt(age);
+    let group: keyof typeof WORD_DATABASE = "ADULT";
+    if (n <= 6) group = "KIDS";
+    else if (n <= 10) group = "JUNIOR";
+    else if (n <= 16) group = "TEEN";
+    generateGameWords(group);
+    setStep(2);
+  };
+
+  const players = [name, "אבא", "אמא", "יעל"];
+  const currentWord = gameWords[currentWordIndex % gameWords.length];
+
   const startDrag = (e: React.PointerEvent) => {
-    if (isPaused) return;
+    if (isPaused || !currentWord) return;
     setIsDragging(true);
     setDragPos({ x: e.clientX, y: e.clientY });
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -53,8 +104,6 @@ export default function FamilyAliasApp() {
   const onDrag = (e: React.PointerEvent) => {
     if (!isDragging) return;
     setDragPos({ x: e.clientX, y: e.clientY });
-
-    // בדיקה מעל איזה שחקן אנחנו נמצאים (Hit Detection)
     let hovered: string | null = null;
     Object.entries(playersRef.current).forEach(([pName, el]) => {
       if (el) {
@@ -67,7 +116,7 @@ export default function FamilyAliasApp() {
     setActivePlayerHover(hovered);
   };
 
-  const endDrag = (e: React.PointerEvent) => {
+  const endDrag = () => {
     if (!isDragging) return;
     if (activePlayerHover) {
       setScore(prev => prev + 1);
@@ -75,7 +124,6 @@ export default function FamilyAliasApp() {
     }
     setIsDragging(false);
     setActivePlayerHover(null);
-    setDragPos({ x: 0, y: 0 });
   };
 
   return (
@@ -87,26 +135,12 @@ export default function FamilyAliasApp() {
           <div style={flexLayout}>
             <div style={logoFlexBox}><div style={logoSizer}><Logo /></div></div>
             <div style={formCardStyle}>
-              <form style={formStyle} onSubmit={(e) => { e.preventDefault(); setStep(2); }}>
+              <form style={formStyle} onSubmit={handleEntry}>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} placeholder="שם..." />
                 <input type="number" value={age} onChange={(e) => setAge(e.target.value)} required style={inputStyle} placeholder="גיל..." />
                 <button type="submit" style={goldButtonStyle}>המשך</button>
               </form>
             </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div style={flexLayout}>
-            <div style={logoFlexBox}><div style={{width:'100px'}}><Logo /></div></div>
-            <button onClick={() => setStep(3)} style={goldButtonStyle}>➕ צור חדר חדש</button>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div style={flexLayout}>
-            <div style={scoreCircle}>🏆 {score}</div>
-            <button onClick={() => { setTimeLeft(60); setIsPaused(false); setStep(4); }} style={goldButtonStyle}>התחל סיבוב 🏁</button>
           </div>
         )}
 
@@ -119,26 +153,32 @@ export default function FamilyAliasApp() {
             </div>
             
             <div style={wordCardArea}>
-              <div 
-                onPointerDown={startDrag}
-                onPointerMove={onDrag}
-                onPointerUp={endDrag}
-                style={{
-                  ...wordItemStyle,
-                  transform: isDragging ? `translate(${dragPos.x - dragPos.x}px, ${dragPos.y - dragPos.y}px)` : 'none',
-                  position: isDragging ? 'fixed' : 'relative',
-                  left: isDragging ? dragPos.x - 75 : 'auto',
-                  top: isDragging ? dragPos.y - 40 : 'auto',
-                  zIndex: 1000,
-                  opacity: isDragging ? 0.8 : 1,
-                  backgroundColor: isDragging ? 'rgba(79, 70, 229, 0.4)' : 'transparent',
-                  padding: '20px',
-                  borderRadius: '20px'
-                }}
-              >
-                <h1 style={{ color: 'white', fontSize: '32px', margin: '0', pointerEvents: 'none' }}>{currentWord.word}</h1>
-                <p style={{ color: '#ffd700', fontSize: '16px', fontWeight: 'bold', pointerEvents: 'none' }}>{currentWord.en}</p>
-              </div>
+              {currentWord && (
+                <div 
+                  onPointerDown={startDrag} onPointerMove={onDrag} onPointerUp={endDrag}
+                  style={{
+                    ...wordItemStyle,
+                    position: isDragging ? 'fixed' : 'relative',
+                    left: isDragging ? dragPos.x - 90 : 'auto',
+                    top: isDragging ? dragPos.y - 60 : 'auto',
+                    zIndex: 1000,
+                    opacity: isDragging ? 0.9 : 1,
+                    backgroundColor: 'rgba(255,255,255,0.03)',
+                    padding: '20px', borderRadius: '25px', border: '1px solid rgba(255,255,255,0.1)', minWidth: '180px'
+                  }}
+                >
+                  {/* הצגת תמונה אם קיימת במאגר (סעיף 12) */}
+                  {currentWord.img && (
+                    <img 
+                      src={`/words/${currentWord.img}`} 
+                      alt="" 
+                      style={{ width: '80px', height: '80px', marginBottom: '10px', objectFit: 'contain', pointerEvents: 'none' }} 
+                    />
+                  )}
+                  <h1 style={{ color: 'white', fontSize: '32px', margin: '0', pointerEvents: 'none' }}>{currentWord.word}</h1>
+                  <p style={{ color: '#ffd700', fontSize: '16px', fontWeight: 'bold', pointerEvents: 'none' }}>{currentWord.en}</p>
+                </div>
+              )}
               {isPaused && (
                 <div style={pauseOverlay}><button onClick={() => setIsPaused(false)} style={actionBtn}>▶️</button></div>
               )}
@@ -146,14 +186,11 @@ export default function FamilyAliasApp() {
 
             <div style={guessersBox}>
                {players.filter(p => p !== name).map(p => (
-                 <div 
-                    key={p} 
-                    ref={el => { playersRef.current[p] = el; }}
+                 <div key={p} ref={el => { playersRef.current[p] = el; }}
                     style={{ 
                       ...guesserRow, 
                       borderColor: activePlayerHover === p ? '#10b981' : 'rgba(255,255,255,0.1)',
-                      background: activePlayerHover === p ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.03)',
-                      transform: activePlayerHover === p ? 'scale(1.05)' : 'scale(1)'
+                      background: activePlayerHover === p ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.03)'
                     }}
                  >
                      <div style={miniAvatar}>{p[0]}</div>
@@ -161,6 +198,20 @@ export default function FamilyAliasApp() {
                  </div>
                ))}
             </div>
+          </div>
+        )}
+
+        {/* שלבים 2 ו-3 נשארים ללא שינוי מהקוד הקודם */}
+        {step === 2 && (
+          <div style={flexLayout}>
+            <div style={logoFlexBox}><div style={{width:'100px'}}><Logo /></div></div>
+            <button onClick={() => setStep(3)} style={goldButtonStyle}>➕ צור חדר חדש</button>
+          </div>
+        )}
+        {step === 3 && (
+          <div style={flexLayout}>
+            <div style={scoreCircle}>🏆 {score}</div>
+            <button onClick={() => { setTimeLeft(60); setStep(4); }} style={{...goldButtonStyle, marginTop:'20px'}}>התחל סיבוב 🏁</button>
           </div>
         )}
       </div>
@@ -183,11 +234,11 @@ const gameLayout: CSSProperties = { display: 'flex', flexDirection: 'column', he
 const gameHeader: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
 const statLabel: CSSProperties = { color: '#ffd700', fontWeight: 'bold', fontSize: '16px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '6px 15px', borderRadius: '10px' };
 const miniPauseBtn: CSSProperties = { background: 'none', border: 'none', color: '#64748b', fontSize: '20px' };
-const wordCardArea: CSSProperties = { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' };
+const wordCardArea: CSSProperties = { flex: 1.2, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' };
 const wordItemStyle: CSSProperties = { cursor: 'pointer', touchAction: 'none', userSelect: 'none', textAlign: 'center' };
 const pauseOverlay: CSSProperties = { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 8, 28, 0.9)', display: 'flex', justifyContent: 'center', alignItems: 'center', borderRadius: '20px', zIndex: 2000 };
 const actionBtn: CSSProperties = { backgroundColor: '#10b981', color: 'white', border: 'none', width: '60px', height: '60px', borderRadius: '50%', fontSize: '24px' };
-const guessersBox: CSSProperties = { flex: 1.2, display: 'flex', flexDirection: 'column', gap: '8px' };
-const guesserRow: CSSProperties = { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', borderRadius: '12px', border: '2px solid transparent', transition: '0.1s all' };
-const miniAvatar: CSSProperties = { width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' };
+const guessersBox: CSSProperties = { flex: 1.5, display: 'flex', flexDirection: 'column', gap: '10px', paddingBottom: '20px' };
+const guesserRow: CSSProperties = { display: 'flex', alignItems: 'center', gap: '15px', padding: '15px', borderRadius: '15px', border: '2px solid transparent', transition: '0.15s all' };
+const miniAvatar: CSSProperties = { width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '16px' };
 const scoreCircle: CSSProperties = { fontSize: '48px', color: '#ffd700', border: '3px solid #ffd700', width: '130px', height: '130px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
