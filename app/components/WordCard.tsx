@@ -32,48 +32,20 @@ export default function WordCard({ word, en, img, wordRef, onPointerDown }: Word
 }
 
 const cardWrapperStyle: CSSProperties = { cursor: 'pointer', touchAction: 'none', userSelect: 'none', textAlign: 'center', zIndex: 10 };
-
 const innerCardStyle: CSSProperties = { 
   backgroundColor: 'rgba(25, 30, 60, 0.9)', 
-  padding: '5px', // מינימום ריווח מהמסגרת
-  borderRadius: '20px', 
+  padding: '4px', 
+  borderRadius: '15px', 
   border: '2px solid rgba(255,255,255,0.2)', 
   display: 'inline-flex', 
   flexDirection: 'column', 
   alignItems: 'center',
-  gap: '2px', // כמעט ללא מרווח בין תמונה לטקסט
-  boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
-  overflow: 'hidden'
+  gap: '0px', 
+  boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
+  overflow: 'hidden',
+  maxWidth: '220px'
 };
-
-const imageStyle: CSSProperties = { 
-  width: '200px', 
-  height: '200px', 
-  objectFit: 'cover', 
-  pointerEvents: 'none', 
-  borderRadius: '15px 15px 5px 5px',
-  display: 'block'
-};
-
-const textContainerStyle: CSSProperties = {
-  padding: '2px 0 8px 0', // ריווח מינימלי בתחתית בלבד
-  width: '100%'
-};
-
-const wordTextStyle: CSSProperties = { 
-  color: 'white', 
-  fontSize: '28px', 
-  margin: '0', 
-  lineHeight: '1.1',
-  pointerEvents: 'none', 
-  fontWeight: 'bold' 
-};
-
-const enTextStyle: CSSProperties = { 
-  color: '#ffd700', 
-  fontSize: '15px', 
-  margin: '0',
-  fontWeight: 'bold', 
-  pointerEvents: 'none', 
-  opacity: 0.9 
-};
+const imageStyle: CSSProperties = { width: '180px', height: '180px', objectFit: 'cover', borderRadius: '12px 12px 4px 4px', display: 'block' };
+const textContainerStyle: CSSProperties = { padding: '2px 0 4px 0', width: '100%' };
+const wordTextStyle: CSSProperties = { color: 'white', fontSize: '24px', margin: '0', lineHeight: '1.1', fontWeight: 'bold' };
+const enTextStyle: CSSProperties = { color: '#ffd700', fontSize: '14px', margin: '0', fontWeight: 'bold', opacity: 0.9 };
