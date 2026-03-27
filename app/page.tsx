@@ -8,7 +8,7 @@ import { JUNIOR_WORDS } from "../data/words/junior";
 import { TEEN_WORDS } from "../data/words/teen";
 import { ADULT_WORDS } from "../data/words/adult";
 import { db } from "./lib/firebase";
-import { ref, onValue, set, update } from "firebase/database";
+import { ref, onValue, set, update, get } from "firebase/database";
 
 const WORD_DATABASE = {
   KIDS: KIDS_WORDS,
@@ -22,6 +22,7 @@ export default function FamilyAliasApp() {
   const [step, setStep] = useState(1); 
   const [gameMode, setGameMode] = useState<"SOLO" | "GROUP">("SOLO");
   const [roomID, setRoomID] = useState("");
+  const [joinID, setJoinID] = useState("");
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [players, setPlayers] = useState<{name: string, score: number}[]>([]);
@@ -43,6 +44,7 @@ export default function FamilyAliasApp() {
 
   useEffect(() => { setMounted(true); }, []);
 
+  // סנכרון Firebase
   useEffect(() => {
     if (!roomID) return;
     const roomRef = ref(db, `rooms/${roomID}`);
@@ -53,6 +55,10 @@ export default function FamilyAliasApp() {
         if (data.wordIndex !== undefined) setCurrentWordIndex(data.wordIndex);
         if (data.isPaused !== undefined) setIsPaused(data.isPaused);
         if (data.players) setPlayers(Object.values(data.players));
+        if (data.category && WORD_DATABASE[data.category as keyof typeof WORD_DATABASE]) {
+            setSelectedCategory(data.category as keyof typeof WORD_DATABASE);
+            setGameWords(WORD_DATABASE[data.category as keyof typeof WORD_DATABASE]);
+        }
       }
     });
     return () => unsubscribe();
@@ -77,31 +83,45 @@ export default function FamilyAliasApp() {
       createdAt: Date.now(),
       score: 0,
       wordIndex: 0,
-      isPaused: false
+      isPaused: false,
+      players: {}
     });
     setStep(2);
+  };
+
+  const joinRoom = async () => {
+    if (!joinID) return;
+    const id = joinID.toUpperCase();
+    const roomRef = ref(db, `rooms/${id}`);
+    const snapshot = await get(roomRef);
+    if (snapshot.exists()) {
+      setRoomID(id);
+      setGameMode("GROUP");
+      setStep(2);
+    } else {
+      alert("חדר לא נמצא!");
+    }
   };
 
   const generateGameWords = (cat: keyof typeof WORD_DATABASE) => {
     setSelectedCategory(cat);
     let pool = [...WORD_DATABASE[cat]];
-    setGameWords([...pool].sort(() => Math.random() - 0.5));
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    setGameWords(shuffled);
+    if (roomID) {
+        update(ref(db, `rooms/${roomID}`), { category: cat });
+    }
   };
 
   const handleNextWord = (isSkip = false) => {
     const newScore = isSkip ? currentScore - 1 : currentScore + 1;
     const newIndex = currentWordIndex + 1;
-    
     if (roomID) {
-      update(ref(db, `rooms/${roomID}`), {
-        score: newScore,
-        wordIndex: newIndex
-      });
+      update(ref(db, `rooms/${roomID}`), { score: newScore, wordIndex: newIndex });
     } else {
       setCurrentScore(newScore);
       setCurrentWordIndex(newIndex);
     }
-
     isDragging.current = false;
     setIsDraggingWord(false);
     setActiveHover(null);
@@ -165,22 +185,34 @@ export default function FamilyAliasApp() {
   return (
     <div style={containerStyle} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
       <div style={safeAreaWrapper}>
+        
+        {/* שלב 1: לובי משופר */}
         {step === 1 && (
           <div style={flexLayout}>
             <Logo />
-            <h1 style={{color:'white', fontSize:'24px', fontWeight:'bold'}}>ברוכים הבאים ל-Alias!</h1>
-            <div style={{display:'flex', flexDirection:'column', gap:'15px', width:'100%'}}>
-                <button onClick={() => { setGameMode("SOLO"); createRoom(); }} style={goldButtonStyle}>משחק יחידני 👤</button>
-                <button onClick={() => { setGameMode("GROUP"); setStep(2); }} style={goldButtonStyle}>משחק קבוצתי (רשת) 🌐</button>
+            <h1 style={{color:'white', fontSize:'24px', fontWeight:'bold', marginBottom:'10px'}}>Family Alias</h1>
+            <div style={formCardStyle}>
+                <button onClick={() => { setGameMode("SOLO"); createRoom(); }} style={{...goldButtonStyle, marginBottom:'15px'}}>צור חדר חדש 🏠</button>
+                <div style={{borderTop:'1px solid rgba(255,255,255,0.1)', paddingTop:'15px'}}>
+                    <input 
+                        type="text" 
+                        value={joinID} 
+                        onChange={(e) => setJoinID(e.target.value.toUpperCase())} 
+                        style={{...inputStyle, textAlign:'center', fontSize:'20px', letterSpacing:'4px'}} 
+                        placeholder="קוד חדר..." 
+                    />
+                    <button onClick={joinRoom} style={{...goldButtonStyle, marginTop:'10px', background:'linear-gradient(135deg, #10b981, #059669)'}}>הצטרף לחדר 🌐</button>
+                </div>
             </div>
           </div>
         )}
 
+        {/* שלב 2: הגדרות */}
         {step === 2 && (
           <div style={flexLayout}>
             <Logo />
             <div style={formCardStyle}>
-              <h2 style={{color:'white', textAlign:'center', marginBottom:'15px'}}>הגדרות חדר {roomID && `- ${roomID}`}</h2>
+              <h2 style={{color:'white', textAlign:'center', marginBottom:'15px'}}>קוד חדר: <span style={{color:'#ffd700'}}>{roomID}</span></h2>
               <form style={formStyle} onSubmit={(e) => {
                 e.preventDefault();
                 const ageNum = parseInt(age);
@@ -190,42 +222,56 @@ export default function FamilyAliasApp() {
               }}>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} placeholder="השם שלך..." />
                 <input type="number" value={age} onChange={(e) => setAge(e.target.value)} required style={inputStyle} placeholder="הגיל שלך..." />
-                <button type="submit" style={goldButtonStyle}>המשך לבחירת שחקנים</button>
+                <button type="submit" style={goldButtonStyle}>המשך</button>
               </form>
             </div>
           </div>
         )}
 
+        {/* שלב 5: שחקנים */}
         {step === 5 && (
           <div style={flexLayout}>
             <Logo />
             <div style={formCardStyle}>
-              <h3 style={{color:'white', textAlign:'center', marginBottom:'10px'}}>מי המנחשים בחדר?</h3>
+              <h3 style={{color:'white', textAlign:'center', marginBottom:'10px'}}>שחקנים בחדר {roomID}</h3>
               <div style={{display:'flex', gap:'5px', marginBottom:'15px'}}>
                 <input type="text" value={newPlayerName} onChange={(e) => setNewPlayerName(e.target.value)} style={inputStyle} placeholder="שם שחקן..." />
-                <button onClick={() => { if(newPlayerName) { setPlayers([...players, {name: newPlayerName, score: 0}]); setNewPlayerName(""); } }} style={{...goldButtonStyle, width:'60px'}}>+</button>
+                <button onClick={() => { 
+                    if(newPlayerName) { 
+                        const updatedPlayers = [...players, {name: newPlayerName, score: 0}];
+                        setPlayers(updatedPlayers);
+                        if(roomID) update(ref(db, `rooms/${roomID}`), { players: updatedPlayers });
+                        setNewPlayerName(""); 
+                    } 
+                }} style={{...goldButtonStyle, width:'60px'}}>+</button>
               </div>
               <div style={{display:'flex', flexDirection:'column', gap:'8px', marginBottom:'20px'}}>
                 {players.map((p, i) => (
                   <div key={i} style={playerTagStyle}>
                     <span>{p.name}</span>
-                    <button onClick={() => setPlayers(players.filter((_, idx) => idx !== i))} style={{background:'none', border:'none', color:'#ef4444'}}>✕</button>
+                    <button onClick={() => {
+                        const filtered = players.filter((_, idx) => idx !== i);
+                        setPlayers(filtered);
+                        if(roomID) update(ref(db, `rooms/${roomID}`), { players: filtered });
+                    }} style={{background:'none', border:'none', color:'#ef4444'}}>✕</button>
                   </div>
                 ))}
               </div>
-              <button disabled={players.length === 0} onClick={() => { setTimeLeft(60); setStep(3); }} style={{...goldButtonStyle, opacity: players.length === 0 ? 0.5 : 1}}>התחל משחק! 🏁</button>
+              <button disabled={players.length === 0} onClick={() => { setTimeLeft(60); setStep(3); }} style={{...goldButtonStyle, opacity: players.length === 0 ? 0.5 : 1}}>התחל!</button>
             </div>
           </div>
         )}
 
+        {/* שלב 3: משחק */}
         {step === 3 && (
           <div style={gameLayout}>
             <div style={{...timerDisplay, color: timeLeft <= 15 ? '#ef4444' : 'white'}}>00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}</div>
+            <div style={{textAlign:'center', color:'#ffd700', fontSize:'14px', marginBottom:'5px'}}>חדר: {roomID}</div>
             <div style={topGroupStyle}>
                 <div ref={skipRef} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(true); }}
                   style={{...skipButtonStyle, backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent'}}>🚫 דלג</div>
                 <div style={{...wordCardArea, minHeight: isTextOnly ? '200px' : '240px'}}>
-                  {currentWord ? <WordCard word={currentWord.word} en={currentWord.en} img={currentWord.img} wordRef={wordRef} onPointerDown={handlePointerDown} isTextOnly={isTextOnly} /> : <div style={{color:'white'}}>טוען...</div>}
+                  {currentWord ? <WordCard word={currentWord.word} en={currentWord.en} img={currentWord.img} wordRef={wordRef} onPointerDown={handlePointerDown} isTextOnly={isTextOnly} /> : <div style={{color:'white'}}>טוען מילים...</div>}
                   {isDraggingWord && <div style={{...wordCardPlaceholderStyle, height: isTextOnly ? '180px' : '223px'}}></div>}
                 </div>
                 <div style={guessersBox}>
@@ -247,15 +293,16 @@ export default function FamilyAliasApp() {
           </div>
         )}
 
+        {/* שלב 4: סיום */}
         {step === 4 && (
           <div style={flexLayout}>
             <div style={{fontSize:'80px'}}>🎊</div>
             <h1 style={{color:'white', fontSize:'32px', fontWeight:'bold'}}>כל הכבוד {name}!</h1>
             <div style={formCardStyle}>
                 <h2 style={{color:'#ffd700', textAlign:'center', fontSize:'48px'}}>{currentScore}</h2>
-                <p style={{color:'white', textAlign:'center'}}>נקודות שצברת בסיבוב הזה</p>
+                <p style={{color:'white', textAlign:'center'}}>נקודות בסיבוב הזה</p>
                 <div style={{marginTop:'20px', borderTop:'1px solid rgba(255,255,255,0.1)', paddingTop:'15px'}}>
-                    <h3 style={{color:'white', fontSize:'18px', marginBottom:'10px'}}>טבלת המנצחים:</h3>
+                    <h3 style={{color:'white', fontSize:'18px', marginBottom:'10px'}}>שחקנים:</h3>
                     {players.map((p, i) => (
                         <div key={i} style={{display:'flex', justifyContent:'space-between', color:'white', marginBottom:'5px'}}>
                             <span>{p.name}</span>
@@ -264,7 +311,7 @@ export default function FamilyAliasApp() {
                     ))}
                 </div>
             </div>
-            <button onClick={() => { setStep(1); setPlayers([]); setCurrentScore(0); }} style={goldButtonStyle}>משחק חדש 🔄</button>
+            <button onClick={() => { setStep(1); setRoomID(""); setPlayers([]); setCurrentScore(0); }} style={goldButtonStyle}>חזור להתחלה 🔄</button>
           </div>
         )}
       </div>
@@ -272,13 +319,14 @@ export default function FamilyAliasApp() {
   );
 }
 
+// Styles (נשארים זהים)
 const containerStyle: CSSProperties = { display: 'flex', justifyContent: 'center', height: '100dvh', width: '100vw', backgroundColor: '#05081c', direction: 'rtl', overflow: 'hidden', position: 'fixed', touchAction: 'none', userSelect: 'none' };
 const safeAreaWrapper: CSSProperties = { width: '100%', maxWidth: '360px', height: '100%', display: 'flex', flexDirection: 'column', padding: '5px 20px' };
 const flexLayout: CSSProperties = { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '20px' };
-const formCardStyle: CSSProperties = { width: '100%', padding: '20px', backgroundColor: 'rgba(17, 24, 39, 0.95)', borderRadius: '20px' };
+const formCardStyle: CSSProperties = { width: '100%', padding: '20px', backgroundColor: 'rgba(17, 24, 39, 0.95)', borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' };
 const formStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const inputStyle: CSSProperties = { width: '100%', padding: '12px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color: 'white' };
-const goldButtonStyle: CSSProperties = { width: '100%', padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #ffd700, #b8860b)', color: '#05081c', fontWeight: 'bold', border:'none' };
+const goldButtonStyle: CSSProperties = { width: '100%', padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #ffd700, #b8860b)', color: '#05081c', fontWeight: 'bold', border:'none', cursor:'pointer' };
 const playerTagStyle: CSSProperties = { display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 15px', backgroundColor:'rgba(255,255,255,0.05)', borderRadius:'10px', color:'white' };
 const gameLayout: CSSProperties = { display: 'flex', flexDirection: 'column', height: '100%', gap: '4px' };
 const timerDisplay: CSSProperties = { fontSize: '48px', fontWeight: 'bold', textAlign: 'center', margin: '15px 0 5px 0' };
