@@ -3,18 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Logo from "./components/Logo";
 import WordCard from "./components/WordCard"; 
-import { KIDS_WORDS } from "../data/words/kids";
-import { JUNIOR_WORDS } from "../data/words/junior";
-import { TEEN_WORDS } from "../data/words/teen";
-import { ADULT_WORDS } from "../data/words/adult";
-import { styles } from "./game.styles"; // ייבוא הסטייל החיצוני
-
-const WORD_DATABASE = {
-  KIDS: KIDS_WORDS,
-  JUNIOR: JUNIOR_WORDS,
-  TEEN: TEEN_WORDS,
-  ADULT: ADULT_WORDS
-};
+import { styles } from "./game.styles";
+import { WORD_DATABASE, CategoryType } from "./game.config";
 
 export default function FamilyAliasApp() {
   const [mounted, setMounted] = useState(false);
@@ -28,7 +18,7 @@ export default function FamilyAliasApp() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<keyof typeof WORD_DATABASE>("KIDS");
+  const [selectedCategory, setSelectedCategory] = useState<CategoryType>("KIDS");
   
   const wordRef = useRef<HTMLDivElement | null>(null);
   const playersRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -47,9 +37,9 @@ export default function FamilyAliasApp() {
 
   if (!mounted) return null;
 
-  const generateGameWords = (cat: keyof typeof WORD_DATABASE) => {
+  const generateGameWords = (cat: CategoryType) => {
     setSelectedCategory(cat);
-    let pool = [...WORD_DATABASE[cat]];
+    const pool = [...WORD_DATABASE[cat]];
     setGameWords(Array(30).fill([...pool].sort(() => Math.random() - 0.5)).flat());
   };
 
@@ -92,7 +82,7 @@ export default function FamilyAliasApp() {
       const r = skipRef.current.getBoundingClientRect();
       if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) hovered = "SKIP";
     }
-    players.forEach((pName) => {
+    ["אבא", "אמא", "יעל"].forEach((pName) => {
       const el = playersRef.current[pName];
       if (el) {
         const rect = el.getBoundingClientRect();
@@ -110,17 +100,14 @@ export default function FamilyAliasApp() {
       isDragging.current = false; 
       setIsDraggingWord(false);
       if (wordRef.current) { 
-        wordRef.current.style.position = 'relative'; 
-        wordRef.current.style.left = 'auto'; 
-        wordRef.current.style.top = 'auto'; 
+        Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
       } 
     }
     setActiveHover(null);
   };
 
-  const players = ["אבא", "אמא", "יעל"];
-  const currentWord = gameWords[currentWordIndex];
   const isTextOnly = selectedCategory === "TEEN" || selectedCategory === "ADULT";
+  const currentWord = gameWords[currentWordIndex];
 
   return (
     <div style={styles.container} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
@@ -132,7 +119,7 @@ export default function FamilyAliasApp() {
               <form style={styles.form} onSubmit={(e) => {
                 e.preventDefault();
                 const ageNum = parseInt(age);
-                const cat = ageNum <= 6 ? "KIDS" : ageNum <= 10 ? "JUNIOR" : ageNum <= 17 ? "TEEN" : "ADULT";
+                const cat: CategoryType = ageNum <= 6 ? "KIDS" : ageNum <= 10 ? "JUNIOR" : ageNum <= 17 ? "TEEN" : "ADULT";
                 generateGameWords(cat);
                 setStep(2);
               }}>
@@ -168,36 +155,19 @@ export default function FamilyAliasApp() {
             
             <div style={styles.topGroup}>
                 <div ref={skipRef} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(true); }}
-                  style={{
-                    ...styles.skipButton, 
-                    backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent',
-                    borderColor: activeHover === "SKIP" ? '#ef4444' : 'rgba(239, 68, 68, 0.6)'
-                  }}>
+                  style={{...styles.skipButton, backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent', borderColor: activeHover === "SKIP" ? '#ef4444' : 'rgba(239, 68, 68, 0.6)'}}>
                   🚫 דלג
                 </div>
 
                 <div style={{...styles.wordCardArea, minHeight: isTextOnly ? '200px' : '240px'}}>
-                  {currentWord && (
-                    <WordCard 
-                        word={currentWord.word} 
-                        en={currentWord.en} 
-                        img={currentWord.img} 
-                        wordRef={wordRef} 
-                        onPointerDown={handlePointerDown}
-                        isTextOnly={isTextOnly} 
-                    />
-                  )}
+                  {currentWord && <WordCard word={currentWord.word} en={currentWord.en} img={currentWord.img} wordRef={wordRef} onPointerDown={handlePointerDown} isTextOnly={isTextOnly} />}
                   {isDraggingWord && <div style={{...styles.wordCardPlaceholder, height: isTextOnly ? '180px' : '223px'}}></div>}
                 </div>
 
                 <div style={styles.guessersBox}>
-                    {players.map(p => (
+                    {["אבא", "אמא", "יעל"].map(p => (
                       <div key={p} ref={el => { playersRef.current[p] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
-                        style={{ 
-                          ...styles.guesserButton, 
-                          backgroundColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.03)',
-                          borderColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.1)'
-                        }}>
+                        style={{...styles.guesserButton, backgroundColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.03)', borderColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.1)'}}>
                           <div style={styles.miniAvatar}>{p[0]}</div>
                           <span style={{ color: 'white', userSelect: 'none' }}>{p}</span>
                       </div>
@@ -209,9 +179,7 @@ export default function FamilyAliasApp() {
 
             <div style={styles.gameFooter}>
               <button onClick={() => setIsPaused(true)} style={styles.modernPauseBtn}>⏸️</button>
-              <div style={styles.bottomScore}>
-                🏆 <span style={{ direction: 'ltr', display: 'inline-block' }}>{score}</span>
-              </div>
+              <div style={styles.bottomScore}>🏆 <span style={{ direction: 'ltr', display: 'inline-block' }}>{score}</span></div>
             </div>
 
             {isPaused && <div style={styles.pauseOverlay}><button onClick={() => setIsPaused(false)} style={styles.hugePlayBtn}>▶️</button></div>}
