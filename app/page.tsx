@@ -8,14 +8,16 @@ import { WORD_DATABASE, CategoryType } from "./game.config";
 
 export default function FamilyAliasApp() {
   const [mounted, setMounted] = useState(false);
-  const [step, setStep] = useState(1); // 1: כניסה, 2: לובי, 3: חדר, 4: משחק
+  const [step, setStep] = useState(1); // 1:Entry, 2:Lobby, 3:Setup, 4:Countdown, 5:Game
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [gameMode, setGameMode] = useState<"individual" | "team">("individual");
-  const [team1, setTeam1] = useState<string[]>([]);
-  const [team2, setTeam2] = useState<string[]>([]);
+  const [numTeams, setNumTeams] = useState(2);
+  const [teams, setTeams] = useState([{name: "קבוצה א'", players: []}, {name: "קבוצה ב'", players: []}, {name: "קבוצה ג'", players: []}, {name: "קבוצה ד'", players: []}]);
+  const [players, setPlayers] = useState<string[]>([]);
   
-  // מצב משחק (מנוע הגרירה היציב)
+  const [preGameTimer, setPreGameTimer] = useState(5);
+  const [startingTurn, setStartingTurn] = useState("");
   const [gameWords, setGameWords] = useState<any[]>([]);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -26,52 +28,57 @@ export default function FamilyAliasApp() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>("KIDS");
 
   const wordRef = useRef<HTMLDivElement | null>(null);
-  const playersRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const skipRef = useRef<HTMLDivElement | null>(null);
+  const targetsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const isDragging = useRef(false);
 
   useEffect(() => { setMounted(true); }, []);
 
+  // ניהול טיימרים
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    if (step === 4 && timeLeft > 0 && !isPaused) {
-      timer = setInterval(() => setTimeLeft((prev) => prev - 1), 1000);
-    } else if (timeLeft === 0 && step === 4) { setStep(1); /* או מסך סיכום */ }
+    if (step === 4 && preGameTimer > 0) {
+      timer = setInterval(() => setPreGameTimer(prev => prev - 1), 1000);
+    } else if (step === 4 && preGameTimer === 0) {
+      setStep(5);
+    } else if (step === 5 && timeLeft > 0 && !isPaused) {
+      timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    } else if (timeLeft === 0 && step === 5) {
+      setStep(1); // סיום
+    }
     return () => clearInterval(timer);
-  }, [step, timeLeft, isPaused]);
+  }, [step, preGameTimer, timeLeft, isPaused]);
 
   if (!mounted) return null;
 
-  // פונקציות ניווט ולוגיקה
   const handleEntry = (e: React.FormEvent) => {
     e.preventDefault();
-    setTeam1([name, "אבא"]);
-    setTeam2(["אמא", "יעל"]);
+    setPlayers([name, "אבא", "אמא", "יעל"]); // סימולציה של 4 שחקנים [cite: 8]
     setStep(2);
   };
 
-  const startActualGame = () => {
+  const startPreGame = () => {
     const ageNum = parseInt(age);
-    const cat: CategoryType = ageNum <= 6 ? "KIDS" : ageNum <= 10 ? "JUNIOR" : ageNum <= 17 ? "TEEN" : "ADULT";
+    const cat: CategoryType = ageNum <= 6 ? "KIDS" : ageNum <= 10 ? "JUNIOR" : ageNum <= 16 ? "TEEN" : "ADULT";
     setSelectedCategory(cat);
-    const pool = [...WORD_DATABASE[cat]];
-    setGameWords(Array(30).fill([...pool].sort(() => Math.random() - 0.5)).flat());
-    setScore(0);
-    setTimeLeft(60);
+    setGameWords([...WORD_DATABASE[cat]].sort(() => Math.random() - 0.5));
+    
+    // הגרלת תור ראשון [cite: 36]
+    const entities = gameMode === "individual" ? players : teams.slice(0, numTeams).map(t => t.name);
+    setStartingTurn(entities[Math.floor(Math.random() * entities.length)]);
+    
+    setPreGameTimer(5);
     setStep(4);
   };
 
-  const movePlayer = (playerName: string, from: "t1" | "t2") => {
-    if (from === "t1") {
-      setTeam1(team1.filter(p => p !== playerName));
-      setTeam2([...team2, playerName]);
-    } else {
-      setTeam2(team2.filter(p => p !== playerName));
-      setTeam1([...team1, playerName]);
+  const editTeamName = (index: number) => {
+    const newName = prompt("הכנס שם חדש לקבוצה:", teams[index].name);
+    if (newName) {
+      const updated = [...teams];
+      updated[index].name = newName;
+      setTeams(updated);
     }
   };
 
-  // --- מנוע הגרירה היציב (מתוך הגרסה ששמרנו) ---
   const handleNextWord = (isSkip = false) => {
     setScore(prev => isSkip ? prev - 1 : prev + 1);
     setCurrentWordIndex(prev => prev + 1);
@@ -103,15 +110,16 @@ export default function FamilyAliasApp() {
     if (!isDragging.current) return;
     updatePosition(e.clientX, e.clientY);
     let hovered: string | null = null;
-    if (skipRef.current?.getBoundingClientRect()) {
-      const r = skipRef.current.getBoundingClientRect();
-      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) hovered = "SKIP";
-    }
-    [...team1, ...team2].forEach((pName) => {
-      const el = playersRef.current[pName];
+    
+    // גרירה למעלה לדילוג [cite: 23]
+    if (e.clientY < 80) hovered = "SKIP";
+
+    const targets = gameMode === "individual" ? players : teams.slice(0, numTeams).map(t => t.name);
+    targets.forEach((tName) => {
+      const el = targetsRef.current[tName];
       if (el) {
         const rect = el.getBoundingClientRect();
-        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) hovered = pName;
+        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) hovered = tName;
       }
     });
     setActiveHover(hovered);
@@ -129,7 +137,6 @@ export default function FamilyAliasApp() {
     setActiveHover(null);
   };
 
-  const canStart = gameMode === "individual" ? (team1.length + team2.length >= 2) : (team1.length >= 2 && team2.length >= 2);
   const isTextOnly = selectedCategory === "TEEN" || selectedCategory === "ADULT";
 
   return (
@@ -165,44 +172,66 @@ export default function FamilyAliasApp() {
 
         {step === 3 && (
           <div style={{...styles.flexLayout, justifyContent:'flex-start', paddingTop:'40px'}}>
-            <button onClick={() => setStep(2)} style={{alignSelf:'flex-start', background:'none', border:'none', color:'white', fontSize:'24px'}}>✕</button>
-            <h2 style={{color:'white', marginBottom:'20px'}}>חדר: "חלון"</h2>
+            <h2 style={{color:'white', marginBottom:'20px'}}>חדר: "חלון" [cite: 14]</h2>
             <div style={{display:'flex', gap:'5px', width:'100%', backgroundColor:'rgba(255,255,255,0.05)', padding:'4px', borderRadius:'12px'}}>
               <button onClick={() => setGameMode("individual")} style={gameMode === "individual" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק אישי</button>
               <button onClick={() => setGameMode("team")} style={gameMode === "team" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק קבוצתי</button>
             </div>
 
-            <div style={{display:'flex', gap:'10px', width:'100%', marginTop:'20px'}}>
-              <div style={{flex:1, backgroundColor:'rgba(255,255,255,0.03)', padding:'10px', borderRadius:'12px'}}>
-                <p style={{color:'#ffd700', fontSize:'12px', textAlign:'center'}}>קבוצה א'</p>
-                {team1.map(p => <div key={p} onClick={() => movePlayer(p, "t1")} style={{padding:'8px', backgroundColor:'rgba(255,255,255,0.05)', borderRadius:'8px', color:'white', fontSize:'13px', marginBottom:'5px', display:'flex', justifyContent:'space-between'}}>{p} <span>⬅</span></div>)}
-              </div>
-              {gameMode === "team" && (
-                <div style={{flex:1, backgroundColor:'rgba(255,255,255,0.03)', padding:'10px', borderRadius:'12px'}}>
-                  <p style={{color:'#ffd700', fontSize:'12px', textAlign:'center'}}>קבוצה ב'</p>
-                  {team2.map(p => <div key={p} onClick={() => movePlayer(p, "t2")} style={{padding:'8px', backgroundColor:'rgba(255,255,255,0.05)', borderRadius:'8px', color:'white', fontSize:'13px', marginBottom:'5px', display:'flex', justifyContent:'space-between'}}><span>➔</span> {p}</div>)}
+            {gameMode === "team" && (
+              <div style={{marginTop:'15px', width:'100%'}}>
+                <p style={{color:'white', fontSize:'12px', textAlign:'center', marginBottom:'10px'}}>מספר קבוצות:</p>
+                <div style={{display:'flex', gap:'10px', justifyContent:'center'}}>
+                  {[2, 3, 4].map(n => (
+                    <button key={n} onClick={() => setNumTeams(n)} style={{width:'40px', height:'40px', borderRadius:'50%', border: numTeams === n ? '2px solid #ffd700' : '1px solid white', backgroundColor: numTeams === n ? '#ffd700' : 'transparent', color: numTeams === n ? 'black' : 'white'}}>{n}</button>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
+
+            <div style={gameMode === "team" ? styles.teamsGrid : {width:'100%', marginTop:'20px'}}>
+              {(gameMode === "team" ? teams.slice(0, numTeams) : [{name: "שחקנים", players}]).map((item, idx) => (
+                <div key={idx} style={styles.teamColumn}>
+                  {gameMode === "team" && (
+                    <div style={styles.teamNameWrapper}>
+                      <span style={{color:'#ffd700', fontSize:'14px'}}>{item.name}</span>
+                      <span onClick={() => editTeamName(idx)} style={styles.editIcon}>✏️</span>
+                    </div>
+                  )}
+                  {(gameMode === "team" ? item.players : players).map(p => (
+                    <div key={p} style={{padding:'6px', backgroundColor:'rgba(255,255,255,0.05)', borderRadius:'8px', color:'white', fontSize:'13px', marginBottom:'4px'}}>{p}</div>
+                  ))}
+                </div>
+              ))}
             </div>
-            <button disabled={!canStart} onClick={startActualGame} style={{...styles.goldButton, marginTop:'30px', opacity: canStart ? 1 : 0.4}}>התחל משחק 🏁</button>
+            <button onClick={startPreGame} style={{...styles.goldButton, marginTop:'30px'}}>התחל משחק 🏁</button>
           </div>
         )}
 
         {step === 4 && (
+          <div style={styles.flexLayout}>
+            <div style={styles.turnAnnouncement}>תור המנצח הראשון: [cite: 36]</div>
+            <div style={{fontSize:'32px', color:'#ffd700', fontWeight:'bold'}}>{startingTurn}</div>
+            <div style={styles.hugeTimer}>{preGameTimer}</div>
+            <div style={{color:'white', opacity:0.6}}>טוען תמונות... [cite: 9]</div>
+          </div>
+        )}
+
+        {step === 5 && (
           <div style={styles.gameLayout}>
             <div style={{...styles.timerDisplay, color: timeLeft <= 15 ? '#ef4444' : 'white'}}>00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}</div>
             <div style={styles.topGroup}>
-              <div ref={skipRef} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(true); }} style={{...styles.skipButton, backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent'}}>🚫 דלג</div>
-              <div style={{...styles.wordCardArea, minHeight: isTextOnly ? '200px' : '240px'}}>
+              <div style={{...styles.skipButton, backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent', borderColor: activeHover === "SKIP" ? '#ef4444' : '#ef4444'}}>🚫 דלג [cite: 23]</div>
+              <div style={styles.wordCardArea}>
                 {gameWords[currentWordIndex] && <WordCard word={gameWords[currentWordIndex].word} en={gameWords[currentWordIndex].en} img={gameWords[currentWordIndex].img} wordRef={wordRef} onPointerDown={handlePointerDown} isTextOnly={isTextOnly} />}
                 {isDraggingWord && <div style={{...styles.wordCardPlaceholder, height: isTextOnly ? '180px' : '223px'}}></div>}
               </div>
               <div style={styles.guessersBox}>
-                {[...team1, ...team2].map(p => (
-                  <div key={p} ref={el => { playersRef.current[p] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
-                    style={{...styles.guesserButton, backgroundColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.03)', borderColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.1)'}}>
-                    <div style={styles.miniAvatar}>{p[0]}</div>
-                    <span style={{ color: 'white', userSelect: 'none' }}>{p}</span>
+                {(gameMode === "individual" ? players : teams.slice(0, numTeams).map(t => t.name)).map(tName => (
+                  <div key={tName} ref={el => { targetsRef.current[tName] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
+                    style={{...styles.guesserButton, backgroundColor: activeHover === tName ? '#10b981' : 'rgba(255,255,255,0.03)', borderColor: activeHover === tName ? '#10b981' : 'rgba(255,255,255,0.1)'}}>
+                    <div style={styles.miniAvatar}>{tName[0]}</div>
+                    <span style={{ color: 'white', userSelect: 'none' }}>{tName}</span>
                   </div>
                 ))}
               </div>
