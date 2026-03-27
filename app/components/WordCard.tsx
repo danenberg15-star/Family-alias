@@ -6,13 +6,14 @@ interface WordCardProps {
   img?: string;
   wordRef: RefObject<HTMLDivElement | null>;
   onPointerDown: (e: React.PointerEvent) => void;
+  isTextOnly?: boolean; // פרופס חדש למצב טקסט בלבד
 }
 
-export default function WordCard({ word, en, img, wordRef, onPointerDown }: WordCardProps) {
+export default function WordCard({ word, en, img, wordRef, onPointerDown, isTextOnly }: WordCardProps) {
   return (
     <div ref={wordRef} onPointerDown={onPointerDown} style={cardWrapperStyle}>
-      <div style={innerCardStyle}>
-        {img && (
+      <div style={{...innerCardStyle, minHeight: isTextOnly ? '180px' : 'auto', justifyContent: isTextOnly ? 'center' : 'flex-start'}}>
+        {!isTextOnly && img && (
           <img 
             src={img.startsWith('/') ? img : `/${img}`} 
             alt={word} 
@@ -22,9 +23,9 @@ export default function WordCard({ word, en, img, wordRef, onPointerDown }: Word
             }}
           />
         )}
-        <div style={textContainerStyle}>
-          <h1 style={wordTextStyle}>{word}</h1>
-          {en && <p style={enTextStyle}>{en}</p>}
+        <div style={{...textContainerStyle, padding: isTextOnly ? '20px 10px' : '2px 0 4px 0'}}>
+          <h1 style={{...wordTextStyle, fontSize: isTextOnly ? '38px' : '24px'}}>{word}</h1>
+          {en && <p style={{...enTextStyle, fontSize: isTextOnly ? '38px' : '14px', marginTop: isTextOnly ? '15px' : '0'}}>{en}</p>}
         </div>
       </div>
     </div>
@@ -43,10 +44,10 @@ const innerCardStyle: CSSProperties = {
   gap: '0px', 
   boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
   overflow: 'hidden',
-  maxWidth: '220px',
+  width: '220px', // רוחב קבוע
   userSelect: 'none'
 };
 const imageStyle: CSSProperties = { width: '180px', height: '180px', objectFit: 'cover', borderRadius: '12px 12px 4px 4px', display: 'block' };
-const textContainerStyle: CSSProperties = { padding: '2px 0 4px 0', width: '100%' };
-const wordTextStyle: CSSProperties = { color: 'white', fontSize: '24px', margin: '0', lineHeight: '1.1', fontWeight: 'bold' };
-const enTextStyle: CSSProperties = { color: '#ffd700', fontSize: '14px', margin: '0', fontWeight: 'bold', opacity: 0.9 };
+const textContainerStyle: CSSProperties = { width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' };
+const wordTextStyle: CSSProperties = { color: 'white', margin: '0', lineHeight: '1.2', fontWeight: 'bold' };
+const enTextStyle: CSSProperties = { color: '#ffd700', margin: '0', fontWeight: 'bold', opacity: 0.9 };

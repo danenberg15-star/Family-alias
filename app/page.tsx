@@ -5,12 +5,14 @@ import Logo from "./components/Logo";
 import WordCard from "./components/WordCard"; 
 import { KIDS_WORDS } from "../data/words/kids";
 import { JUNIOR_WORDS } from "../data/words/junior";
+import { TEEN_WORDS } from "../data/words/teen";
+import { ADULT_WORDS } from "../data/words/adult";
 
 const WORD_DATABASE = {
   KIDS: KIDS_WORDS,
   JUNIOR: JUNIOR_WORDS,
-  TEEN: [{ word: "הַשְׁרָאָה", en: "Inspiration" }], 
-  ADULT: [{ word: "פָּרָדִיגְמָה", en: "Paradigm" }]
+  TEEN: TEEN_WORDS,
+  ADULT: ADULT_WORDS
 };
 
 export default function FamilyAliasApp() {
@@ -25,6 +27,7 @@ export default function FamilyAliasApp() {
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<keyof typeof WORD_DATABASE>("KIDS");
   
   const wordRef = useRef<HTMLDivElement | null>(null);
   const playersRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -45,12 +48,10 @@ export default function FamilyAliasApp() {
 
   const shuffleArray = (array: any[]) => [...array].sort(() => Math.random() - 0.5);
 
-  const generateGameWords = (selectedGroup: keyof typeof WORD_DATABASE) => {
-    const order: (keyof typeof WORD_DATABASE)[] = ["KIDS", "JUNIOR", "TEEN", "ADULT"];
-    const currentIndex = order.indexOf(selectedGroup);
-    let pool = [...WORD_DATABASE[selectedGroup]];
-    let combined = currentIndex > 0 ? [...shuffleArray(pool), ...shuffleArray(WORD_DATABASE[order[currentIndex - 1]])] : shuffleArray(pool);
-    setGameWords(Array(30).fill(shuffleArray(combined)).flat());
+  const generateGameWords = (cat: keyof typeof WORD_DATABASE) => {
+    setSelectedCategory(cat);
+    let pool = [...WORD_DATABASE[cat]];
+    setGameWords(Array(30).fill(shuffleArray(pool)).flat());
   };
 
   const handleNextWord = (isSkip = false) => {
@@ -80,8 +81,8 @@ export default function FamilyAliasApp() {
 
   const updatePosition = (x: number, y: number) => {
     if (wordRef.current) { 
-      wordRef.current.style.left = `${x - 90}px`; 
-      wordRef.current.style.top = `${y - 110}px`; 
+      wordRef.current.style.left = `${x - 110}px`; 
+      wordRef.current.style.top = `${y - 90}px`; 
     }
   };
 
@@ -120,6 +121,7 @@ export default function FamilyAliasApp() {
 
   const players = [name, "אבא", "אמא", "יעל"];
   const currentWord = gameWords[currentWordIndex];
+  const isTextOnly = selectedCategory === "TEEN" || selectedCategory === "ADULT";
 
   return (
     <div style={containerStyle} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
@@ -130,7 +132,9 @@ export default function FamilyAliasApp() {
             <div style={formCardStyle}>
               <form style={formStyle} onSubmit={(e) => {
                 e.preventDefault();
-                generateGameWords(parseInt(age) <= 6 ? "KIDS" : parseInt(age) <= 10 ? "JUNIOR" : "TEEN");
+                const ageNum = parseInt(age);
+                const cat = ageNum <= 6 ? "KIDS" : ageNum <= 10 ? "JUNIOR" : ageNum <= 17 ? "TEEN" : "ADULT";
+                generateGameWords(cat);
                 setStep(2);
               }}>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} placeholder="שם..." />
@@ -167,17 +171,25 @@ export default function FamilyAliasApp() {
                 <div ref={skipRef} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(true); }}
                   style={{
                     ...skipButtonStyle, 
-                    backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent', // צבע מלא בבחירה
+                    backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent',
                     borderColor: activeHover === "SKIP" ? '#ef4444' : 'rgba(239, 68, 68, 0.6)'
                   }}>
                   🚫 דלג
                 </div>
 
-                <div style={wordCardArea}>
+                {/* wordCardArea עם גובה קבוע כדי שהשחקנים לא יקפצו */}
+                <div style={{...wordCardArea, minHeight: isTextOnly ? '200px' : '240px'}}>
                   {currentWord ? (
-                    <WordCard word={currentWord.word} en={currentWord.en} img={currentWord.img} wordRef={wordRef} onPointerDown={handlePointerDown} />
+                    <WordCard 
+                        word={currentWord.word} 
+                        en={currentWord.en} 
+                        img={currentWord.img} 
+                        wordRef={wordRef} 
+                        onPointerDown={handlePointerDown}
+                        isTextOnly={isTextOnly} 
+                    />
                   ) : <div style={{color:'white'}}>טוען...</div>}
-                  {isDraggingWord && <div style={wordCardPlaceholderStyle}></div>}
+                  {isDraggingWord && <div style={{...wordCardPlaceholderStyle, height: isTextOnly ? '180px' : '223px'}}></div>}
                 </div>
 
                 <div style={guessersBox}>
@@ -185,7 +197,7 @@ export default function FamilyAliasApp() {
                       <div key={p} ref={el => { playersRef.current[p] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
                         style={{ 
                           ...guesserButton, 
-                          backgroundColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.03)', // ירוק מלא בבחירה
+                          backgroundColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.03)',
                           borderColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.1)'
                         }}>
                           <div style={miniAvatar}>{p[0]}</div>
@@ -222,14 +234,11 @@ const goldButtonStyle: CSSProperties = { width: '100%', padding: '14px', borderR
 const gameLayout: CSSProperties = { display: 'flex', flexDirection: 'column', height: '100%', gap: '4px' };
 const timerDisplay: CSSProperties = { fontSize: '48px', fontWeight: 'bold', textAlign: 'center', margin: '15px 0 5px 0' };
 const topGroupStyle: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' };
-
-// החזרת הרוחב המקורי
 const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '12px', border: '2px solid #ef4444', color: 'white', cursor: 'pointer', fontSize: '14px', userSelect: 'none', width: '100%' };
-const wordCardArea: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0px', position: 'relative' };
+const wordCardArea: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0px', position: 'relative', width: '100%' };
 
 const wordCardPlaceholderStyle: CSSProperties = { 
-  width: '188px', 
-  height: '223px', 
+  width: '220px', 
   backgroundColor: 'transparent', 
   visibility: 'hidden' 
 };
