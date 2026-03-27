@@ -3,34 +3,138 @@
 import { useState, useEffect, CSSProperties, useRef } from "react";
 import Logo from "./components/Logo";
 
-// === כאן אתה מעדכן תמונות חדשות! פשוט תוסיף שורה לרשימה ===
+// === מאגר המילים המעודכן לפי הספריות הפיזיות שלך ===
 const KIDS_WORDS = [
-  { word: "פָּרָה", en: "Cow", img: "cow.png" },
-  { word: "גִּ'ירָפָה", en: "Giraffe", img: "giraffe.png" },
-  { word: "כֶּלֶב", en: "Dog", img: "dog.png" },
-  { word: "תּוּכִּי", en: "Parrot", img: "parrot.png" },
-  { word: "פִּיל", en: "Elephant", img: "elephant.png" },
-  { word: "צָב", en: "Turtle", img: "turtle.png" },
-  { word: "קוֹף", en: "Monkey", img: "monkey.png" },
-  { word: "פַּרְפַּר", en: "Butterfly", img: "butterfly.png" },
-  { word: "סוּס", en: "Horse", img: "horse.png" },
-  { word: "תַּרְנְגוֹלֶת", en: "Chicken", img: "chicken.png" },
-  // תוסיף כאן את התמונות החדשות שהעלית, למשל:
-  // { word: "חָתוּל", en: "Cat", img: "cat.png" },
+  { word: "נְמָלָה", en: "Ant", img: "kids/ant.png" },
+  { word: "תַּפּוּחַ", en: "Apple", img: "kids/apple.png" },
+  { word: "אַסְטְרוֹנָאוּט", en: "Astronaut", img: "kids/astronaut.png" },
+  { word: "בָּנָנָה", en: "Banana", img: "kids/banana.png" },
+  { word: "סוֹלְלָה", en: "Battery", img: "kids/battery.png" },
+  { word: "דְּבוֹרָה", en: "Bee", img: "kids/bee.png" },
+  { word: "אוֹפַנַּיִם", en: "Bicycle", img: "kids/bicycle.png" },
+  { word: "לֶחֶם", en: "Bread", img: "kids/bread.png" },
+  { word: "פַּרְפַּר", en: "Butterfly", img: "kids/butterfly.png" },
+  { word: "מַחְשֵׁבוֹן", en: "Calculator", img: "kids/calculator.png" },
+  { word: "גָּמָל", en: "Camel", img: "kids/camel.png" },
+  { word: "מְכוֹנִית", en: "Car", img: "kids/car.png" },
+  { word: "חָתוּל", en: "Cat", img: "kids/cat.png" },
+  { word: "תַּרְנְגוֹלֶת", en: "Chicken", img: "kids/chicken.png" },
+  { word: "עָנָן", en: "Cloud", img: "kids/cloud.png" },
+  { word: "תִּירָס", en: "Corn", img: "kids/corn.png" },
+  { word: "פָּרָה", en: "Cow", img: "kids/cow.png" },
+  { word: "סַרְטָן", en: "Crab", img: "kids/crab.png" },
+  { word: "מְלָפְפוֹן", en: "Cucumber", img: "kids/cucumber.png" },
+  { word: "כּוֹס", en: "Cup", img: "kids/cup.png" },
+  { word: "כֶּלֶב", en: "Dog", img: "kids/dog.png" },
+  { word: "דֶּלֶת", en: "Door", img: "kids/door.png" },
+  { word: "מַקְדֵּחָה", en: "Drill", img: "kids/drill.png" },
+  { word: "בּרווז", en: "Duck", img: "kids/duck.png" },
+  { word: "פִּיל", en: "Elephant", img: "kids/elephant.png" },
+  { word: "כַּבַּאי", en: "Firefighter", img: "kids/firefighter.png" },
+  { word: "פֶּרַח", en: "Flower", img: "kids/flower.png" },
+  { word: "מְקָרֵר", en: "Fridge", img: "kids/fridge.png" },
+  { word: "צְפַרְדֵּעַ", en: "Frog", img: "kids/frog.png" },
+  { word: "גִּ'ירָפָה", en: "Giraffe", img: "kids/giraffe.png" },
+  { word: "עֲנָבִים", en: "Grapes", img: "kids/grapes.png" },
+  { word: "דֶּשֶׁא", en: "Grass", img: "kids/grass.png" },
+  { word: "יָד", en: "Hand", img: "kids/hand.png" },
+  { word: "כּוֹבַע", en: "Hat", img: "kids/hat.png" },
+  { word: "אוֹזְנִיּוֹת", en: "Headphones", img: "kids/headphones.png" },
+  { word: "הֶלִיקוֹפְּטֶר", en: "Helicopter", img: "kids/helicopter.png" },
+  { word: "הִיפּוֹפּוֹטָם", en: "Hippopotamus", img: "kids/hippopotamus.png" },
+  { word: "סוּס", en: "Horse", img: "kids/horse.png" },
+  { word: "סֻלָּם", en: "Ladder", img: "kids/ladder.png" },
+  { word: "עָלֶה", en: "Leaf", img: "kids/leaf.png" },
+  { word: "אַרְיֵה", en: "Lion", img: "kids/lion.png" },
+  { word: "מַדַּלְיָה", en: "Medal", img: "kids/medal.png" },
+  { word: "חָלָב", en: "Milk", img: "kids/milk.png" },
+  { word: "קוֹף", en: "Monkey", img: "kids/monkey.png" },
+  { word: "יָרֵחַ", en: "Moon", img: "kids/moon.png" },
+  { word: "פִּטְרִיָּה", en: "Mushroom", img: "kids/mushroom.png" },
+  { word: "תַּפּוּז", en: "Orange", img: "kids/orange.png" },
+  { word: "יַנְשׁוּף", en: "Owl", img: "kids/owl.png" },
+  { word: "אַגָּס", en: "Pear", img: "kids/pear.png" },
+  { word: "עֵט", en: "Pen", img: "kids/pen.png" },
+  { word: "פִּלְפֵּל", en: "Pepper", img: "kids/pepper.png" },
+  { word: "אֲנָנָס", en: "Pineapple", img: "kids/pineapple.png" },
+  { word: "פִּיצָה", en: "Pizza", img: "kids/pizza.png" },
+  { word: "אַרְנָב", en: "Rabbit", img: "kids/rabbit.png" },
+  { word: "קוֹרְקִינֶט", en: "Scooter", img: "kids/scooter.png" },
+  { word: "כֶּבֶשׂ", en: "Sheep", img: "kids/sheep.png" },
+  { word: "נַעֲלַיִם", en: "Shoes", img: "kids/shoes.png" },
+  { word: "חִלָּזוֹן", en: "Snail", img: "kids/snail.png" },
+  { word: "נָחָשׁ", en: "Snake", img: "kids/snake.png" },
+  { word: "כַּדּוּרֶגֶל", en: "Soccer", img: "kids/soccer.png" },
+  { word: "אוֹהֶל", en: "Tent", img: "kids/tent.png" },
+  { word: "עַגְבָנִיָּה", en: "Tomato", img: "kids/tomato.png" },
+  { word: "טְרַקְטוֹר", en: "Tractor", img: "kids/tractor.png" },
+  { word: "רַכֶּבֶת", en: "Train", img: "kids/train.png" },
+  { word: "עֵץ", en: "Tree", img: "kids/tree.png" },
+  { word: "מַשָּׂאִית", en: "Truck", img: "kids/truck.png" },
+  { word: "צָב", en: "Turtle", img: "kids/turtle.png" },
+  { word: "שׁוֹאֵב אָבָק", en: "Vacuum Cleaner", img: "kids/vacuum_cleaner.png" },
+  { word: "זֶבְּרָה", en: "Zebra", img: "kids/zebra.png" }
+];
+
+const JUNIOR_WORDS = [
+  { word: "מַזְגָן", en: "Air Conditioner", img: "junior/air_conditioner.png" },
+  { word: "אַסְטְרוֹנָאוּט", en: "Astronaut", img: "junior/astronaut.png" },
+  { word: "כַּדּוּרֶסֶל", en: "Basketball", img: "junior/basketball.png" },
+  { word: "סוֹלְלָה", en: "Battery", img: "junior/battery.png" },
+  { word: "אוֹפַנַּיִם", en: "Bicycle", img: "junior/bicycle.png" },
+  { word: "לוּחַ", en: "Board", img: "junior/board.png" },
+  { word: "סִיר", en: "Boat", img: "junior/boat.png" },
+  { word: "גֶּשֶׁר", en: "Bridge", img: "junior/bridge.png" },
+  { word: "כֶּבֶל", en: "Cable", img: "junior/cable.png" },
+  { word: "מַחְשֵׁבוֹן", en: "Calculator", img: "junior/calculator.png" },
+  { word: "מַצְלֵמָה", en: "Camera", img: "junior/camera.png" },
+  { word: "מַצְפֵּן", en: "Compass", img: "junior/compass.png" },
+  { word: "מִדְבָּר", en: "Desert", img: "junior/desert.png" },
+  { word: "צוללן", en: "Diver", img: "junior/diver.png" },
+  { word: "מַקְדֵּחָה", en: "Drill", img: "junior/drill.png" },
+  { word: "כַּבַּאי", en: "Firefighter", img: "junior/firefighter.png" },
+  { word: "יַעַר", en: "Forest", img: "junior/forest.png" },
+  { word: "מְקָרֵר", en: "Fridge", img: "junior/fridge.png" },
+  { word: "גּלוֹבּוּס", en: "Globe", img: "junior/globe.png" },
+  { word: "פַּטִּישׁ", en: "Hammer", img: "junior/hammer.png" },
+  { word: "יָד", en: "Hand", img: "junior/hand.png" },
+  { word: "אוֹזְנִיּוֹת", en: "Headphones", img: "junior/headphones.png" },
+  { word: "הֶלִיקוֹפְּטֶר", en: "Helicopter", img: "junior/helicopter.png" },
+  { word: "מַרְקֶר", en: "Highlighter", img: "junior/highlighter.png" },
+  { word: "מַגְהֵץ", en: "Iron", img: "junior/iron.png" },
+  { word: "מָטוֹס סִילוֹן", en: "Jet", img: "junior/jet.png" },
+  { word: "קַמְקוּם חַשְׁמַלִּי", en: "Kettle", img: "junior/kettle.png" },
+  { word: "מַקְלֶדֶת", en: "Keyboard", img: "junior/keyboard.png" },
+  { word: "סֻלָּם", en: "Ladder", img: "junior/ladder.png" },
+  { word: "נּוּרָה", en: "Light Bulb", img: "junior/light_bulb.png" },
+  { word: "מַדַּלְיָה", en: "Medal", img: "junior/medal.png" },
+  { word: "עֶפְרוֹנוֹת", en: "Pencils", img: "junior/pencils.png" },
+  { word: "מַדְפֶּסֶת", en: "Printer", img: "junior/printer.png" },
+  { word: "גַּלְגִּלַּיִם", en: "Rollerblades", img: "junior/rollerblades.png" },
+  { word: "קוֹרְקִינֶט", en: "Scooter", img: "junior/scooter.png" },
+  { word: "כַּדּוּרֶגֶל", en: "Soccer", img: "junior/soccer.png" },
+  { word: "מַהְדֵּק", en: "Stapler", img: "junior/stapler.png" },
+  { word: "מִזְוָדָה", en: "Suitcase", img: "junior/suitcase.png" },
+  { word: "טֶנִיס", en: "Tennis", img: "junior/tennis.png" },
+  { word: "אוֹהֶל", en: "Tent", img: "junior/tent.png" },
+  { word: "טוֹסְטֶר", en: "Toaster", img: "junior/toaster.png" },
+  { word: "טְרַקְטוֹר", en: "Tractor", img: "junior/tractor.png" },
+  { word: "שׁוֹאֵב אָבָק", en: "Vacuum Cleaner", img: "junior/vacuum_cleaner.png" },
+  { word: "הַר גַּעַשׁ", en: "Volcano", img: "junior/volcano.png" },
+  { word: "אַרְנָק", en: "Wallet", img: "junior/wallet.png" },
+  { word: "מַפָּל", en: "Waterfall", img: "junior/waterfall.png" },
+  { word: "מַשְׁרוֹקִית", en: "Whistle", img: "junior/whistle.png" }
 ];
 
 const WORD_DATABASE = {
   KIDS: KIDS_WORDS,
-  JUNIOR: [
-    { word: "מָטוֹס", en: "Airplane" }, { word: "מַחְשֵׁב", en: "Computer" },
-    { word: "פִּיצָה", en: "Pizza" }, { word: "סֵפֶר", en: "Book" }
-  ],
+  JUNIOR: JUNIOR_WORDS,
   TEEN: [
-    { word: "הַשְׁרָאָה", en: "Inspiration" }, { word: "תַּרְבּוּת", en: "Culture" },
+    { word: "הַשְׁרָאָה", en: "Inspiration" }, { word: "תַּרְבּוּת", en: "Culture" },
     { word: "טֶכְנוֹלוֹגְיָה", en: "Technology" }
   ],
   ADULT: [
-    { word: "אַלְתְּרוּאִיזְם", en: "Altruism" }, { word: "פָּרָדִיגְמָה", en: "Paradigm" }
+    { word: "אַלְתְּרוּאִיזְם", en: "Altruism" }, { word: "פָּרָדִיגְמָה", en: "Paradigm" }
   ]
 };
 
@@ -217,19 +321,19 @@ export default function FamilyAliasApp() {
             </div>
 
             <div style={guessersBox}>
-               {players.filter(p => p !== name).map(p => (
-                 <div key={p} ref={el => { playersRef.current[p] = el; }}
+                {players.filter(p => p !== name).map(p => (
+                  <div key={p} ref={el => { playersRef.current[p] = el; }}
                     onClick={() => handleNextWord(false)}
                     style={{ 
                       ...guesserButton, 
                       borderColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.1)',
                       background: activeHover === p ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.03)'
                     }}
-                 >
-                     <div style={miniAvatar}>{p[0]}</div>
-                     <span style={{ color: 'white', fontWeight: 'bold' }}>{p}</span>
-                 </div>
-               ))}
+                  >
+                      <div style={miniAvatar}>{p[0]}</div>
+                      <span style={{ color: 'white', fontWeight: 'bold' }}>{p}</span>
+                  </div>
+                ))}
             </div>
 
             <div style={gameFooter}>
@@ -249,7 +353,7 @@ export default function FamilyAliasApp() {
   );
 }
 
-// === Styles (זהים לקוד היציב הקודם) ===
+// === Styles ===
 const containerStyle: CSSProperties = { display: 'flex', justifyContent: 'center', height: '100dvh', width: '100vw', backgroundColor: '#05081c', direction: 'rtl', overflow: 'hidden', position: 'fixed', touchAction: 'none' };
 const safeAreaWrapper: CSSProperties = { width: '100%', maxWidth: '360px', height: '100%', display: 'flex', flexDirection: 'column', padding: '10px 20px' };
 const flexLayout: CSSProperties = { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' };
