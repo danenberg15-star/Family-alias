@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import Logo from "./components/Logo";
 import WordCard from "./components/WordCard"; 
+import EntryStep from "./components/EntryStep";
+import LobbyStep from "./components/LobbyStep";
 import { styles } from "./game.styles";
 import { WORD_DATABASE, CategoryType } from "./game.config";
 
@@ -52,9 +54,10 @@ export default function FamilyAliasApp() {
 
   if (!mounted) return null;
 
-  const handleEntry = (e: React.FormEvent) => {
-    e.preventDefault();
-    const mock = [name || "אני", "אבא", "אמא", "יעל", "סבא", "סבתא", "רוני", "דן"];
+  const handleEntryComplete = (userName: string, userAge: string) => {
+    setName(userName);
+    setAge(userAge);
+    const mock = [userName || "אני", "אבא", "אמא", "יעל", "סבא", "סבתא", "רוני", "דן"];
     setPlayers(mock);
     const map: any = {};
     mock.forEach((p, i) => map[p] = (i % numTeams));
@@ -62,7 +65,6 @@ export default function FamilyAliasApp() {
     setStep(2);
   };
 
-  // גרירת שחקן בחדר (0.01 שניות)
   const handlePlayerPointerDown = (e: React.PointerEvent, pName: string) => {
     e.preventDefault();
     setTimeout(() => {
@@ -77,7 +79,6 @@ export default function FamilyAliasApp() {
     }, 10);
   };
 
-  // גרירת מילה במשחק (פונקציה שהייתה חסרה)
   const handlePointerDown = (e: React.PointerEvent) => {
     if (isPaused || !gameWords[currentWordIndex]) return;
     isDragging.current = true;
@@ -163,30 +164,13 @@ export default function FamilyAliasApp() {
     if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
   };
 
+  const isTextOnly = selectedCategory === "TEEN" || selectedCategory === "ADULT";
+
   return (
     <div style={styles.container} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
       <div style={styles.safeAreaWrapper}>
-        {step === 1 && (
-          <div style={styles.flexLayout}><Logo />
-            <div style={styles.formCard}>
-              <form onSubmit={handleEntry} style={styles.form}>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={styles.input} placeholder="שם השחקן..." />
-                <input type="number" value={age} onChange={(e) => setAge(e.target.value)} required style={styles.input} placeholder="גיל..." />
-                <button type="submit" style={styles.goldButton}>קדימה 🚀</button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div style={styles.flexLayout}><Logo />
-            <button onClick={() => setStep(3)} style={{...styles.goldButton, backgroundColor:'#4f46e5', color:'white'}}>➕ צור חדר חדש</button>
-            <div style={{marginTop: '30px', width: '100%', textAlign: 'right'}}>
-              <h3 style={{color: 'white', marginBottom: '10px'}}>חדרים פעילים:</h3>
-              <div style={styles.guesserButton}><span>🏠 חלון</span><button onClick={() => setStep(3)} style={{backgroundColor:'#10b981', color:'white', border:'none', padding:'5px 15px', borderRadius:'8px'}}>הצטרף</button></div>
-            </div>
-          </div>
-        )}
+        {step === 1 && <EntryStep onNext={handleEntryComplete} />}
+        {step === 2 && <LobbyStep onCreateRoom={() => setStep(3)} onJoinRoom={() => setStep(3)} />}
 
         {step === 3 && (
           <div style={{...styles.flexLayout, justifyContent:'flex-start', paddingTop:'20px'}}>
@@ -195,7 +179,6 @@ export default function FamilyAliasApp() {
               <button onClick={() => setGameMode("individual")} style={gameMode === "individual" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק אישי</button>
               <button onClick={() => setGameMode("team")} style={gameMode === "team" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק קבוצתי</button>
             </div>
-
             {gameMode === "team" && (
               <div style={styles.toggleRow}>
                 <span style={styles.teamLabel}>מספר הקבוצות</span>
@@ -204,7 +187,6 @@ export default function FamilyAliasApp() {
                 ))}
               </div>
             )}
-
             <div style={gameMode === "team" ? styles.teamsGrid : {width:'100%', marginTop:'15px'}}>
               {(gameMode === "team" ? teamNames.slice(0, numTeams) : ["שחקנים"]).map((tName, tIdx) => (
                 <div key={tIdx} ref={(el) => { teamsRef.current[tIdx] = el; }} style={{...styles.teamColumn, backgroundColor: activeHover === `TEAM_${tIdx}` ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)'}}>
@@ -234,7 +216,7 @@ export default function FamilyAliasApp() {
             <div style={styles.topGroup}>
               <div style={{...styles.skipButton, backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent', borderColor: '#ef4444'}}>🚫 דלג</div>
               <div style={styles.wordCardArea}>
-                {gameWords[currentWordIndex] && <WordCard word={gameWords[currentWordIndex].word} en={gameWords[currentWordIndex].en} img={gameWords[currentWordIndex].img} wordRef={wordRef} onPointerDown={handlePointerDown} isTextOnly={selectedCategory === "TEEN" || selectedCategory === "ADULT"} />}
+                {gameWords[currentWordIndex] && <WordCard word={gameWords[currentWordIndex].word} en={gameWords[currentWordIndex].en} img={gameWords[currentWordIndex].img} wordRef={wordRef} onPointerDown={handlePointerDown} isTextOnly={isTextOnly} />}
                 {isDraggingWord && <div style={{...styles.wordCardPlaceholder, height: '223px'}}></div>}
               </div>
               <div style={styles.guessersBox}>
