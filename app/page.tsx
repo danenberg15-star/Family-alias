@@ -5,6 +5,7 @@ import Logo from "./components/Logo";
 import WordCard from "./components/WordCard"; 
 import EntryStep from "./components/EntryStep";
 import LobbyStep from "./components/LobbyStep";
+import SetupStep from "./components/SetupStep";
 import { styles } from "./game.styles";
 import { WORD_DATABASE, CategoryType } from "./game.config";
 
@@ -102,6 +103,15 @@ export default function FamilyAliasApp() {
     setStep(4);
   };
 
+  const editTeamName = (idx: number) => {
+    const n = prompt("שם קבוצה חדש:", teamNames[idx]);
+    if (n) {
+      const newNames = [...teamNames];
+      newNames[idx] = n;
+      setTeamNames(newNames);
+    }
+  };
+
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) return;
     
@@ -171,36 +181,20 @@ export default function FamilyAliasApp() {
       <div style={styles.safeAreaWrapper}>
         {step === 1 && <EntryStep onNext={handleEntryComplete} />}
         {step === 2 && <LobbyStep onCreateRoom={() => setStep(3)} onJoinRoom={() => setStep(3)} />}
-
+        
         {step === 3 && (
-          <div style={{...styles.flexLayout, justifyContent:'flex-start', paddingTop:'20px'}}>
-            <h2 style={{color:'white', marginBottom:'15px'}}>חדר: חלון</h2>
-            <div style={{display:'flex', gap:'5px', width:'100%', backgroundColor:'rgba(255,255,255,0.05)', padding:'4px', borderRadius:'12px', marginBottom:'10px'}}>
-              <button onClick={() => setGameMode("individual")} style={gameMode === "individual" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק אישי</button>
-              <button onClick={() => setGameMode("team")} style={gameMode === "team" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק קבוצתי</button>
-            </div>
-            {gameMode === "team" && (
-              <div style={styles.toggleRow}>
-                <span style={styles.teamLabel}>מספר הקבוצות</span>
-                {[2, 3, 4].map(n => (
-                  <button key={n} onClick={() => setNumTeams(n)} style={{width:'35px', height:'35px', borderRadius:'50%', border: numTeams === n ? '2px solid #ffd700' : '1px solid white', backgroundColor: numTeams === n ? '#ffd700' : 'transparent', color: numTeams === n ? 'black' : 'white'}}>{n}</button>
-                ))}
-              </div>
-            )}
-            <div style={gameMode === "team" ? styles.teamsGrid : {width:'100%', marginTop:'15px'}}>
-              {(gameMode === "team" ? teamNames.slice(0, numTeams) : ["שחקנים"]).map((tName, tIdx) => (
-                <div key={tIdx} ref={(el) => { teamsRef.current[tIdx] = el; }} style={{...styles.teamColumn, backgroundColor: activeHover === `TEAM_${tIdx}` ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)'}}>
-                  {gameMode === "team" && <p style={{color:'#ffd700', fontSize:'13px', marginBottom:'8px'}}>{tName}</p>}
-                  {players.filter(p => gameMode === "individual" || playerTeamMap[p] === tIdx).map(p => (
-                    <div key={p} onPointerDown={(e) => handlePlayerPointerDown(e, p)} style={{...styles.playerTag, opacity: draggingPlayer === p ? 0.3 : 1}}>{p}</div>
-                  ))}
-                </div>
-              ))}
-            </div>
-            {draggingPlayer && <div ref={dragPlayerRef} style={{...styles.playerTag, pointerEvents:'none', width:'100px'}}>{draggingPlayer}</div>}
-            <button onClick={startPreGame} style={{...styles.goldButton, marginTop:'20px'}}>התחל משחק 🏁</button>
-          </div>
+          <SetupStep 
+            gameMode={gameMode} setGameMode={setGameMode}
+            numTeams={numTeams} setNumTeams={setNumTeams}
+            teamNames={teamNames} editTeamName={editTeamName}
+            players={players} playerTeamMap={playerTeamMap}
+            onPlayerPointerDown={handlePlayerPointerDown}
+            activeHover={activeHover} teamsRef={teamsRef}
+            onStart={startPreGame}
+          />
         )}
+
+        {draggingPlayer && <div ref={dragPlayerRef} style={{...styles.playerTag, pointerEvents:'none', width:'100px'}}>{draggingPlayer}</div>}
 
         {step === 4 && (
           <div style={styles.flexLayout}>
