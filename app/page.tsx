@@ -14,7 +14,6 @@ export default function FamilyAliasApp() {
   const [gameMode, setGameMode] = useState<"individual" | "team">("individual");
   const [numTeams, setNumTeams] = useState(2);
   
-  // סימולציית 8 שחקנים
   const [players, setPlayers] = useState<string[]>([]);
   const [teamNames, setTeamNames] = useState(["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"]);
   const [playerTeamMap, setPlayerTeamMap] = useState<{[key: string]: number}>({});
@@ -32,7 +31,7 @@ export default function FamilyAliasApp() {
 
   const wordRef = useRef<HTMLDivElement | null>(null);
   const targetsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const skipRef = useRef<HTMLDivElement | null>(null); // תיקון השגיאה מהצילום מסך
+  const skipRef = useRef<HTMLDivElement | null>(null);
   const isDragging = useRef(false);
 
   useEffect(() => { setMounted(true); }, []);
@@ -148,9 +147,9 @@ export default function FamilyAliasApp() {
 
   const isTextOnly = selectedCategory === "TEEN" || selectedCategory === "ADULT";
 
-  // לוגיקה לבדיקת תקינות התחלת משחק
+  // לוגיקת המינימום: 2 שחקנים לקבוצה
   const teamPlayerCounts = teamNames.slice(0, numTeams).map((_, i) => players.filter(p => playerTeamMap[p] === i).length);
-  const canStart = gameMode === "individual" ? players.length >= 2 : teamPlayerCounts.every(count => count >= 2);
+  const canStart = gameMode === "individual" ? players.length >= 2 : (players.length >= numTeams * 2 && teamPlayerCounts.every(count => count >= 2));
 
   return (
     <div style={styles.container} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
@@ -182,7 +181,7 @@ export default function FamilyAliasApp() {
 
         {step === 3 && (
           <div style={{...styles.flexLayout, justifyContent:'flex-start', paddingTop:'20px'}}>
-            <h2 style={{color:'white', marginBottom:'15px'}}>חדר: "חלון"</h2>
+            <h2 style={{color:'white', marginBottom:'15px'}}>חדר: חלון</h2>
             <div style={{display:'flex', gap:'5px', width:'100%', backgroundColor:'rgba(255,255,255,0.05)', padding:'4px', borderRadius:'12px'}}>
               <button onClick={() => setGameMode("individual")} style={gameMode === "individual" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק אישי</button>
               <button onClick={() => setGameMode("team")} style={gameMode === "team" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק קבוצתי</button>
@@ -217,6 +216,7 @@ export default function FamilyAliasApp() {
               ))}
             </div>
             <button disabled={!canStart} onClick={startPreGame} style={{...styles.goldButton, marginTop:'20px', opacity: canStart ? 1 : 0.4}}>התחל משחק 🏁</button>
+            {!canStart && gameMode === "team" && <p style={{color:'#ef4444', fontSize:'11px', marginTop:'10px'}}>חובה לפחות 2 שחקנים בכל קבוצה</p>}
           </div>
         )}
 
