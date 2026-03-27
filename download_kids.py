@@ -7,9 +7,8 @@ API_KEY = '55198187-ed108d21348c5cd70a52ac7cc'
 OUTPUT_DIR = "public/words/kids"
 IMAGE_STYLE = "photo" 
 
-# רשימת 100 מילים מדויקת לקבוצת KIDS (גילאי 3-6)
+# רשימה מלאה של 102 מילים (כולל ספר ותוכי)
 words_map = {
-    # חיות (1-40)
     "dog": "dog", "cat": "cat", "elephant": "elephant", "lion": "lion", 
     "tiger": "tiger", "monkey": "monkey", "giraffe": "giraffe", "zebra": "zebra",
     "cow": "cow", "horse": "horse", "sheep": "sheep", "pig": "pig",
@@ -19,9 +18,9 @@ words_map = {
     "bear": "teddy bear", "penguin": "penguin", "dolphin": "dolphin", "whale": "whale",
     "shark": "shark", "owl": "owl", "mouse": "mouse animal", "camel": "camel",
     "hippopotamus": "hippo", "kangaroo": "kangaroo", "crocodile": "crocodile",
-    "deer": "deer", "squirrel": "squirrel", "crab": "crab", "octopus": "octopus", "snail": "snail",
+    "deer": "deer", "squirrel": "squirrel", "crab": "crab", "octopus": "octopus", 
+    "snail": "snail", "parrot": "parrot", "book": "book",
 
-    # פירות וירקות (41-70)
     "apple": "red apple", "banana": "banana", "orange": "orange fruit", 
     "strawberry": "strawberry", "grapes": "grapes", "watermelon": "watermelon",
     "pineapple": "pineapple", "lemon": "lemon", "carrot": "carrot",
@@ -32,7 +31,6 @@ words_map = {
     "avocado": "avocado", "onion": "onion", "garlic": "garlic", "pepper": "bell pepper",
     "mushroom": "mushroom", "cookie": "cookie", "ice_cream": "ice cream", "pizza": "pizza slice",
 
-    # חפצים, בית וטבע (71-100)
     "chair": "chair", "table": "table", "bed": "bed", "door": "door",
     "window": "window", "house": "house", "car": "car", "truck": "toy truck",
     "ball": "colorful ball", "doll": "doll", "train": "toy train", "plane": "airplane",
@@ -50,15 +48,15 @@ counter = 0
 for en, query in words_map.items():
     file_path = os.path.join(OUTPUT_DIR, f"{en}.png")
     
+    # מוריד רק אם הקובץ לא קיים
     if os.path.exists(file_path):
         continue
 
-    # הגבלת Pixabay (מכסה של 100 לדקה)
     if counter > 0 and counter % 90 == 0:
-        print("⏳ הגענו ל-90 תמונות. מחכים דקה למניעת חסימה...")
+        print("⏳ מחכים דקה למניעת חסימה...")
         time.sleep(65)
 
-    print(f"🔎 Downloading ({counter+1}/100): {en}...")
+    print(f"🔎 Downloading ({counter+1}): {en}...")
     url = f"https://pixabay.com/api/?key={API_KEY}&q={query}&image_type={IMAGE_STYLE}&safesearch=true&per_page=3"
     
     try:
@@ -73,8 +71,8 @@ for en, query in words_map.items():
         else:
             print(f"❌ No results for {en}")
     except Exception as e:
-        print(f"⚠️ Error with {en}: {e}")
+        print(f"⚠️ Error: {e}")
     
     time.sleep(0.3)
 
-print(f"\n🎉 הסתיים! הורדו {counter} תמונות לתיקיית kids.")
+print(f"\n🎉 הסתיים!")
