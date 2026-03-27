@@ -177,7 +177,6 @@ export default function FamilyAliasApp() {
                   🚫 דלג
                 </div>
 
-                {/* wordCardArea עם גובה קבוע כדי שהשחקנים לא יקפצו */}
                 <div style={{...wordCardArea, minHeight: isTextOnly ? '200px' : '240px'}}>
                   {currentWord ? (
                     <WordCard 
@@ -238,7 +237,8 @@ const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', 
 const wordCardArea: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0px', position: 'relative', width: '100%' };
 
 const wordCardPlaceholderStyle: CSSProperties = { 
-  width: '220px', 
+  // === שינוי כאן: הרוחב עכשיו 100% כדי להתאים לכרטיס החדש ===
+  width: '100%', 
   backgroundColor: 'transparent', 
   visibility: 'hidden' 
 };

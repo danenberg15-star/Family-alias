@@ -6,7 +6,7 @@ interface WordCardProps {
   img?: string;
   wordRef: RefObject<HTMLDivElement | null>;
   onPointerDown: (e: React.PointerEvent) => void;
-  isTextOnly?: boolean; // פרופס חדש למצב טקסט בלבד
+  isTextOnly?: boolean;
 }
 
 export default function WordCard({ word, en, img, wordRef, onPointerDown, isTextOnly }: WordCardProps) {
@@ -32,7 +32,8 @@ export default function WordCard({ word, en, img, wordRef, onPointerDown, isText
   );
 }
 
-const cardWrapperStyle: CSSProperties = { cursor: 'pointer', touchAction: 'none', userSelect: 'none', textAlign: 'center', zIndex: 10 };
+const cardWrapperStyle: CSSProperties = { cursor: 'pointer', touchAction: 'none', userSelect: 'none', textAlign: 'center', zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' };
+
 const innerCardStyle: CSSProperties = { 
   backgroundColor: 'rgba(25, 30, 60, 0.9)', 
   padding: '4px', 
@@ -44,9 +45,12 @@ const innerCardStyle: CSSProperties = {
   gap: '0px', 
   boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
   overflow: 'hidden',
-  width: '220px', // רוחב קבוע
+  // === שינוי כאן: הרוחב עכשיו 100% כדי להתאים לכפתורים ===
+  width: '100%', 
+  maxWidth: '100%', 
   userSelect: 'none'
 };
+
 const imageStyle: CSSProperties = { width: '180px', height: '180px', objectFit: 'cover', borderRadius: '12px 12px 4px 4px', display: 'block' };
 const textContainerStyle: CSSProperties = { width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' };
 const wordTextStyle: CSSProperties = { color: 'white', margin: '0', lineHeight: '1.2', fontWeight: 'bold' };
