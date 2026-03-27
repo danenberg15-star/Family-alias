@@ -77,6 +77,7 @@ export default function FamilyAliasApp() {
 
   const updatePosition = (x: number, y: number) => {
     if (wordRef.current) { 
+      // נשמור על אותו גודל כרטיס ונקודת גרירה
       wordRef.current.style.left = `${x - 90}px`; 
       wordRef.current.style.top = `${y - 110}px`; 
     }
@@ -154,32 +155,42 @@ export default function FamilyAliasApp() {
         )}
 
         {step === 4 && (
+          // gameLayout משמש עכשיו כמיכל ראשי עם flex-column ו-height: 100%
           <div style={gameLayout}>
+            
+            {/* הטיימר נשאר למעלה, מחוץ לקבוצה הצמודה */}
             <div style={{...timerDisplay, color: timeLeft <= 15 ? '#ef4444' : 'white'}}>
               00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
             </div>
-            
-            <div ref={skipRef} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(true); }}
-              style={{...skipButtonStyle, backgroundColor: activeHover === "SKIP" ? 'rgba(239, 68, 68, 0.4)' : 'transparent'}}>
-              🚫 דלג
+
+            {/* קבוצה צמודה: כפתור דלג, תמונה, ושחקנים - מחוברים עם gap קטן */}
+            <div style={topGroupStyle}>
+                <div ref={skipRef} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(true); }}
+                  style={{...skipButtonStyle, backgroundColor: activeHover === "SKIP" ? 'rgba(239, 68, 68, 0.4)' : 'transparent'}}>
+                  🚫 דלג
+                </div>
+
+                <div style={wordCardArea}>
+                  {currentWord ? (
+                    <WordCard word={currentWord.word} en={currentWord.en} img={currentWord.img} wordRef={wordRef} onPointerDown={handlePointerDown} />
+                  ) : <div style={{color:'white'}}>טוען...</div>}
+                </div>
+
+                <div style={guessersBox}>
+                    {players.filter(p => p !== name).map(p => (
+                      <div key={p} ref={el => { playersRef.current[p] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
+                        style={{ ...guesserButton, background: activeHover === p ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.03)' }}>
+                          <div style={miniAvatar}>{p[0]}</div>
+                          <span style={{ color: 'white' }}>{p}</span>
+                      </div>
+                    ))}
+                </div>
             </div>
 
-            <div style={wordCardArea}>
-              {currentWord ? (
-                <WordCard word={currentWord.word} en={currentWord.en} img={currentWord.img} wordRef={wordRef} onPointerDown={handlePointerDown} />
-              ) : <div style={{color:'white'}}>טוען...</div>}
-            </div>
+            {/* אלמנט ריק ש"בולע" את כל המרווח שנותר ודוחף את הניקוד למטה */}
+            <div style={{ flex: 1 }}></div>
 
-            <div style={guessersBox}>
-                {players.filter(p => p !== name).map(p => (
-                  <div key={p} ref={el => { playersRef.current[p] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
-                    style={{ ...guesserButton, background: activeHover === p ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.03)' }}>
-                      <div style={miniAvatar}>{p[0]}</div>
-                      <span style={{ color: 'white' }}>{p}</span>
-                  </div>
-                ))}
-            </div>
-
+            {/* הניקוד וההשהיה נשארים בתחתית המסך */}
             <div style={gameFooter}>
               <button onClick={() => setIsPaused(true)} style={modernPauseBtn}>⏸️</button>
               <div style={bottomScore}>
@@ -195,21 +206,38 @@ export default function FamilyAliasApp() {
   );
 }
 
+// === Styles Updated ===
 const containerStyle: CSSProperties = { display: 'flex', justifyContent: 'center', height: '100dvh', width: '100vw', backgroundColor: '#05081c', direction: 'rtl', overflow: 'hidden', position: 'fixed', touchAction: 'none' };
-const safeAreaWrapper: CSSProperties = { width: '100%', maxWidth: '360px', height: '100%', display: 'flex', flexDirection: 'column', padding: '5px 20px' };
+
+// עדכון ה-safeAreaWrapper כדי לאפשר שליטה מלאה על ה-Layout
+const safeAreaWrapper: CSSProperties = { width: '100%', maxWidth: '360px', height: '100%', display: 'flex', flexDirection: 'column', padding: '0px 20px' }; // הורדתי padding אנכי
+
 const flexLayout: CSSProperties = { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '20px' };
 const formCardStyle: CSSProperties = { width: '100%', padding: '20px', backgroundColor: 'rgba(17, 24, 39, 0.95)', borderRadius: '20px' };
 const formStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '10px' };
 const inputStyle: CSSProperties = { width: '100%', padding: '12px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white' };
 const goldButtonStyle: CSSProperties = { width: '100%', padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #ffd700, #b8860b)', color: '#05081c', fontWeight: 'bold' };
-const gameLayout: CSSProperties = { display: 'flex', flexDirection: 'column', height: '100%', gap: '4px' };
-const timerDisplay: CSSProperties = { fontSize: '48px', fontWeight: 'bold', textAlign: 'center', marginBottom: '0px' };
-const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '12px', border: '2px solid #ef4444', color: 'white', cursor: 'pointer', fontSize: '14px' };
-const wordCardArea: CSSProperties = { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5px 0' };
-const guessersBox: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '5px' };
-const guesserButton: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer' };
+
+// ה-Layout הראשי של המשחק - תופס 100% גובה
+const gameLayout: CSSProperties = { display: 'flex', flexDirection: 'column', height: '100%', paddingBottom: '0px' }; // הורדתי מרווחים למטה
+
+const timerDisplay: CSSProperties = { fontSize: '48px', fontWeight: 'bold', textAlign: 'center', margin: '15px 0 5px 0' }; // הוספתי מרווח קטן מהטיימר למטה
+
+// סגנון חדש: מאגד את כפתור הדלג, התמונה והשחקנים לקבוצה אחת צמודה
+const topGroupStyle: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }; // gap קטן מאוד בין כולם
+
+const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '12px', border: '2px solid #ef4444', color: 'white', cursor: 'pointer', fontSize: '14px', width: '100%', maxWidth: '280px' }; //maxWidth כדי שיהיה מהודק
+
+const wordCardArea: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0px' }; // הורדתי padding
+
+const guessersBox: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '5px', width: '100%', maxWidth: '280px' }; // maxWidth כמו הדלג
+
+const guesserButton: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', width: '100%' };
 const miniAvatar: CSSProperties = { width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' };
-const gameFooter: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '15px' };
+
+// ה-gameFooter נשאר צמוד לתחתית
+const gameFooter: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px', paddingLeft: '10px', paddingRight: '10px' };
+
 const bottomScore: CSSProperties = { color: '#ffd700', fontSize: '24px', fontWeight: 'bold' };
 const modernPauseBtn: CSSProperties = { background: 'rgba(255,255,255,0.1)', width: '45px', height: '45px', borderRadius: '12px', border: 'none', color: 'white' };
 const pauseOverlay: CSSProperties = { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 8, 28, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 3000 };
