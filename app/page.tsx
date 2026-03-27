@@ -24,9 +24,8 @@ export default function FamilyAliasApp() {
   const [isPaused, setIsPaused] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [activeHover, setActiveHover] = useState<string | null>(null);
-  
-  // State למניעת קפיצת השחקנים
   const [isDraggingWord, setIsDraggingWord] = useState(false);
+  
   const wordRef = useRef<HTMLDivElement | null>(null);
   const playersRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const skipRef = useRef<HTMLDivElement | null>(null);
@@ -166,7 +165,11 @@ export default function FamilyAliasApp() {
             
             <div style={topGroupStyle}>
                 <div ref={skipRef} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(true); }}
-                  style={{...skipButtonStyle, backgroundColor: activeHover === "SKIP" ? 'rgba(239, 68, 68, 0.4)' : 'transparent'}}>
+                  style={{
+                    ...skipButtonStyle, 
+                    backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent', // צבע מלא בבחירה
+                    borderColor: activeHover === "SKIP" ? '#ef4444' : 'rgba(239, 68, 68, 0.6)'
+                  }}>
                   🚫 דלג
                 </div>
 
@@ -174,15 +177,17 @@ export default function FamilyAliasApp() {
                   {currentWord ? (
                     <WordCard word={currentWord.word} en={currentWord.en} img={currentWord.img} wordRef={wordRef} onPointerDown={handlePointerDown} />
                   ) : <div style={{color:'white'}}>טוען...</div>}
-                  
-                  {/* Placeholder למניעת הקפיצה */}
                   {isDraggingWord && <div style={wordCardPlaceholderStyle}></div>}
                 </div>
 
                 <div style={guessersBox}>
                     {players.filter(p => p !== name).map(p => (
                       <div key={p} ref={el => { playersRef.current[p] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
-                        style={{ ...guesserButton, background: activeHover === p ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255,255,255,0.03)' }}>
+                        style={{ 
+                          ...guesserButton, 
+                          backgroundColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.03)', // ירוק מלא בבחירה
+                          borderColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.1)'
+                        }}>
                           <div style={miniAvatar}>{p[0]}</div>
                           <span style={{ color: 'white', userSelect: 'none' }}>{p}</span>
                       </div>
@@ -217,7 +222,9 @@ const goldButtonStyle: CSSProperties = { width: '100%', padding: '14px', borderR
 const gameLayout: CSSProperties = { display: 'flex', flexDirection: 'column', height: '100%', gap: '4px' };
 const timerDisplay: CSSProperties = { fontSize: '48px', fontWeight: 'bold', textAlign: 'center', margin: '15px 0 5px 0' };
 const topGroupStyle: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' };
-const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '12px', border: '2px solid #ef4444', color: 'white', cursor: 'pointer', fontSize: '14px', userSelect: 'none' };
+
+// החזרת הרוחב המקורי
+const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '12px', border: '2px solid #ef4444', color: 'white', cursor: 'pointer', fontSize: '14px', userSelect: 'none', width: '100%' };
 const wordCardArea: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0px', position: 'relative' };
 
 const wordCardPlaceholderStyle: CSSProperties = { 
@@ -227,8 +234,8 @@ const wordCardPlaceholderStyle: CSSProperties = {
   visibility: 'hidden' 
 };
 
-const guessersBox: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '5px' };
-const guesserButton: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', userSelect: 'none' };
+const guessersBox: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '5px', width: '100%' };
+const guesserButton: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', userSelect: 'none', width: '100%' };
 const miniAvatar: CSSProperties = { width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px', userSelect: 'none' };
 const gameFooter: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '15px' };
 const bottomScore: CSSProperties = { color: '#ffd700', fontSize: '24px', fontWeight: 'bold' };
