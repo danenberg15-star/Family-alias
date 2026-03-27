@@ -31,7 +31,6 @@ export default function FamilyAliasApp() {
 
   const wordRef = useRef<HTMLDivElement | null>(null);
   const targetsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const skipRef = useRef<HTMLDivElement | null>(null);
   const isDragging = useRef(false);
 
   useEffect(() => { setMounted(true); }, []);
@@ -52,38 +51,30 @@ export default function FamilyAliasApp() {
 
   const handleEntry = (e: React.FormEvent) => {
     e.preventDefault();
-    const mockPlayers = [name || "אני", "אבא", "אמא", "יעל", "סבא", "סבתא", "רוני", "דן"];
-    setPlayers(mockPlayers);
-    const initialMap: any = {};
-    mockPlayers.forEach((p, i) => initialMap[p] = (i % numTeams));
-    setPlayerTeamMap(initialMap);
+    const mock = [name || "אני", "אבא", "אמא", "יעל", "סבא", "סבתא", "רוני", "דן"];
+    setPlayers(mock);
+    const map: any = {};
+    mock.forEach((p, i) => map[p] = (i % numTeams));
+    setPlayerTeamMap(map);
     setStep(2);
   };
 
-  const movePlayer = (pName: string) => {
-    setPlayerTeamMap(prev => ({
-      ...prev,
-      [pName]: (prev[pName] + 1) % numTeams
-    }));
+  // לוגיקת גרירת שחקן בתוך החדר
+  const handlePlayerDragStart = (e: React.DragEvent, pName: string) => {
+    e.dataTransfer.setData("playerName", pName);
   };
 
-  const editTeamName = (idx: number) => {
-    const n = prompt("שם קבוצה חדש:", teamNames[idx]);
-    if (n) {
-      const newNames = [...teamNames];
-      newNames[idx] = n;
-      setTeamNames(newNames);
-    }
+  const handlePlayerDrop = (e: React.DragEvent, teamIdx: number) => {
+    const pName = e.dataTransfer.getData("playerName");
+    setPlayerTeamMap(prev => ({ ...prev, [pName]: teamIdx }));
   };
 
   const startPreGame = () => {
-    const ageNum = parseInt(age);
-    const cat: CategoryType = ageNum <= 6 ? "KIDS" : ageNum <= 10 ? "JUNIOR" : ageNum <= 16 ? "TEEN" : "ADULT";
+    const cat: CategoryType = parseInt(age) <= 6 ? "KIDS" : parseInt(age) <= 10 ? "JUNIOR" : parseInt(age) <= 16 ? "TEEN" : "ADULT";
     setSelectedCategory(cat);
     setGameWords([...WORD_DATABASE[cat]].sort(() => Math.random() - 0.5));
-    
-    const randomPlayer = players[Math.floor(Math.random() * players.length)];
-    setTurnInfo({ name: randomPlayer, team: teamNames[playerTeamMap[randomPlayer]] });
+    const randomP = players[Math.floor(Math.random() * players.length)];
+    setTurnInfo({ name: randomP, team: teamNames[playerTeamMap[randomP]] });
     setPreGameTimer(5);
     setStep(4);
   };
@@ -91,39 +82,25 @@ export default function FamilyAliasApp() {
   const handleNextWord = (isSkip = false) => {
     setScore(prev => isSkip ? prev - 1 : prev + 1);
     setCurrentWordIndex(prev => prev + 1);
-    isDragging.current = false;
-    setIsDraggingWord(false);
-    setActiveHover(null);
+    isDragging.current = false; setIsDraggingWord(false); setActiveHover(null);
     if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
   };
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (isPaused || !gameWords[currentWordIndex]) return;
-    isDragging.current = true;
-    setIsDraggingWord(true);
+    isDragging.current = true; setIsDraggingWord(true);
     if (wordRef.current) { 
-      wordRef.current.style.position = 'fixed'; 
-      wordRef.current.style.zIndex = '1000';
-      updatePosition(e.clientX, e.clientY); 
-    }
-  };
-
-  const updatePosition = (x: number, y: number) => {
-    if (wordRef.current) { 
-      wordRef.current.style.left = `${x - 110}px`; 
-      wordRef.current.style.top = `${y - 90}px`; 
+      wordRef.current.style.position = 'fixed'; wordRef.current.style.zIndex = '1000';
+      wordRef.current.style.left = `${e.clientX - 110}px`; wordRef.current.style.top = `${e.clientY - 90}px`;
     }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) return;
-    updatePosition(e.clientX, e.clientY);
+    if (wordRef.current) { wordRef.current.style.left = `${e.clientX - 110}px`; wordRef.current.style.top = `${e.clientY - 90}px`; }
     let h: string | null = null;
-    if (skipRef.current) {
-      const r = skipRef.current.getBoundingClientRect();
-      if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) h = "SKIP";
-    }
-    const targets = gameMode === "individual" ? players : teamNames.slice(0, numTeams);
+    if (e.clientY < 80) h = "SKIP";
+    const targets = gameMode === "individual" ? players : [turnInfo.team];
     targets.forEach((t) => {
       const el = targetsRef.current[t];
       if (el) {
@@ -138,26 +115,15 @@ export default function FamilyAliasApp() {
     if (!isDragging.current) return;
     if (activeHover === "SKIP") handleNextWord(true);
     else if (activeHover) handleNextWord(false);
-    else { 
-      isDragging.current = false; setIsDraggingWord(false);
-      if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
-    }
+    else { isDragging.current = false; setIsDraggingWord(false); if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' }); }
     setActiveHover(null);
   };
-
-  const isTextOnly = selectedCategory === "TEEN" || selectedCategory === "ADULT";
-
-  // לוגיקת המינימום: 2 שחקנים לקבוצה
-  const teamPlayerCounts = teamNames.slice(0, numTeams).map((_, i) => players.filter(p => playerTeamMap[p] === i).length);
-  const canStart = gameMode === "individual" ? players.length >= 2 : (players.length >= numTeams * 2 && teamPlayerCounts.every(count => count >= 2));
 
   return (
     <div style={styles.container} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
       <div style={styles.safeAreaWrapper}>
-        
         {step === 1 && (
-          <div style={styles.flexLayout}>
-            <Logo />
+          <div style={styles.flexLayout}><Logo />
             <div style={styles.formCard}>
               <form onSubmit={handleEntry} style={styles.form}>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={styles.input} placeholder="שם השחקן..." />
@@ -169,8 +135,7 @@ export default function FamilyAliasApp() {
         )}
 
         {step === 2 && (
-          <div style={styles.flexLayout}>
-            <Logo />
+          <div style={styles.flexLayout}><Logo />
             <button onClick={() => setStep(3)} style={{...styles.goldButton, backgroundColor:'#4f46e5', color:'white'}}>➕ צור חדר חדש</button>
             <div style={{marginTop: '30px', width: '100%', textAlign: 'right'}}>
               <h3 style={{color: 'white', marginBottom: '10px'}}>חדרים פעילים:</h3>
@@ -182,41 +147,31 @@ export default function FamilyAliasApp() {
         {step === 3 && (
           <div style={{...styles.flexLayout, justifyContent:'flex-start', paddingTop:'20px'}}>
             <h2 style={{color:'white', marginBottom:'15px'}}>חדר: חלון</h2>
-            <div style={{display:'flex', gap:'5px', width:'100%', backgroundColor:'rgba(255,255,255,0.05)', padding:'4px', borderRadius:'12px'}}>
+            <div style={{display:'flex', gap:'5px', width:'100%', backgroundColor:'rgba(255,255,255,0.05)', padding:'4px', borderRadius:'12px', marginBottom:'10px'}}>
               <button onClick={() => setGameMode("individual")} style={gameMode === "individual" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק אישי</button>
               <button onClick={() => setGameMode("team")} style={gameMode === "team" ? {flex:1, padding:'10px', backgroundColor:'#4f46e5', color:'white', border:'none', borderRadius:'10px'} : {flex:1, color:'#64748b', border:'none', background:'none'}}>משחק קבוצתי</button>
             </div>
 
             {gameMode === "team" && (
-              <div style={{marginTop:'10px', width:'100%'}}>
-                <div style={{display:'flex', gap:'10px', justifyContent:'center'}}>
-                  {[2, 3, 4].map(n => (
-                    <button key={n} onClick={() => setNumTeams(n)} style={{width:'35px', height:'35px', borderRadius:'50%', border: numTeams === n ? '2px solid #ffd700' : '1px solid white', backgroundColor: numTeams === n ? '#ffd700' : 'transparent', color: numTeams === n ? 'black' : 'white'}}>{n}</button>
-                  ))}
-                </div>
+              <div style={styles.toggleRow}>
+                <span style={styles.teamLabel}>מספר הקבוצות</span>
+                {[2, 3, 4].map(n => (
+                  <button key={n} onClick={() => setNumTeams(n)} style={{width:'35px', height:'35px', borderRadius:'50%', border: numTeams === n ? '2px solid #ffd700' : '1px solid white', backgroundColor: numTeams === n ? '#ffd700' : 'transparent', color: numTeams === n ? 'black' : 'white'}}>{n}</button>
+                ))}
               </div>
             )}
 
             <div style={gameMode === "team" ? styles.teamsGrid : {width:'100%', marginTop:'15px'}}>
               {(gameMode === "team" ? teamNames.slice(0, numTeams) : ["שחקנים"]).map((tName, tIdx) => (
-                <div key={tIdx} style={styles.teamColumn}>
-                  {gameMode === "team" && (
-                    <div style={styles.teamHeaderWrapper}>
-                      <span style={{color:'#ffd700', fontSize:'13px'}}>{tName}</span>
-                      <span onClick={() => editTeamName(tIdx)} style={styles.editIcon}>✏️</span>
-                    </div>
-                  )}
+                <div key={tIdx} style={styles.teamColumn} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handlePlayerDrop(e, tIdx)}>
+                  {gameMode === "team" && <p style={{color:'#ffd700', fontSize:'13px', marginBottom:'8px'}}>{tName}</p>}
                   {players.filter(p => gameMode === "individual" || playerTeamMap[p] === tIdx).map(p => (
-                    <div key={p} onClick={() => movePlayer(p)} style={styles.playerTag}>
-                      <span>{p}</span>
-                      {gameMode === "team" && <span style={{fontSize:'10px'}}>{playerTeamMap[p] === numTeams - 1 ? '⬅️' : '➔'}</span>}
-                    </div>
+                    <div key={p} draggable onDragStart={(e) => handlePlayerDragStart(e, p)} style={styles.playerTag}>{p}</div>
                   ))}
                 </div>
               ))}
             </div>
-            <button disabled={!canStart} onClick={startPreGame} style={{...styles.goldButton, marginTop:'20px', opacity: canStart ? 1 : 0.4}}>התחל משחק 🏁</button>
-            {!canStart && gameMode === "team" && <p style={{color:'#ef4444', fontSize:'11px', marginTop:'10px'}}>חובה לפחות 2 שחקנים בכל קבוצה</p>}
+            <button onClick={startPreGame} style={{...styles.goldButton, marginTop:'20px'}}>התחל משחק 🏁</button>
           </div>
         )}
 
@@ -232,23 +187,23 @@ export default function FamilyAliasApp() {
           <div style={styles.gameLayout}>
             <div style={{...styles.timerDisplay, color: timeLeft <= 15 ? '#ef4444' : 'white'}}>00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}</div>
             <div style={styles.topGroup}>
-              <div ref={skipRef} style={{...styles.skipButton, backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent', borderColor: '#ef4444'}}>🚫 דלג</div>
+              <div style={{...styles.skipButton, backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent', borderColor: '#ef4444'}}>🚫 דלג</div>
               <div style={styles.wordCardArea}>
-                {gameWords[currentWordIndex] && <WordCard word={gameWords[currentWordIndex].word} en={gameWords[currentWordIndex].en} img={gameWords[currentWordIndex].img} wordRef={wordRef} onPointerDown={handlePointerDown} isTextOnly={isTextOnly} />}
-                {isDraggingWord && <div style={{...styles.wordCardPlaceholder, height: isTextOnly ? '180px' : '223px'}}></div>}
+                {gameWords[currentWordIndex] && <WordCard word={gameWords[currentWordIndex].word} en={gameWords[currentWordIndex].en} img={gameWords[currentWordIndex].img} wordRef={wordRef} onPointerDown={handlePointerDown} isTextOnly={selectedCategory === "TEEN" || selectedCategory === "ADULT"} />}
+                {isDraggingWord && <div style={{...styles.wordCardPlaceholder, height: '223px'}}></div>}
               </div>
               <div style={styles.guessersBox}>
-                {(gameMode === "individual" ? players : teamNames.slice(0, numTeams)).map(target => (
+                {(gameMode === "individual" ? players : [turnInfo.team]).map(target => (
                   <div key={target} ref={el => { targetsRef.current[target] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
                     style={{...styles.guesserButton, backgroundColor: activeHover === target ? '#10b981' : 'rgba(255,255,255,0.03)', borderColor: activeHover === target ? '#10b981' : 'rgba(255,255,255,0.1)'}}>
                     <div style={styles.miniAvatar}>{target[0]}</div>
-                    <span style={{ color: 'white', userSelect: 'none' }}>{target}</span>
+                    <span style={{ color: 'white' }}>{target}</span>
                   </div>
                 ))}
               </div>
             </div>
             <div style={styles.gameFooter}>
-              <div style={styles.bottomScore}>🏆 <span>{score}</span></div>
+              <div style={styles.bottomScore}>🏆 {score}</div>
               <button onClick={() => setIsPaused(true)} style={styles.modernPauseBtn}>⏸️</button>
             </div>
             {isPaused && <div style={styles.pauseOverlay}><button onClick={() => setIsPaused(false)} style={styles.hugePlayBtn}>▶️</button></div>}
