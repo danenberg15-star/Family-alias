@@ -8,11 +8,11 @@ export const styles: { [key: string]: CSSProperties } = {
   input: { width: '100%', padding: '12px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', marginBottom: '10px' },
   goldButton: { width: '100%', padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #ffd700, #b8860b)', color: '#05081c', fontWeight: 'bold', border: 'none', cursor: 'pointer' },
   
-  // הגדרות חדר וגרירת שחקנים
+  // הגדרות חדר
   toggleRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', width: '100%', marginTop: '10px' },
   teamLabel: { color: 'white', fontSize: '14px', fontWeight: 'bold' },
   teamsGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%', marginTop: '10px' },
-  teamColumn: { backgroundColor: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '12px', textAlign: 'center', minHeight: '150px', transition: 'background 0.2s' },
+  teamColumn: { backgroundColor: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '12px', textAlign: 'center', minHeight: '150px' },
   playerTag: { padding: '10px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '8px', color: 'white', fontSize: '13px', marginBottom: '5px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'grab', touchAction: 'none' },
 
   // מסך טיימר
@@ -20,15 +20,15 @@ export const styles: { [key: string]: CSSProperties } = {
   turnInfo: { color: 'white', fontSize: '20px', textAlign: 'center', marginBottom: '10px' },
   loadingText: { color: 'rgba(255,255,255,0.4)', fontSize: '12px', marginTop: '20px' },
 
-  // דף המשחק (הגרסה המושלמת)
+  // דף המשחק - צבעי הארה בוהקים
   gameLayout: { display: 'flex', flexDirection: 'column', height: '100%', gap: '4px' },
   timerDisplay: { fontSize: '48px', fontWeight: 'bold', textAlign: 'center', margin: '15px 0 5px 0' },
   topGroup: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' },
-  skipButton: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '12px', border: '2px solid #ef4444', color: 'white', cursor: 'pointer', fontSize: '14px', width: '100%' },
+  skipButton: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '10px', borderRadius: '12px', border: '2px solid #ef4444', color: 'white', cursor: 'pointer', fontSize: '14px', width: '100%', transition: 'all 0.1s' },
   wordCardArea: { display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', width: '100%', minHeight: '240px' },
   wordCardPlaceholder: { width: '100%', backgroundColor: 'transparent', visibility: 'hidden' },
   guessersBox: { display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '10px' },
-  guesserButton: { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', width: '100%' },
+  guesserButton: { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', width: '100%', transition: 'all 0.1s' },
   miniAvatar: { width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px' },
   gameFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px', marginTop: 'auto' },
   bottomScore: { color: '#ffd700', fontSize: '28px', fontWeight: 'bold' },

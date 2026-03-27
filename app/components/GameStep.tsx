@@ -7,6 +7,7 @@ interface GameStepProps {
   timeLeft: number;
   currentWord: any;
   wordRef: React.RefObject<HTMLDivElement | null>;
+  skipRef: React.RefObject<HTMLDivElement | null>; // נוסף
   onPointerDown: (e: React.PointerEvent) => void;
   isTextOnly: boolean;
   isDraggingWord: boolean;
@@ -29,10 +30,16 @@ export default function GameStep(props: GameStepProps) {
       
       <div style={styles.topGroup}>
         <div 
-          style={{...styles.skipButton, backgroundColor: props.activeHover === "SKIP" ? '#ef4444' : 'transparent', borderColor: '#ef4444'}}
+          ref={props.skipRef}
+          style={{
+            ...styles.skipButton, 
+            backgroundColor: props.activeHover === "SKIP" ? '#ef4444' : 'transparent', 
+            borderColor: '#ef4444',
+            boxShadow: props.activeHover === "SKIP" ? '0 0 15px #ef4444' : 'none' // הארה בוהקת
+          }}
           onPointerDown={() => props.onGuess(true)}
         >
-          🚫 דלג [cite: 1, 23]
+          🚫 דלג
         </div>
 
         <div style={styles.wordCardArea}>
@@ -54,7 +61,12 @@ export default function GameStep(props: GameStepProps) {
             <div 
               key={target} 
               ref={(el) => { if (props.targetsRef.current) props.targetsRef.current[target] = el; }}
-              style={{...styles.guesserButton, backgroundColor: props.activeHover === target ? '#10b981' : 'rgba(255,255,255,0.03)', borderColor: props.activeHover === target ? '#10b981' : 'rgba(255,255,255,0.1)'}}
+              style={{
+                ...styles.guesserButton, 
+                backgroundColor: props.activeHover === target ? '#10b981' : 'rgba(255,255,255,0.03)', 
+                borderColor: props.activeHover === target ? '#10b981' : 'rgba(255,255,255,0.1)',
+                boxShadow: props.activeHover === target ? '0 0 15px #10b981' : 'none' // הארה בוהקת
+              }}
             >
               <div style={styles.miniAvatar}>{target[0]}</div>
               <span style={{ color: 'white' }}>{target}</span>
@@ -64,13 +76,13 @@ export default function GameStep(props: GameStepProps) {
       </div>
 
       <div style={styles.gameFooter}>
-        <div style={styles.bottomScore}>🏆 {props.score} [cite: 1, 30, 31]</div>
-        <button onClick={props.onPause} style={styles.modernPauseBtn}>⏸️ [cite: 1, 26]</button>
+        <div style={styles.bottomScore}>🏆 {props.score}</div>
+        <button onClick={props.onPause} style={styles.modernPauseBtn}>⏸️</button>
       </div>
 
       {props.isPaused && (
         <div style={styles.pauseOverlay}>
-          <button onClick={props.onUnpause} style={styles.hugePlayBtn}>▶️ [cite: 1, 27]</button>
+          <button onClick={props.onUnpause} style={styles.hugePlayBtn}>▶️</button>
         </div>
       )}
     </div>
