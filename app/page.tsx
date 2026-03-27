@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, CSSProperties, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Logo from "./components/Logo";
 import WordCard from "./components/WordCard"; 
 import { KIDS_WORDS } from "../data/words/kids";
 import { JUNIOR_WORDS } from "../data/words/junior";
 import { TEEN_WORDS } from "../data/words/teen";
 import { ADULT_WORDS } from "../data/words/adult";
+import { styles } from "./game.styles"; // ייבוא הסטייל החיצוני
 
 const WORD_DATABASE = {
   KIDS: KIDS_WORDS,
@@ -46,12 +47,10 @@ export default function FamilyAliasApp() {
 
   if (!mounted) return null;
 
-  const shuffleArray = (array: any[]) => [...array].sort(() => Math.random() - 0.5);
-
   const generateGameWords = (cat: keyof typeof WORD_DATABASE) => {
     setSelectedCategory(cat);
     let pool = [...WORD_DATABASE[cat]];
-    setGameWords(Array(30).fill(shuffleArray(pool)).flat());
+    setGameWords(Array(30).fill([...pool].sort(() => Math.random() - 0.5)).flat());
   };
 
   const handleNextWord = (isSkip = false) => {
@@ -64,7 +63,6 @@ export default function FamilyAliasApp() {
       wordRef.current.style.position = 'relative'; 
       wordRef.current.style.left = 'auto'; 
       wordRef.current.style.top = 'auto'; 
-      wordRef.current.style.zIndex = '1';
     }
   };
 
@@ -125,61 +123,61 @@ export default function FamilyAliasApp() {
   const isTextOnly = selectedCategory === "TEEN" || selectedCategory === "ADULT";
 
   return (
-    <div style={containerStyle} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
-      <div style={safeAreaWrapper}>
+    <div style={styles.container} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp}>
+      <div style={styles.safeAreaWrapper}>
         {step === 1 && (
-          <div style={flexLayout}>
+          <div style={styles.flexLayout}>
             <Logo />
-            <div style={formCardStyle}>
-              <form style={formStyle} onSubmit={(e) => {
+            <div style={styles.formCard}>
+              <form style={styles.form} onSubmit={(e) => {
                 e.preventDefault();
                 const ageNum = parseInt(age);
                 const cat = ageNum <= 6 ? "KIDS" : ageNum <= 10 ? "JUNIOR" : ageNum <= 17 ? "TEEN" : "ADULT";
                 generateGameWords(cat);
                 setStep(2);
               }}>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={inputStyle} placeholder="שם..." />
-                <input type="number" value={age} onChange={(e) => setAge(e.target.value)} required style={inputStyle} placeholder="גיל..." />
-                <button type="submit" style={goldButtonStyle}>המשך</button>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required style={styles.input} placeholder="שם..." />
+                <input type="number" value={age} onChange={(e) => setAge(e.target.value)} required style={styles.input} placeholder="גיל..." />
+                <button type="submit" style={styles.goldButton}>המשך</button>
               </form>
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <div style={flexLayout}>
+          <div style={styles.flexLayout}>
             <Logo />
-            <button onClick={() => { setTimeLeft(60); setScore(0); setCurrentWordIndex(0); setStep(4); }} style={goldButtonStyle}>התחל משחק 🏁</button>
+            <button onClick={() => { setTimeLeft(60); setScore(0); setCurrentWordIndex(0); setStep(4); }} style={styles.goldButton}>התחל משחק 🏁</button>
           </div>
         )}
 
         {step === 3 && (
-          <div style={flexLayout}>
-            <div style={scoreCircle}>
+          <div style={styles.flexLayout}>
+            <div style={styles.scoreCircle}>
                 <span style={{ direction: 'ltr', display: 'inline-block' }}>{score}</span> 🏆
             </div>
-            <button onClick={() => setStep(2)} style={goldButtonStyle}>חזרה ללובי</button>
+            <button onClick={() => setStep(2)} style={styles.goldButton}>חזרה ללובי</button>
           </div>
         )}
 
         {step === 4 && (
-          <div style={gameLayout}>
-            <div style={{...timerDisplay, color: timeLeft <= 15 ? '#ef4444' : 'white'}}>
+          <div style={styles.gameLayout}>
+            <div style={{...styles.timerDisplay, color: timeLeft <= 15 ? '#ef4444' : 'white'}}>
               00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
             </div>
             
-            <div style={topGroupStyle}>
+            <div style={styles.topGroup}>
                 <div ref={skipRef} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(true); }}
                   style={{
-                    ...skipButtonStyle, 
+                    ...styles.skipButton, 
                     backgroundColor: activeHover === "SKIP" ? '#ef4444' : 'transparent',
                     borderColor: activeHover === "SKIP" ? '#ef4444' : 'rgba(239, 68, 68, 0.6)'
                   }}>
                   🚫 דלג
                 </div>
 
-                <div style={{...wordCardArea, minHeight: isTextOnly ? '200px' : '240px'}}>
-                  {currentWord ? (
+                <div style={{...styles.wordCardArea, minHeight: isTextOnly ? '200px' : '240px'}}>
+                  {currentWord && (
                     <WordCard 
                         word={currentWord.word} 
                         en={currentWord.en} 
@@ -188,19 +186,19 @@ export default function FamilyAliasApp() {
                         onPointerDown={handlePointerDown}
                         isTextOnly={isTextOnly} 
                     />
-                  ) : <div style={{color:'white'}}>טוען...</div>}
-                  {isDraggingWord && <div style={{...wordCardPlaceholderStyle, height: isTextOnly ? '180px' : '223px'}}></div>}
+                  )}
+                  {isDraggingWord && <div style={{...styles.wordCardPlaceholder, height: isTextOnly ? '180px' : '223px'}}></div>}
                 </div>
 
-                <div style={guessersBox}>
+                <div style={styles.guessersBox}>
                     {players.map(p => (
                       <div key={p} ref={el => { playersRef.current[p] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
                         style={{ 
-                          ...guesserButton, 
+                          ...styles.guesserButton, 
                           backgroundColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.03)',
                           borderColor: activeHover === p ? '#10b981' : 'rgba(255,255,255,0.1)'
                         }}>
-                          <div style={miniAvatar}>{p[0]}</div>
+                          <div style={styles.miniAvatar}>{p[0]}</div>
                           <span style={{ color: 'white', userSelect: 'none' }}>{p}</span>
                       </div>
                     ))}
@@ -209,40 +207,17 @@ export default function FamilyAliasApp() {
 
             <div style={{ flex: 1 }}></div>
 
-            <div style={gameFooter}>
-              <button onClick={() => setIsPaused(true)} style={modernPauseBtn}>⏸️</button>
-              <div style={bottomScore}>
+            <div style={styles.gameFooter}>
+              <button onClick={() => setIsPaused(true)} style={styles.modernPauseBtn}>⏸️</button>
+              <div style={styles.bottomScore}>
                 🏆 <span style={{ direction: 'ltr', display: 'inline-block' }}>{score}</span>
               </div>
             </div>
 
-            {isPaused && <div style={pauseOverlay}><button onClick={() => setIsPaused(false)} style={hugePlayBtn}>▶️</button></div>}
+            {isPaused && <div style={styles.pauseOverlay}><button onClick={() => setIsPaused(false)} style={styles.hugePlayBtn}>▶️</button></div>}
           </div>
         )}
       </div>
     </div>
   );
 }
-
-const containerStyle: CSSProperties = { display: 'flex', justifyContent: 'center', height: '100dvh', width: '100vw', backgroundColor: '#05081c', direction: 'rtl', overflow: 'hidden', position: 'fixed', touchAction: 'none', userSelect: 'none' };
-const safeAreaWrapper: CSSProperties = { width: '100%', maxWidth: '360px', height: '100%', display: 'flex', flexDirection: 'column', padding: '5px 20px' };
-const flexLayout: CSSProperties = { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '20px' };
-const formCardStyle: CSSProperties = { width: '100%', padding: '20px', backgroundColor: 'rgba(17, 24, 39, 0.95)', borderRadius: '20px' };
-const formStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '10px' };
-const inputStyle: CSSProperties = { width: '100%', padding: '12px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)', color: 'white' };
-const goldButtonStyle: CSSProperties = { width: '100%', padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #ffd700, #b8860b)', color: '#05081c', fontWeight: 'bold', border:'none' };
-const gameLayout: CSSProperties = { display: 'flex', flexDirection: 'column', height: '100%', gap: '4px' };
-const timerDisplay: CSSProperties = { fontSize: '48px', fontWeight: 'bold', textAlign: 'center', margin: '15px 0 5px 0' };
-const topGroupStyle: CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' };
-const skipButtonStyle: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', borderRadius: '12px', border: '2px solid #ef4444', color: 'white', cursor: 'pointer', fontSize: '14px', userSelect: 'none', width: '100%' };
-const wordCardArea: CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0px', position: 'relative', width: '100%' };
-const wordCardPlaceholderStyle: CSSProperties = { width: '100%', backgroundColor: 'transparent', visibility: 'hidden' };
-const guessersBox: CSSProperties = { display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '5px', width: '100%' };
-const guesserButton: CSSProperties = { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', userSelect: 'none', width: '100%' };
-const miniAvatar: CSSProperties = { width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' };
-const gameFooter: CSSProperties = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '15px' };
-const bottomScore: CSSProperties = { color: '#ffd700', fontSize: '24px', fontWeight: 'bold' };
-const modernPauseBtn: CSSProperties = { background: 'rgba(255,255,255,0.1)', width: '45px', height: '45px', borderRadius: '12px', border: 'none', color: 'white' };
-const pauseOverlay: CSSProperties = { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 8, 28, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 3000 };
-const hugePlayBtn: CSSProperties = { backgroundColor: '#10b981', width: '80px', height: '80px', borderRadius: '50%', border: 'none', fontSize: '30px' };
-const scoreCircle: CSSProperties = { fontSize: '40px', color: '#ffd700', border: '3px solid #ffd700', width: '110px', height: '110px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
