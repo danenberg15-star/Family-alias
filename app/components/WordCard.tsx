@@ -43,7 +43,8 @@ const innerCardStyle: CSSProperties = {
   gap: '0px', 
   boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
   overflow: 'hidden',
-  maxWidth: '220px'
+  maxWidth: '220px',
+  userSelect: 'none' // ביטול בחירת טקסט בכרטיס
 };
 const imageStyle: CSSProperties = { width: '180px', height: '180px', objectFit: 'cover', borderRadius: '12px 12px 4px 4px', display: 'block' };
 const textContainerStyle: CSSProperties = { padding: '2px 0 4px 0', width: '100%' };
