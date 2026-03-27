@@ -8,12 +8,12 @@ export const styles: { [key: string]: CSSProperties } = {
   input: { width: '100%', padding: '12px', borderRadius: '10px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', marginBottom: '10px' },
   goldButton: { width: '100%', padding: '14px', borderRadius: '12px', background: 'linear-gradient(135deg, #ffd700, #b8860b)', color: '#05081c', fontWeight: 'bold', border: 'none', cursor: 'pointer' },
   
-  // הגדרות חדר
+  // הגדרות חדר וגרירת שחקנים
   toggleRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px', width: '100%', marginTop: '10px' },
   teamLabel: { color: 'white', fontSize: '14px', fontWeight: 'bold' },
   teamsGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%', marginTop: '10px' },
-  teamColumn: { backgroundColor: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '12px', textAlign: 'center', minHeight: '120px' },
-  playerTag: { padding: '8px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '8px', color: 'white', fontSize: '13px', marginBottom: '5px', cursor: 'grab', border: '1px solid rgba(255,255,255,0.1)' },
+  teamColumn: { backgroundColor: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '12px', textAlign: 'center', minHeight: '150px', transition: 'background 0.2s' },
+  playerTag: { padding: '10px', backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: '8px', color: 'white', fontSize: '13px', marginBottom: '5px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'grab', touchAction: 'none' },
 
   // מסך טיימר
   hugeTimer: { fontSize: '120px', fontWeight: 'bold', color: '#ffd700' },
@@ -31,5 +31,8 @@ export const styles: { [key: string]: CSSProperties } = {
   guesserButton: { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer', width: '100%' },
   miniAvatar: { width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px' },
   gameFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px', marginTop: 'auto' },
-  bottomScore: { color: '#ffd700', fontSize: '28px', fontWeight: 'bold' }
+  bottomScore: { color: '#ffd700', fontSize: '28px', fontWeight: 'bold' },
+  modernPauseBtn: { background: 'rgba(255,255,255,0.1)', width: '45px', height: '45px', borderRadius: '12px', border: 'none', color: 'white' },
+  pauseOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 8, 28, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 3000 },
+  hugePlayBtn: { backgroundColor: '#10b981', width: '80px', height: '80px', borderRadius: '50%', border: 'none', fontSize: '30px' }
 };

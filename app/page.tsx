@@ -31,7 +31,10 @@ export default function FamilyAliasApp() {
 
   const wordRef = useRef<HTMLDivElement | null>(null);
   const targetsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const teamsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  const dragPlayerRef = useRef<HTMLDivElement | null>(null);
   const isDragging = useRef(false);
+  const [draggingPlayer, setDraggingPlayer] = useState<string | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -59,18 +62,37 @@ export default function FamilyAliasApp() {
     setStep(2);
   };
 
-  // לוגיקת גרירת שחקן בתוך החדר
-  const handlePlayerDragStart = (e: React.DragEvent, pName: string) => {
-    e.dataTransfer.setData("playerName", pName);
+  // גרירת שחקן בחדר (0.01 שניות)
+  const handlePlayerPointerDown = (e: React.PointerEvent, pName: string) => {
+    e.preventDefault();
+    setTimeout(() => {
+      setDraggingPlayer(pName);
+      isDragging.current = true;
+      if (dragPlayerRef.current) {
+        dragPlayerRef.current.style.position = 'fixed';
+        dragPlayerRef.current.style.zIndex = '2000';
+        dragPlayerRef.current.style.left = `${e.clientX - 50}px`;
+        dragPlayerRef.current.style.top = `${e.clientY - 20}px`;
+      }
+    }, 10);
   };
 
-  const handlePlayerDrop = (e: React.DragEvent, teamIdx: number) => {
-    const pName = e.dataTransfer.getData("playerName");
-    setPlayerTeamMap(prev => ({ ...prev, [pName]: teamIdx }));
+  // גרירת מילה במשחק (פונקציה שהייתה חסרה)
+  const handlePointerDown = (e: React.PointerEvent) => {
+    if (isPaused || !gameWords[currentWordIndex]) return;
+    isDragging.current = true;
+    setIsDraggingWord(true);
+    if (wordRef.current) { 
+      wordRef.current.style.position = 'fixed'; 
+      wordRef.current.style.zIndex = '1000';
+      wordRef.current.style.left = `${e.clientX - 110}px`; 
+      wordRef.current.style.top = `${e.clientY - 90}px`; 
+    }
   };
 
   const startPreGame = () => {
-    const cat: CategoryType = parseInt(age) <= 6 ? "KIDS" : parseInt(age) <= 10 ? "JUNIOR" : parseInt(age) <= 16 ? "TEEN" : "ADULT";
+    const ageNum = parseInt(age);
+    const cat: CategoryType = ageNum <= 6 ? "KIDS" : ageNum <= 10 ? "JUNIOR" : ageNum <= 16 ? "TEEN" : "ADULT";
     setSelectedCategory(cat);
     setGameWords([...WORD_DATABASE[cat]].sort(() => Math.random() - 0.5));
     const randomP = players[Math.floor(Math.random() * players.length)];
@@ -79,44 +101,66 @@ export default function FamilyAliasApp() {
     setStep(4);
   };
 
-  const handleNextWord = (isSkip = false) => {
-    setScore(prev => isSkip ? prev - 1 : prev + 1);
-    setCurrentWordIndex(prev => prev + 1);
-    isDragging.current = false; setIsDraggingWord(false); setActiveHover(null);
-    if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
-  };
-
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (isPaused || !gameWords[currentWordIndex]) return;
-    isDragging.current = true; setIsDraggingWord(true);
-    if (wordRef.current) { 
-      wordRef.current.style.position = 'fixed'; wordRef.current.style.zIndex = '1000';
-      wordRef.current.style.left = `${e.clientX - 110}px`; wordRef.current.style.top = `${e.clientY - 90}px`;
-    }
-  };
-
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) return;
-    if (wordRef.current) { wordRef.current.style.left = `${e.clientX - 110}px`; wordRef.current.style.top = `${e.clientY - 90}px`; }
-    let h: string | null = null;
-    if (e.clientY < 80) h = "SKIP";
+    
+    if (draggingPlayer && dragPlayerRef.current) {
+      dragPlayerRef.current.style.left = `${e.clientX - 50}px`;
+      dragPlayerRef.current.style.top = `${e.clientY - 20}px`;
+      let h: string | null = null;
+      for (let i = 0; i < numTeams; i++) {
+        const el = teamsRef.current[i];
+        if (el) {
+          const r = el.getBoundingClientRect();
+          if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) h = `TEAM_${i}`;
+        }
+      }
+      setActiveHover(h);
+      return;
+    }
+
+    if (wordRef.current) { 
+      wordRef.current.style.left = `${e.clientX - 110}px`; 
+      wordRef.current.style.top = `${e.clientY - 90}px`; 
+    }
+    let hovered: string | null = null;
+    if (e.clientY < 80) hovered = "SKIP";
     const targets = gameMode === "individual" ? players : [turnInfo.team];
     targets.forEach((t) => {
       const el = targetsRef.current[t];
       if (el) {
         const r = el.getBoundingClientRect();
-        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) h = t;
+        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) hovered = t;
       }
     });
-    setActiveHover(h);
+    setActiveHover(hovered);
   };
 
-  const handlePointerUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     if (!isDragging.current) return;
-    if (activeHover === "SKIP") handleNextWord(true);
-    else if (activeHover) handleNextWord(false);
-    else { isDragging.current = false; setIsDraggingWord(false); if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' }); }
+    isDragging.current = false;
+
+    if (draggingPlayer) {
+      if (activeHover?.startsWith("TEAM_")) {
+        const teamIdx = parseInt(activeHover.split("_")[1]);
+        setPlayerTeamMap(prev => ({ ...prev, [draggingPlayer]: teamIdx }));
+      }
+      setDraggingPlayer(null);
+      setActiveHover(null);
+      return;
+    }
+
+    if (activeHover === "SKIP") {
+      setScore(prev => prev - 1);
+      setCurrentWordIndex(prev => prev + 1);
+    } else if (activeHover) {
+      setScore(prev => prev + 1);
+      setCurrentWordIndex(prev => prev + 1);
+    }
+    
+    setIsDraggingWord(false);
     setActiveHover(null);
+    if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
   };
 
   return (
@@ -163,14 +207,15 @@ export default function FamilyAliasApp() {
 
             <div style={gameMode === "team" ? styles.teamsGrid : {width:'100%', marginTop:'15px'}}>
               {(gameMode === "team" ? teamNames.slice(0, numTeams) : ["שחקנים"]).map((tName, tIdx) => (
-                <div key={tIdx} style={styles.teamColumn} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handlePlayerDrop(e, tIdx)}>
+                <div key={tIdx} ref={(el) => { teamsRef.current[tIdx] = el; }} style={{...styles.teamColumn, backgroundColor: activeHover === `TEAM_${tIdx}` ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)'}}>
                   {gameMode === "team" && <p style={{color:'#ffd700', fontSize:'13px', marginBottom:'8px'}}>{tName}</p>}
                   {players.filter(p => gameMode === "individual" || playerTeamMap[p] === tIdx).map(p => (
-                    <div key={p} draggable onDragStart={(e) => handlePlayerDragStart(e, p)} style={styles.playerTag}>{p}</div>
+                    <div key={p} onPointerDown={(e) => handlePlayerPointerDown(e, p)} style={{...styles.playerTag, opacity: draggingPlayer === p ? 0.3 : 1}}>{p}</div>
                   ))}
                 </div>
               ))}
             </div>
+            {draggingPlayer && <div ref={dragPlayerRef} style={{...styles.playerTag, pointerEvents:'none', width:'100px'}}>{draggingPlayer}</div>}
             <button onClick={startPreGame} style={{...styles.goldButton, marginTop:'20px'}}>התחל משחק 🏁</button>
           </div>
         )}
@@ -194,7 +239,7 @@ export default function FamilyAliasApp() {
               </div>
               <div style={styles.guessersBox}>
                 {(gameMode === "individual" ? players : [turnInfo.team]).map(target => (
-                  <div key={target} ref={el => { targetsRef.current[target] = el; }} onPointerDown={(e) => { e.stopPropagation(); handleNextWord(false); }}
+                  <div key={target} ref={(el) => { targetsRef.current[target] = el; }} onPointerDown={(e) => { e.stopPropagation(); }}
                     style={{...styles.guesserButton, backgroundColor: activeHover === target ? '#10b981' : 'rgba(255,255,255,0.03)', borderColor: activeHover === target ? '#10b981' : 'rgba(255,255,255,0.1)'}}>
                     <div style={styles.miniAvatar}>{target[0]}</div>
                     <span style={{ color: 'white' }}>{target}</span>
