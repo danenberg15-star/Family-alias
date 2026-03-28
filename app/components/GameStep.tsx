@@ -13,7 +13,7 @@ interface GameStepProps {
   isDraggingWord: boolean;
   targets: string[];
   targetsRef: React.MutableRefObject<{[key: string]: HTMLDivElement | null}>;
-  onGuess: (isSkip?: boolean) => void;
+  onGuess: (isSkip: boolean) => void; // חובה לשלוח boolean
   score: number;
   onPause: () => void;
   isPaused: boolean;
@@ -60,7 +60,7 @@ export default function GameStep(props: GameStepProps) {
             <div 
               key={target} 
               ref={(el) => { if (props.targetsRef.current) props.targetsRef.current[target] = el; }}
-              onPointerDown={(e) => { e.stopPropagation(); props.onGuess(false); }} // לחיצה מביאה נקודה
+              onPointerDown={(e) => { e.stopPropagation(); props.onGuess(false); }}
               style={{
                 ...styles.guesserButton, 
                 backgroundColor: props.activeHover === target ? '#10b981' : 'rgba(255,255,255,0.03)', 
@@ -79,12 +79,6 @@ export default function GameStep(props: GameStepProps) {
         <div style={styles.bottomScore}>🏆 {props.score}</div>
         <button onClick={props.onPause} style={styles.modernPauseBtn}>⏸️</button>
       </div>
-
-      {props.isPaused && (
-        <div style={styles.pauseOverlay}>
-          <button onClick={props.onUnpause} style={styles.hugePlayBtn}>▶️</button>
-        </div>
-      )}
     </div>
   );
 }
