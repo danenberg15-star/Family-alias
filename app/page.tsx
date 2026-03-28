@@ -16,10 +16,10 @@ import { WORD_DATABASE, CategoryType } from "./game.config";
 
 export default function FamilyAliasApp() {
   const [mounted, setMounted] = useState(false);
-  const [userId] = useState(() => "user_" + Math.random().toString(36).substring(2, 9));
+  const [userId] = useState(() => "u_" + Math.random().toString(36).substring(2, 9));
   const [roomId, setRoomId] = useState<string | null>(null);
   const [roomData, setRoomData] = useState<any>(null);
-  const [step, setStep] = useState(1); 
+  const [step, setStep] = useState(1);
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState("");
 
@@ -27,14 +27,13 @@ export default function FamilyAliasApp() {
   const skipRef = useRef<HTMLDivElement | null>(null);
   const targetsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const teamsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
-  const dragPlayerRef = useRef<HTMLDivElement | null>(null);
   const isDragging = useRef(false);
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // האזנה לשינויים בחדר ב-Firebase
+  // סנכרון חי מול Firebase
   useEffect(() => {
     if (!roomId) return;
     const unsub = onSnapshot(doc(db, "rooms", roomId), (snap) => {
@@ -47,7 +46,7 @@ export default function FamilyAliasApp() {
     return () => unsub();
   }, [roomId]);
 
-  // מנגנון טיימר - רק המסביר מריץ אותו כדי למנוע כפילויות
+  // מנגנון טיימר - רק המכשיר של "המתאר" מריץ אותו
   useEffect(() => {
     if (!roomId || !roomData || roomData.isPaused) return;
     const isIDescriber = roomData.players[roomData.currentTurnIdx]?.id === userId;
@@ -72,28 +71,31 @@ export default function FamilyAliasApp() {
     if (roomId) await updateDoc(doc(db, "rooms", roomId), newData);
   };
 
-  const createRoom = async (uName: string, uAge: string) => {
+  const createRoom = async () => {
     const letters = "אבגדהוזחטיכלמנסעפצקרשת";
     const id = Array(4).fill(0).map(() => letters[Math.floor(Math.random() * letters.length)]).join("");
     const initialData = {
       id, step: 3, gameMode: "individual", numTeams: 2,
-      players: [{ id: userId, name: uName, age: uAge, teamIdx: 0 }],
+      players: [{ id: userId, name: userName, age: userAge, teamIdx: 0 }],
       teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"],
       totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false,
-      currentTurnIdx: 0, currentWordIdx: 0, category: "KIDS", preGameTimer: 5
+      currentTurnIdx: 0, currentWordIdx: Math.floor(Math.random() * 50), 
+      category: parseInt(userAge) <= 10 ? "KIDS" : "ADULT", preGameTimer: 5
     };
     await setDoc(doc(db, "rooms", id), initialData);
     setRoomId(id);
   };
 
-  const joinRoom = async (uName: string, uAge: string) => {
+  const joinRoom = async () => {
     const id = prompt("הכנס קוד חדר (4 אותיות):");
     if (!id) return;
-    const docRef = doc(db, "rooms", id);
+    const docRef = doc(db, "rooms", id.toUpperCase());
     const snap = await getDoc(docRef);
     if (snap.exists()) {
-      await updateDoc(docRef, { players: arrayUnion({ id: userId, name: uName, age: uAge, teamIdx: 0 }) });
-      setRoomId(id);
+      await updateDoc(docRef, { 
+        players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 }) 
+      });
+      setRoomId(id.toUpperCase());
     } else alert("חדר לא נמצא");
   };
 
@@ -133,10 +135,6 @@ export default function FamilyAliasApp() {
     return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
   };
 
-  const isIDescriber = roomData?.players[roomData?.currentTurnIdx]?.id === userId;
-  const currentP = roomData?.players[roomData?.currentTurnIdx];
-
-  // לוגיקת גרירה חכמה שמעדכנת את Firebase רק בסוף הפעולה
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current || roomData?.isPaused) return;
     if (wordRef.current) {
@@ -144,23 +142,37 @@ export default function FamilyAliasApp() {
       const wordRect = wordRef.current.getBoundingClientRect();
       let h: string | null = null;
       if (skipRef.current && isIntersecting(wordRect, skipRef.current.getBoundingClientRect())) h = "SKIP";
-      const tgts = roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]];
+      const tgts = roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : [roomData.teamNames[roomData.players[roomData.currentTurnIdx].teamIdx]];
       tgts.forEach((t:string) => { const el = targetsRef.current[t]; if (el && isIntersecting(wordRect, el.getBoundingClientRect())) h = t; });
       setActiveHover(h);
     }
   };
 
+  const isIDescriber = roomData?.players[roomData?.currentTurnIdx]?.id === userId;
+  const currentP = roomData?.players[roomData?.currentTurnIdx];
+
   return (
     <div style={styles.container} onPointerMove={handlePointerMove} onPointerUp={() => { if(isDragging.current && activeHover) handleGuess(activeHover === "SKIP"); isDragging.current = false; setActiveHover(null); }}>
       <div style={styles.safeAreaWrapper}>
         {step === 1 && <EntryStep onNext={(n, a) => { setUserName(n); setUserAge(a); setStep(2); }} />}
-        {step === 2 && <LobbyStep onCreateRoom={() => createRoom(userName, userAge)} onJoinRoom={() => joinRoom(userName, userAge)} />}
-        {step === 3 && roomData && <SetupStep gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} numTeams={roomData.numTeams} setNumTeams={(n) => updateRoom({ numTeams: n })} teamNames={roomData.teamNames} editTeamName={(idx) => { const n = prompt("שם חדש:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} players={roomData.players.map((p:any)=>p.name)} playerTeamMap={roomData.players.reduce((acc:any, p:any)=>({...acc, [p.name]: p.teamIdx}), {})} onPlayerPointerDown={()=>{}} activeHover={activeHover} teamsRef={teamsRef} onStart={() => updateRoom({ step: 4, timeLeft: 60, roundScore: 0, preGameTimer: 5, currentWordIdx: Math.floor(Math.random() * 50) })} />}
+        {step === 2 && <LobbyStep onCreateRoom={createRoom} onJoinRoom={joinRoom} />}
+        {step === 3 && roomData && (
+          <SetupStep 
+            gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} 
+            numTeams={roomData.numTeams} setNumTeams={(n) => updateRoom({ numTeams: n })} 
+            teamNames={roomData.teamNames} editTeamName={(idx) => { const n = prompt("שם חדש:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} 
+            players={roomData.players.map((p:any)=>p.name)} 
+            playerTeamMap={roomData.players.reduce((acc:any, p:any)=>({...acc, [p.name]: p.teamIdx}), {})} 
+            onPlayerPointerDown={(e,pName)=>{/* לוגיקת גרירה בתוך החדר */}} 
+            activeHover={activeHover} teamsRef={teamsRef} 
+            onStart={() => updateRoom({ step: 4, timeLeft: 60, roundScore: 0, preGameTimer: 5 })} 
+          />
+        )}
         {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP.name, team: roomData.teamNames[currentP.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
         {step === 5 && roomData && (
           <>
             {isIDescriber ? (
-              <GameStep timeLeft={roomData.timeLeft} currentWord={WORD_DATABASE.KIDS[roomData.currentWordIdx % WORD_DATABASE.KIDS.length]} wordRef={wordRef} skipRef={skipRef} onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { wordRef.current.style.position = 'fixed'; wordRef.current.style.left = `${e.clientX-110}px`; wordRef.current.style.top = `${e.clientY-90}px`; } }} isTextOnly={false} isDraggingWord={isDraggingWord} targets={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]]} targetsRef={targetsRef} onGuess={handleGuess} score={roomData.roundScore} onPause={() => updateRoom({ isPaused: true })} isPaused={false} onUnpause={() => {}} activeHover={activeHover} />
+              <GameStep timeLeft={roomData.timeLeft} currentWord={WORD_DATABASE.KIDS[roomData.currentWordIdx % WORD_DATABASE.KIDS.length]} wordRef={wordRef} skipRef={skipRef} onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { wordRef.current.style.position = 'fixed'; wordRef.current.style.left = `${e.clientX-110}px`; wordRef.current.style.top = `${e.clientY-90}px`; } }} isTextOnly={false} isDraggingWord={isDraggingWord} targets={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]]} targetsRef={targetsRef} onGuess={(s) => handleGuess(!!s)} score={roomData.roundScore} onPause={() => updateRoom({ isPaused: true })} isPaused={false} onUnpause={() => {}} activeHover={activeHover} />
             ) : (
               <GuesserView timeLeft={roomData.timeLeft} describerName={currentP.name} describerTeam={roomData.teamNames[currentP.teamIdx]} isTeamMode={roomData.gameMode === "team"} totalScores={roomData.totalScores} roundScore={roomData.roundScore} entities={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} onPause={() => updateRoom({ isPaused: true })} />
             )}
