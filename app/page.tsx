@@ -46,7 +46,7 @@ export default function FamilyAliasApp() {
     return () => unsub();
   }, [roomId]);
 
-  // מנגנון טיימר מרכזי - רק המכשיר של "המסביר" מנהל את הזמן עבור כולם
+  // מנגנון טיימר מרכזי - רק המכשיר של "המתאר" מנהל את הזמן עבור כולם
   useEffect(() => {
     if (!roomId || !roomData || roomData.isPaused) return;
     
@@ -60,7 +60,7 @@ export default function FamilyAliasApp() {
         if (roomData.preGameTimer > 0) {
           updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
         } else {
-          updateRoom({ step: 5, timeLeft: 60 }); // מעבר אוטומטי למשחק לכולם!
+          updateRoom({ step: 5, timeLeft: 60 }); // מעבר אוטומטי למשחק לכולם
         }
       } 
       // טיפול בזמן המשחק (Step 5)
@@ -85,7 +85,16 @@ export default function FamilyAliasApp() {
   const handleGuess = async (isSkip: boolean) => {
     if (!roomData) return;
     const curP = roomData.players[roomData.currentTurnIdx];
-    const target = roomData.gameMode === "individual" ? curP.name : roomData.teamNames[curP.teamIdx];
+    
+    // במידה והשחקן גורר על עצמו בטעות (לא אמור לקרות עם הסינון החדש, אבל לביטחון)
+    if (activeHover === curP.name && roomData.gameMode === "individual") {
+      setIsDraggingWord(false);
+      if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
+      setActiveHover(null);
+      return;
+    }
+
+    const target = roomData.gameMode === "individual" ? (activeHover || "") : roomData.teamNames[curP.teamIdx];
     const change = isSkip ? -1 : 1;
     const newRoundScore = roomData.roundScore + change;
     const currentTotal = (roomData.totalScores[target] || 0) + newRoundScore;
@@ -121,23 +130,30 @@ export default function FamilyAliasApp() {
   const isIDescriber = roomData?.players[roomData?.currentTurnIdx]?.id === userId;
   const currentP = roomData?.players[roomData?.currentTurnIdx];
 
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current || !isIDescriber || roomData?.isPaused) return;
+    if (wordRef.current) {
+      wordRef.current.style.left = `${e.clientX - 110}px`; 
+      wordRef.current.style.top = `${e.clientY - 90}px`;
+      const wordRect = wordRef.current.getBoundingClientRect();
+      let h: string | null = null;
+      if (skipRef.current && isIntersecting(wordRect, skipRef.current.getBoundingClientRect())) h = "SKIP";
+      
+      // סינון שחקנים למצב גרירה - לא ניתן לגרור על עצמך
+      const tgts = roomData.gameMode === "individual" 
+        ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) 
+        : [roomData.teamNames[currentP.teamIdx]];
+
+      tgts.forEach((t:string) => { 
+        const el = targetsRef.current[t]; 
+        if (el && isIntersecting(wordRect, el.getBoundingClientRect())) h = t;
+      });
+      setActiveHover(h);
+    }
+  };
+
   return (
-    <div style={styles.container} onPointerMove={(e) => {
-      if (!isDragging.current || !isIDescriber || roomData?.isPaused) return;
-      if (wordRef.current) {
-        wordRef.current.style.left = `${e.clientX - 110}px`; 
-        wordRef.current.style.top = `${e.clientY - 90}px`;
-        const wordRect = wordRef.current.getBoundingClientRect();
-        let h: string | null = null;
-        if (skipRef.current && isIntersecting(wordRect, skipRef.current.getBoundingClientRect())) h = "SKIP";
-        const tgts = roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]];
-        tgts.forEach((t:string) => { 
-          const el = targetsRef.current[t]; 
-          if (el && isIntersecting(wordRect, el.getBoundingClientRect())) h = t;
-        });
-        setActiveHover(h);
-      }
-    }} onPointerUp={() => {
+    <div style={styles.container} onPointerMove={handlePointerMove} onPointerUp={() => {
       if (isDragging.current && activeHover) handleGuess(activeHover === "SKIP");
       isDragging.current = false; setActiveHover(null); setIsDraggingWord(false);
       if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
@@ -163,7 +179,7 @@ export default function FamilyAliasApp() {
         {step === 5 && roomData && (
           <>
             {isIDescriber ? (
-              <GameStep timeLeft={roomData.timeLeft} currentWord={WORD_DATABASE.KIDS[roomData.currentWordIdx % WORD_DATABASE.KIDS.length]} wordRef={wordRef} skipRef={skipRef} onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { wordRef.current.style.position = 'fixed'; wordRef.current.style.left = `${e.clientX-110}px`; wordRef.current.style.top = `${e.clientY-90}px`; } }} isTextOnly={false} isDraggingWord={isDraggingWord} targets={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]]} targetsRef={targetsRef} onGuess={(s) => handleGuess(!!s)} score={roomData.roundScore} onPause={() => updateRoom({ isPaused: true })} isPaused={false} onUnpause={() => {}} activeHover={activeHover} />
+              <GameStep timeLeft={roomData.timeLeft} currentWord={WORD_DATABASE.KIDS[roomData.currentWordIdx % WORD_DATABASE.KIDS.length]} wordRef={wordRef} skipRef={skipRef} onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { wordRef.current.style.position = 'fixed'; wordRef.current.style.left = `${e.clientX-110}px`; wordRef.current.style.top = `${e.clientY-90}px`; } }} isTextOnly={false} isDraggingWord={isDraggingWord} targets={roomData.gameMode === "individual" ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]]} targetsRef={targetsRef} onGuess={(s) => handleGuess(!!s)} score={roomData.roundScore} onPause={() => updateRoom({ isPaused: true })} isPaused={false} onUnpause={() => {}} activeHover={activeHover} />
             ) : (
               <GuesserView timeLeft={roomData.timeLeft} describerName={currentP.name} describerTeam={roomData.teamNames[currentP.teamIdx]} isTeamMode={roomData.gameMode === "team"} totalScores={roomData.totalScores} roundScore={roomData.roundScore} entities={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} onPause={() => updateRoom({ isPaused: true })} />
             )}
