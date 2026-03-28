@@ -11,11 +11,11 @@ interface CountdownStepProps {
 export default function CountdownStep({ timer, turnInfo, isTeamMode }: CountdownStepProps) {
   return (
     <div style={styles.flexLayout}>
-      <div style={styles.turnInfo}>
-        תור השחקן <b>{turnInfo.name}</b> {isTeamMode && `מ${turnInfo.team}`} [cite: 1, 22]
+      <div style={{ color: 'white', fontSize: '20px', textAlign: 'center', marginBottom: '10px' }}>
+        תור השחקן <b style={{ color: '#ffd700' }}>{turnInfo.name}</b> {isTeamMode && `מ${turnInfo.team}`}
       </div>
       <div style={styles.hugeTimer}>{timer}</div>
-      <div style={styles.loadingText}>טוען תמונות... [cite: 1, 9, 10]</div>
+      <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '14px' }}>מתחילים...</div>
     </div>
   );
 }

@@ -7,7 +7,7 @@ import SetupStep from "./components/SetupStep";
 import CountdownStep from "./components/CountdownStep";
 import GameStep from "./components/GameStep";
 import ScoreStep from "./components/ScoreStep";
-import VictoryStep from "./components/VictoryStep"; // ייבוא חדש
+import VictoryStep from "./components/VictoryStep";
 import { styles } from "./game.styles";
 import { WORD_DATABASE, CategoryType } from "./game.config";
 
@@ -58,19 +58,30 @@ export default function FamilyAliasApp() {
 
   if (!mounted) return null;
 
-  const handleRoundEnd = () => {
+  const updateScoreAndCheckVictory = (isSkip: boolean) => {
     const target = gameMode === "individual" ? turnInfo.name : turnInfo.team;
-    const newScore = (totalScores[target] || 0) + roundScore;
-    const updatedScores = { ...totalScores, [target]: newScore };
-    setTotalScores(updatedScores);
+    const change = isSkip ? -1 : 1;
+    const newRoundScore = roundScore + change;
+    setRoundScore(newRoundScore);
 
-    // בדיקת ניצחון (50 נקודות)
-    if (newScore >= 50) {
+    const currentTotal = (totalScores[target] || 0) + newRoundScore;
+    if (currentTotal >= 50) {
+      setTotalScores(prev => ({ ...prev, [target]: currentTotal }));
       setWinner(target);
       setStep(7);
-    } else {
-      setStep(6);
+      return true;
     }
+    return false;
+  };
+
+  const adjustTotalScore = (key: string, amount: number) => {
+    setTotalScores(prev => ({ ...prev, [key]: (prev[key] || 0) + amount }));
+  };
+
+  const handleRoundEnd = () => {
+    const target = gameMode === "individual" ? turnInfo.name : turnInfo.team;
+    setTotalScores(prev => ({ ...prev, [target]: (prev[target] || 0) + roundScore }));
+    setStep(6);
   };
 
   const nextTurn = () => {
@@ -92,10 +103,8 @@ export default function FamilyAliasApp() {
   const startFirstGame = () => {
     const cat: CategoryType = parseInt(age) <= 6 ? "KIDS" : parseInt(age) <= 10 ? "JUNIOR" : parseInt(age) <= 16 ? "TEEN" : "ADULT";
     setSelectedCategory(cat);
-    // הגדלת המאגר כדי שלא ייגמרו התמונות
     const pool = [...WORD_DATABASE[cat]].sort(() => Math.random() - 0.5);
-    setGameWords(Array(10).fill(pool).flat()); 
-    
+    setGameWords(Array(20).fill(pool).flat()); 
     const firstIdx = Math.floor(Math.random() * players.length);
     setCurrentTurnIndex(firstIdx);
     const p = players[firstIdx];
@@ -104,12 +113,11 @@ export default function FamilyAliasApp() {
   };
 
   const isIntersecting = (r1: DOMRect, r2: DOMRect) => {
-    const pad = 10; // רגישות מוגברת
-    return !(r2.left - pad > r1.right + pad || r2.right + pad < r1.left - pad || r2.top - pad > r1.bottom + pad || r2.bottom + pad < r1.top - pad);
+    return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging.current) return;
+    if (!isDragging.current || isPaused) return;
     if (draggingPlayer && dragPlayerRef.current) {
       dragPlayerRef.current.style.left = `${e.clientX - 50}px`; dragPlayerRef.current.style.top = `${e.clientY - 20}px`;
       let h: string | null = null;
@@ -133,10 +141,10 @@ export default function FamilyAliasApp() {
     if (!isDragging.current) return;
     isDragging.current = false;
     if (draggingPlayer) {
-      if (activeHover?.startsWith("TEAM_")) setPlayerTeamMap(prev => ({ ...prev, [draggingPlayer]: parseInt(activeHover.split("_")[1]) }));
+      if (activeHover?.startsWith("TEAM_")) setPlayerTeamMap(prev => ({ ...prev, [draggingPlayer as string]: parseInt(activeHover.split("_")[1]) }));
       setDraggingPlayer(null);
     } else if (activeHover) {
-      setRoundScore(prev => activeHover === "SKIP" ? prev - 1 : prev + 1);
+      if (updateScoreAndCheckVictory(activeHover === "SKIP")) return;
       setCurrentWordIndex(prev => prev + 1);
       setIsDraggingWord(false);
       if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
@@ -154,7 +162,29 @@ export default function FamilyAliasApp() {
         {step === 2 && <LobbyStep onCreateRoom={() => setStep(3)} onJoinRoom={() => setStep(3)} />}
         {step === 3 && <SetupStep gameMode={gameMode} setGameMode={setGameMode} numTeams={numTeams} setNumTeams={setNumTeams} teamNames={teamNames} editTeamName={(idx) => { const n = prompt("שם חדש:", teamNames[idx]); if(n) { const nms = [...teamNames]; nms[idx] = n; setTeamNames(nms); } }} players={players} playerTeamMap={playerTeamMap} onPlayerPointerDown={(e, p) => { setDraggingPlayer(p); isDragging.current = true; if(dragPlayerRef.current) { Object.assign(dragPlayerRef.current.style, {position:'fixed', left:`${e.clientX-50}px`, top:`${e.clientY-20}px`}); } }} activeHover={activeHover} teamsRef={teamsRef} onStart={startFirstGame} />}
         {step === 4 && <CountdownStep timer={preGameTimer} turnInfo={turnInfo} isTeamMode={gameMode === "team"} />}
-        {step === 5 && <GameStep timeLeft={timeLeft} currentWord={gameWords[currentWordIndex]} wordRef={wordRef} skipRef={skipRef} onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { Object.assign(wordRef.current.style, {position:'fixed', left:`${e.clientX-110}px`, top:`${e.clientY-90}px`}); } }} isTextOnly={selectedCategory === "TEEN" || selectedCategory === "ADULT"} isDraggingWord={isDraggingWord} targets={gameMode === "individual" ? players : [turnInfo.team]} targetsRef={targetsRef} onGuess={(skip) => { setRoundScore(s => skip ? s - 1 : s + 1); setCurrentWordIndex(i => i + 1); }} score={roundScore} onPause={() => setIsPaused(true)} isPaused={isPaused} onUnpause={() => setIsPaused(false)} activeHover={activeHover} />}
+        {step === 5 && (
+          <>
+            <GameStep timeLeft={timeLeft} currentWord={gameWords[currentWordIndex]} wordRef={wordRef} skipRef={skipRef} onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { Object.assign(wordRef.current.style, {position:'fixed', left:`${e.clientX-110}px`, top:`${e.clientY-90}px`}); } }} isTextOnly={selectedCategory === "TEEN" || selectedCategory === "ADULT"} isDraggingWord={isDraggingWord} targets={gameMode === "individual" ? players : [turnInfo.team]} targetsRef={targetsRef} onGuess={(skip) => updateScoreAndCheckVictory(!!skip)} score={roundScore} onPause={() => setIsPaused(true)} isPaused={false} onUnpause={() => {}} activeHover={activeHover} />
+            {isPaused && (
+              <div style={styles.pauseOverlay}>
+                <h2 style={{color: '#ffd700', marginBottom: '20px'}}>תיקון ניקוד</h2>
+                <div style={{width: '100%', maxHeight: '60%', overflowY: 'auto', marginBottom: '20px'}}>
+                  {(gameMode === "individual" ? players : teamNames.slice(0, numTeams)).map(entity => (
+                    <div key={entity} style={styles.scoreAdjustRow}>
+                      <span style={{fontSize: '14px'}}>{entity}</span>
+                      <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+                        <button style={styles.adjBtn} onClick={() => adjustTotalScore(entity, -1)}>-</button>
+                        <span style={{minWidth: '20px', textAlign: 'center'}}>{totalScores[entity] || 0}</span>
+                        <button style={styles.adjBtn} onClick={() => adjustTotalScore(entity, 1)}>+</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => setIsPaused(false)} style={styles.hugePlayBtn}>▶️ המשך</button>
+              </div>
+            )}
+          </>
+        )}
         {step === 6 && <ScoreStep scores={totalScores} entities={gameMode === "individual" ? players : teamNames.slice(0, numTeams)} onNextRound={nextTurn} />}
         {step === 7 && <VictoryStep winnerName={winner} onRestart={() => setStep(1)} />}
         {draggingPlayer && <div ref={dragPlayerRef} style={{...styles.playerTag, pointerEvents:'none', width:'100px'}}>{draggingPlayer}</div>}
