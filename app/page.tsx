@@ -58,6 +58,14 @@ export default function FamilyAliasApp() {
 
   if (!mounted) return null;
 
+  // פונקציה מרכזית לבדיקת ניצחון
+  const triggerVictory = (winnerName: string) => {
+    setWinner(winnerName);
+    setIsPaused(false);
+    setStep(7);
+  };
+
+  // עדכון ניקוד ובדיקת ניצחון בזמן המשחק
   const updateScoreAndCheckVictory = (isSkip: boolean) => {
     const target = gameMode === "individual" ? turnInfo.name : turnInfo.team;
     const change = isSkip ? -1 : 1;
@@ -67,15 +75,21 @@ export default function FamilyAliasApp() {
     const currentTotal = (totalScores[target] || 0) + newRoundScore;
     if (currentTotal >= 50) {
       setTotalScores(prev => ({ ...prev, [target]: currentTotal }));
-      setWinner(target);
-      setStep(7);
+      triggerVictory(target);
       return true;
     }
     return false;
   };
 
+  // תיקון ניקוד ידני ובדיקת ניצחון מיידית
   const adjustTotalScore = (key: string, amount: number) => {
-    setTotalScores(prev => ({ ...prev, [key]: (prev[key] || 0) + amount }));
+    setTotalScores(prev => {
+      const newScore = (prev[key] || 0) + amount;
+      if (newScore >= 50) {
+        setTimeout(() => triggerVictory(key), 100); // דיליי קטן כדי שהמשתמש יראה את ה-50
+      }
+      return { ...prev, [key]: newScore };
+    });
   };
 
   const handleRoundEnd = () => {
