@@ -7,7 +7,7 @@ interface GameStepProps {
   timeLeft: number;
   currentWord: any;
   wordRef: React.RefObject<HTMLDivElement | null>;
-  skipRef: React.RefObject<HTMLDivElement | null>; // נוסף
+  skipRef: React.RefObject<HTMLDivElement | null>;
   onPointerDown: (e: React.PointerEvent) => void;
   isTextOnly: boolean;
   isDraggingWord: boolean;
@@ -31,13 +31,12 @@ export default function GameStep(props: GameStepProps) {
       <div style={styles.topGroup}>
         <div 
           ref={props.skipRef}
+          onPointerDown={(e) => { e.stopPropagation(); props.onGuess(true); }}
           style={{
             ...styles.skipButton, 
             backgroundColor: props.activeHover === "SKIP" ? '#ef4444' : 'transparent', 
-            borderColor: '#ef4444',
-            boxShadow: props.activeHover === "SKIP" ? '0 0 15px #ef4444' : 'none' // הארה בוהקת
+            boxShadow: props.activeHover === "SKIP" ? '0 0 20px #ef4444' : 'none'
           }}
-          onPointerDown={() => props.onGuess(true)}
         >
           🚫 דלג
         </div>
@@ -61,11 +60,12 @@ export default function GameStep(props: GameStepProps) {
             <div 
               key={target} 
               ref={(el) => { if (props.targetsRef.current) props.targetsRef.current[target] = el; }}
+              onPointerDown={(e) => { e.stopPropagation(); props.onGuess(false); }} // לחיצה מביאה נקודה
               style={{
                 ...styles.guesserButton, 
                 backgroundColor: props.activeHover === target ? '#10b981' : 'rgba(255,255,255,0.03)', 
                 borderColor: props.activeHover === target ? '#10b981' : 'rgba(255,255,255,0.1)',
-                boxShadow: props.activeHover === target ? '0 0 15px #10b981' : 'none' // הארה בוהקת
+                boxShadow: props.activeHover === target ? '0 0 20px #10b981' : 'none'
               }}
             >
               <div style={styles.miniAvatar}>{target[0]}</div>
