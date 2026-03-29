@@ -36,19 +36,38 @@ const SetupStep: React.FC<SetupStepProps> = ({
     <div style={{ ...styles.stepContainer, overflowY: "auto", paddingBottom: "100px" }}>
       <h1 style={styles.title}>קוד חדר: {roomId}</h1>
 
+      {/* בחירת מצב משחק */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <button onClick={() => setGameMode("individual")} style={{...styles.btn, backgroundColor: gameMode === "individual" ? "#ffd700" : "#333", color: gameMode === "individual" ? "#000" : "#fff"}}>יחידים</button>
-        <button onClick={() => setGameMode("team")} style={{...styles.btn, backgroundColor: gameMode === "team" ? "#ffd700" : "#333", color: gameMode === "team" ? "#000" : "#fff"}}>קבוצות</button>
+        <button 
+          onClick={() => setGameMode("individual")} 
+          style={{...styles.btn, backgroundColor: gameMode === "individual" ? "#ffd700" : "#333", color: gameMode === "individual" ? "#000" : "#fff"}}
+        >
+          יחידים
+        </button>
+        <button 
+          onClick={() => setGameMode("team")} 
+          style={{...styles.btn, backgroundColor: gameMode === "team" ? "#ffd700" : "#333", color: gameMode === "team" ? "#000" : "#fff"}}
+        >
+          קבוצות
+        </button>
       </div>
 
       {gameMode === "team" && (
         <>
+          {/* בחירת מספר קבוצות */}
           <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
             {[2, 3, 4].map((n) => (
-              <button key={n} onClick={() => setNumTeams(n)} style={{...styles.btn, fontSize: "14px", backgroundColor: numTeams === n ? "#ffd700" : "#333", color: numTeams === n ? "#000" : "#fff"}}>{n} קבוצות</button>
+              <button 
+                key={n} 
+                onClick={() => setNumTeams(n)} 
+                style={{...styles.btn, fontSize: "14px", backgroundColor: numTeams === n ? "#ffd700" : "#333", color: numTeams === n ? "#000" : "#fff"}}
+              >
+                {n} קבוצות
+              </button>
             ))}
           </div>
 
+          {/* תצוגת הקבוצות וגרירת שחקנים */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", width: "100%" }}>
             {teamNames.slice(0, numTeams).map((name, idx) => (
               <div 
@@ -69,7 +88,14 @@ const SetupStep: React.FC<SetupStepProps> = ({
                 </div>
                 <div style={{ minHeight: "50px", marginTop: "10px", display: "flex", flexWrap: "wrap", gap: "5px" }}>
                   {players.filter((p) => p.teamIdx === idx).map((p) => (
-                    <div key={p.id} draggable onDragStart={(e) => handleDragStart(e, p.id)} style={{ ...styles.playerTag, cursor: "grab" }}>{p.name}</div>
+                    <div 
+                      key={p.id} 
+                      draggable 
+                      onDragStart={(e) => handleDragStart(e, p.id)} 
+                      style={{ ...styles.playerTag, cursor: "grab" }}
+                    >
+                      {p.name}
+                    </div>
                   ))}
                 </div>
               </div>
