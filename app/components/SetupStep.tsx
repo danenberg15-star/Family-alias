@@ -21,22 +21,11 @@ interface SetupStepProps {
 const SetupStep: React.FC<SetupStepProps> = ({
   roomId, gameMode, setGameMode, numTeams, setNumTeams, teamNames, editTeamName, players, onPlayerMove, activeHover, teamsRef, onStart
 }) => {
-
-  const handleDragStart = (e: React.DragEvent, pId: string) => {
-    e.dataTransfer.setData("playerId", pId);
-  };
-
-  const handleDrop = (e: React.DragEvent, teamIdx: number) => {
-    e.preventDefault();
-    const pId = e.dataTransfer.getData("playerId");
-    if (pId) onPlayerMove(pId, teamIdx);
-  };
-
   return (
-    <div style={{ ...styles.stepContainer, overflowY: "auto", paddingBottom: "100px" }}>
+    <div style={{ ...styles.stepContainer, overflowY: "auto", paddingBottom: "40px" }}>
       <h1 style={styles.title}>קוד חדר: {roomId}</h1>
 
-      {/* בחירת מצב משחק */}
+      {/* טוגל מצב משחק - יחידים או קבוצות */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
         <button 
           onClick={() => setGameMode("individual")} 
@@ -54,7 +43,6 @@ const SetupStep: React.FC<SetupStepProps> = ({
 
       {gameMode === "team" && (
         <>
-          {/* בחירת מספר קבוצות */}
           <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
             {[2, 3, 4].map((n) => (
               <button 
@@ -66,20 +54,20 @@ const SetupStep: React.FC<SetupStepProps> = ({
               </button>
             ))}
           </div>
-
-          {/* תצוגת הקבוצות וגרירת שחקנים */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px", width: "100%" }}>
             {teamNames.slice(0, numTeams).map((name, idx) => (
               <div 
                 key={idx} 
                 ref={(el) => { if (teamsRef.current) teamsRef.current[idx] = el; }}
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => handleDrop(e, idx)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const pId = e.dataTransfer.getData("playerId");
+                  if (pId) onPlayerMove(pId, idx);
+                }}
                 style={{
                   ...styles.teamCard,
-                  backgroundColor: "rgba(255,255,255,0.05)",
                   border: activeHover === name ? "2px solid #ffd700" : "1px solid rgba(255,255,255,0.1)",
-                  minHeight: "120px",
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -91,7 +79,7 @@ const SetupStep: React.FC<SetupStepProps> = ({
                     <div 
                       key={p.id} 
                       draggable 
-                      onDragStart={(e) => handleDragStart(e, p.id)} 
+                      onDragStart={(e) => e.dataTransfer.setData("playerId", p.id)} 
                       style={{ ...styles.playerTag, cursor: "grab" }}
                     >
                       {p.name}
@@ -115,7 +103,7 @@ const SetupStep: React.FC<SetupStepProps> = ({
         </div>
       )}
 
-      <button onClick={onStart} style={{ ...styles.hugePlayBtn, marginTop: "30px" }}>🚀 התחל משחק!</button>
+      <button onClick={onStart} style={styles.hugePlayBtn}>🚀 התחל משחק!</button>
     </div>
   );
 };
