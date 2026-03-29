@@ -12,8 +12,14 @@ import GuesserView from "./components/GuesserView";
 import ScoreStep from "./components/ScoreStep";
 import VictoryStep from "./components/VictoryStep";
 import { styles } from "./game.styles";
-import { WordItem, CategoryType, DifficultyLevel, WORD_DATABASE } from "./game.config";
-import { generateRoomCode, getShuffledWords } from "./lib/game-utils";
+import { 
+  WORD_DATABASE, 
+  CategoryType, 
+  HEBREW_ROOM_CODES, 
+  getShuffledWords, 
+  DifficultyLevel,
+  WordItem 
+} from "./game.config";
 
 export default function FamilyAliasApp() {
   const [mounted, setMounted] = useState(false);
@@ -32,6 +38,7 @@ export default function FamilyAliasApp() {
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
 
+  // Persistence - זיכרון משתמש
   useEffect(() => {
     setMounted(true);
     const savedUserId = localStorage.getItem("alias_userId");
@@ -46,7 +53,6 @@ export default function FamilyAliasApp() {
       setUserId(newId);
       localStorage.setItem("alias_userId", newId);
     }
-
     if (savedName) setUserName(savedName);
     if (savedAge) setUserAge(savedAge);
     if (savedRoomId) setRoomId(savedRoomId);
@@ -77,6 +83,7 @@ export default function FamilyAliasApp() {
     return "ADULT";
   };
 
+  // Timer logic
   useEffect(() => {
     if (!roomId || !roomData || roomData.isPaused) return;
     const isIDescriber = roomData.players[roomData.currentTurnIdx]?.id === userId;
@@ -98,7 +105,6 @@ export default function FamilyAliasApp() {
         }
       }
     }, 1000);
-
     return () => clearInterval(intervalId);
   }, [step, roomId, roomData?.timeLeft, roomData?.preGameTimer, roomData?.isPaused, roomData?.currentTurnIdx, userId]);
 
@@ -199,7 +205,8 @@ export default function FamilyAliasApp() {
         }} />}
         
         {step === 2 && <LobbyStep onCreateRoom={async () => {
-          const id = generateRoomCode();
+          const codes = HEBREW_ROOM_CODES.filter(c => c !== "עומר");
+          const id = codes[Math.floor(Math.random() * codes.length)]; 
           await setDoc(doc(db, "rooms", id), { 
             id, step: 3, gameMode: "individual", difficulty: "VARIABLE", numTeams: 2, 
             players: [{ id: userId, name: userName, age: userAge, teamIdx: 0 }], 
@@ -257,7 +264,6 @@ export default function FamilyAliasApp() {
             <SetupStep 
               roomId={roomId || ""} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} 
               numTeams={roomData.numTeams} setNumTeams={async (n) => {
-                // חלוקה מחדש של שחקנים אם מספר הקבוצות קטן
                 const updatedPlayers = roomData.players.map((p:any) => p.teamIdx >= n ? {...p, teamIdx: 0} : p);
                 await updateRoom({ numTeams: n, players: updatedPlayers });
               }} 
@@ -295,13 +301,13 @@ export default function FamilyAliasApp() {
               <GuesserView timeLeft={roomData.timeLeft} describerName={currentP.name} describerTeam={roomData.teamNames[currentP.teamIdx]} isTeamMode={roomData.gameMode === "team"} totalScores={roomData.totalScores} roundScore={roomData.roundScore} entities={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} onPause={() => updateRoom({ isPaused: true })} />
             )}
             
-            {/* מסך השהיה משופר - נראה לכולם */}
+            {/* מסך השהיה עם עיצוב מקורי וטקסט בהיר */}
             {roomData.isPaused && (
               <div style={styles.pauseOverlay}>
-                <h2 style={{color: '#ffd700', marginBottom: '30px', textAlign:'center', fontSize:'24px'}}>טבלת ניקוד - השהיה</h2>
-                <div style={{width:'95%', maxWidth:'400px', background:'rgba(255,255,255,0.05)', borderRadius:'15px', padding:'15px'}}>
+                <h2 style={{color: '#ffd700', marginBottom: '30px', textAlign:'center', fontSize:'28px'}}>תיקון ניקוד - השהיה</h2>
+                <div style={{width:'95%', maxWidth:'400px', background:'rgba(255,255,255,0.05)', borderRadius:'20px', padding:'20px', border: '1px solid rgba(255,255,255,0.1)'}}>
                   {(roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)).map((entity: string) => (
-                    <div key={entity} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
+                    <div key={entity} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px 0', borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
                       <span style={{fontSize:'18px', fontWeight:'bold', color: '#fff'}}>{entity}</span>
                       <div style={{display: 'flex', alignItems: 'center', gap: '20px'}}>
                         <button style={styles.adjBtn} onClick={() => adjustScoreInPause(entity, -1)}>-</button>

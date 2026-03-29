@@ -32,15 +32,12 @@ const SetupStep: React.FC<SetupStepProps> = ({
     if (pId) onPlayerMove(pId, teamIdx);
   };
 
-  const isIndividualModePossible = true;
   const isTeamModePossible = players.length >= 4;
 
   return (
     <div style={{...styles.stepContainer, overflowY: 'auto', paddingBottom: '100px'}}>
-      {/* כותרת החדר המקורית */}
       <h1 style={{...styles.title, color: '#fff', fontSize: '28px', marginBottom: '30px'}}>קוד חדר: {roomId}</h1>
       
-      {/* בחירת מצב משחק - יחידים תמיד ראשון */}
       <div style={{display:'flex', gap:'10px', marginBottom:'25px', width: '100%'}}>
         <button 
           onClick={() => setGameMode("individual")} 
