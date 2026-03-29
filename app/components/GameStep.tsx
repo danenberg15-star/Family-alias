@@ -6,13 +6,13 @@ import { styles } from "../game.styles";
 interface GameStepProps {
   timeLeft: number;
   currentWord: any;
-  wordRef: any;
-  skipRef: any;
+  wordRef: React.RefObject<HTMLDivElement | null>;
+  skipRef: React.RefObject<HTMLDivElement | null>;
   onPointerDown: (e: React.PointerEvent) => void;
   isTextOnly: boolean;
   isDraggingWord: boolean;
   targets: string[];
-  targetsRef: any;
+  targetsRef: React.MutableRefObject<{ [key: string]: HTMLDivElement | null }>;
   score: number;
   onPause: () => void;
   onExit: () => void;
@@ -33,7 +33,7 @@ const GameStep: React.FC<GameStepProps> = ({
       <div style={{flex: 1, position:'relative', width:'100%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center'}}>
         <div style={{display:'flex', gap:'10px', flexWrap:'wrap', justifyContent:'center', marginBottom:'40px'}}>
            {targets.map(t => (
-             <div key={t} ref={(el) => { if(targetsRef.current) targetsRef.current[t] = el; }} style={{
+             <div key={t} ref={(el) => { if (targetsRef.current) targetsRef.current[t] = el; }} style={{
                padding:'12px 20px', borderRadius:'15px', border:'2px solid',
                borderColor: activeHover === t ? '#ffd700' : 'rgba(255,255,255,0.1)',
                backgroundColor: activeHover === t ? 'rgba(255,215,0,0.2)' : 'transparent',
@@ -71,7 +71,7 @@ const GameStep: React.FC<GameStepProps> = ({
         </div>
       </div>
 
-      <div style={{fontSize:'20px', marginBottom:'20px', color:'rgba(255,255,255,0.6)'}}>ניקוד בסיבוב: <span style={{color:'#ffd700', fontWeight:'bold'}}>{score}</span></div>
+      <div style={{fontSize:'18px', marginBottom:'20px', color:'rgba(255,255,255,0.6)'}}>ניקוד בסיבוב: <span style={{color:'#ffd700', fontWeight:'bold'}}>{score}</span></div>
     </div>
   );
 };
