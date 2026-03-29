@@ -12,18 +12,16 @@ import GuesserView from "./components/GuesserView";
 import ScoreStep from "./components/ScoreStep";
 import VictoryStep from "./components/VictoryStep";
 import { styles } from "./game.styles";
-import { CategoryType } from "./game.config";
-import { generateRoomCode, getShuffledWords } from "./lib/game-utils";
+import { WORD_DATABASE, CategoryType } from "./game.config";
 
 export default function FamilyAliasApp() {
   const [mounted, setMounted] = useState(false);
-  const [userId, setUserId] = useState<string>("");
+  const [userId] = useState(() => "u_" + Math.random().toString(36).substring(2, 9));
   const [roomId, setRoomId] = useState<string | null>(null);
   const [roomData, setRoomData] = useState<any>(null);
   const [step, setStep] = useState(1);
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState("");
-  const [hasEnteredInfo, setHasEnteredInfo] = useState(false);
 
   const wordRef = useRef<HTMLDivElement | null>(null);
   const skipRef = useRef<HTMLDivElement | null>(null);
@@ -33,123 +31,187 @@ export default function FamilyAliasApp() {
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const savedName = localStorage.getItem("alias_userName");
-    const savedAge = localStorage.getItem("alias_userAge");
-    const savedUserId = localStorage.getItem("alias_userId") || "u_" + Math.random().toString(36).substring(2, 9);
-    setUserId(savedUserId);
-    localStorage.setItem("alias_userId", savedUserId);
-
-    if (savedName && savedAge) {
-      setUserName(savedName); setUserAge(savedAge); setHasEnteredInfo(true);
-      const sRoomId = localStorage.getItem("alias_roomId");
-      if (sRoomId) setRoomId(sRoomId); else setStep(2);
-    } else setStep(1);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (!roomId || !hasEnteredInfo) return;
+    if (!roomId) return;
     const unsub = onSnapshot(doc(db, "rooms", roomId), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         setRoomData(data);
         setStep(data.step);
-      } else {
-        localStorage.removeItem("alias_roomId"); setRoomId(null); setStep(2);
       }
     });
     return () => unsub();
-  }, [roomId, hasEnteredInfo]);
+  }, [roomId]);
 
-  const updateRoom = async (newData: any) => { if (roomId) await updateDoc(doc(db, "rooms", roomId), newData); };
-
-  const currentP = roomData?.players?.[roomData?.currentTurnIdx];
-  const isIDescriber = currentP?.id === userId;
-  const currentPlayerCategory: CategoryType = currentP ? (parseInt(currentP.age) <= 10 ? (parseInt(currentP.age) <= 6 ? "KIDS" : "JUNIOR") : (parseInt(currentP.age) <= 16 ? "TEEN" : "ADULT")) : "ADULT";
-
-  useEffect(() => {
-    if (!roomId || !roomData || roomData.isPaused || step < 4 || !isIDescriber) return;
-    const timer = setInterval(() => {
-      if (step === 4) {
-        if (roomData.preGameTimer > 0) updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
-        else updateRoom({ step: 5, timeLeft: 60 });
-      } else if (step === 5) {
-        if (roomData.timeLeft > 0) updateRoom({ timeLeft: roomData.timeLeft - 1 });
-        else updateRoom({ step: 6 });
-      }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [step, roomId, roomData?.timeLeft, roomData?.preGameTimer, roomData?.isPaused, isIDescriber]);
-
-  const handleGuess = async (isSkip: boolean, clickedTarget?: string | null) => {
-    if (!roomData) return;
-    const target = clickedTarget !== undefined ? clickedTarget : activeHover;
-    const curP = roomData.players[roomData.currentTurnIdx];
-    const change = isSkip ? -1 : 1;
-    const updates: any = { roundScore: (roomData.roundScore || 0) + change, currentWordIdx: roomData.currentWordIdx + 1 };
-    if (!isSkip && target && target !== 'SKIP') {
-      if (roomData.gameMode === 'individual') {
-        updates[`totalScores.${curP.name}`] = (roomData.totalScores[curP.name] || 0) + 1;
-        updates[`totalScores.${target}`] = (roomData.totalScores[target] || 0) + 1;
-      } else {
-        updates[`totalScores.${roomData.teamNames[curP.teamIdx]}`] = (roomData.totalScores[roomData.teamNames[curP.teamIdx]] || 0) + 1;
-      }
-    }
-    await updateRoom(updates);
+  const getCategoryByAge = (ageStr: string): CategoryType => {
+    const age = parseInt(ageStr);
+    if (age <= 6) return "KIDS";
+    if (age <= 10) return "JUNIOR";
+    if (age <= 16) return "TEEN";
+    return "ADULT";
   };
 
+  useEffect(() => {
+    if (!roomId || !roomData || roomData.isPaused) return;
+    const isIDescriber = roomData.players[roomData.currentTurnIdx]?.id === userId;
+    if (!isIDescriber) return;
+
+    const timer = setInterval(() => {
+      if (step === 4) {
+        if (roomData.preGameTimer > 0) {
+          updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
+        } else {
+          updateRoom({ step: 5, timeLeft: 60 });
+        }
+      } 
+      else if (step === 5) {
+        if (roomData.timeLeft > 0) {
+          updateRoom({ timeLeft: roomData.timeLeft - 1 });
+        } else {
+          handleRoundEnd();
+        }
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [step, roomId, roomData?.timeLeft, roomData?.preGameTimer, roomData?.isPaused, roomData?.currentTurnIdx]);
+
+  if (!mounted) return null;
+
+  const updateRoom = async (newData: any) => {
+    if (roomId) await updateDoc(doc(db, "rooms", roomId), newData);
+  };
+
+  const adjustScoreInPause = async (entity: string, amount: number) => {
+    if (!roomData) return;
+    const current = roomData.totalScores[entity] || 0;
+    const newValue = current + amount;
+    const updateObj: any = { [`totalScores.${entity}`]: newValue };
+    if (newValue >= 50) { updateObj.step = 7; updateObj.winner = entity; }
+    await updateRoom(updateObj);
+  };
+
+  const handleGuess = async (isSkip: boolean) => {
+    if (!roomData) return;
+    const curP = roomData.players[roomData.currentTurnIdx];
+    const target = roomData.gameMode === "individual" ? (activeHover || "") : roomData.teamNames[curP.teamIdx];
+    const change = isSkip ? -1 : 1;
+    const newRoundScore = roomData.roundScore + change;
+    const currentTotal = (roomData.totalScores[target] || 0) + newRoundScore;
+
+    if (!isSkip && currentTotal >= 50) {
+      await updateRoom({ step: 7, winner: target, [`totalScores.${target}`]: currentTotal });
+    } else {
+      await updateRoom({ roundScore: newRoundScore, currentWordIdx: roomData.currentWordIdx + 1 });
+    }
+  };
+
+  const handleRoundEnd = async () => {
+    if (!roomData) return;
+    const curP = roomData.players[roomData.currentTurnIdx];
+    const target = roomData.gameMode === "individual" ? curP.name : roomData.teamNames[curP.teamIdx];
+    const finalTotal = (roomData.totalScores[target] || 0) + roomData.roundScore;
+    await updateRoom({ step: 6, [`totalScores.${target}`]: finalTotal });
+  };
+
+  const isIntersecting = (r1: DOMRect, r2: DOMRect) => {
+    return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+  };
+
+  const isIDescriber = roomData?.players[roomData?.currentTurnIdx]?.id === userId;
+  const currentP = roomData?.players[roomData?.currentTurnIdx];
+  const currentPlayerCategory = currentP ? getCategoryByAge(currentP.age) : "ADULT";
+
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging.current || !isIDescriber || roomData?.isPaused || step !== 5) return;
+    if (!isDragging.current || !isIDescriber || roomData?.isPaused) return;
     if (wordRef.current) {
-      wordRef.current.style.left = `${e.clientX - 140}px`; wordRef.current.style.top = `${e.clientY - 100}px`;
+      wordRef.current.style.left = `${e.clientX - 110}px`; 
+      wordRef.current.style.top = `${e.clientY - 90}px`;
       const wordRect = wordRef.current.getBoundingClientRect();
       let h: string | null = null;
-      if (skipRef.current && !(skipRef.current.getBoundingClientRect().left > wordRect.right || skipRef.current.getBoundingClientRect().right < wordRect.left || skipRef.current.getBoundingClientRect().top > wordRect.bottom || skipRef.current.getBoundingClientRect().bottom < wordRect.top)) h = "SKIP";
+      if (skipRef.current && isIntersecting(wordRect, skipRef.current.getBoundingClientRect())) h = "SKIP";
       const tgts = roomData.gameMode === "individual" ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]];
       tgts.forEach((t:string) => { 
         const el = targetsRef.current[t]; 
-        if (el && !(el.getBoundingClientRect().left > wordRect.right || el.getBoundingClientRect().right < wordRect.left || el.getBoundingClientRect().top > wordRect.bottom || el.getBoundingClientRect().bottom < wordRect.top)) h = t;
+        if (el && isIntersecting(wordRect, el.getBoundingClientRect())) h = t;
       });
       setActiveHover(h);
     }
   };
 
-  if (!mounted) return null;
-
   return (
     <div style={styles.container} onPointerMove={handlePointerMove} onPointerUp={() => {
-      if (isDragging.current) handleGuess(activeHover === "SKIP");
+      if (isDragging.current && activeHover) handleGuess(activeHover === "SKIP");
       isDragging.current = false; setActiveHover(null); setIsDraggingWord(false);
       if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
     }}>
       <div style={styles.safeAreaWrapper}>
-        {step === 1 && <EntryStep onNext={(n, a) => { setUserName(n); setUserAge(a); setHasEnteredInfo(true); localStorage.setItem("alias_userName", n); localStorage.setItem("alias_userAge", a); setStep(2); }} />}
+        {step === 1 && <EntryStep onNext={(n, a) => { setUserName(n); setUserAge(a); setStep(2); }} />}
+        
         {step === 2 && <LobbyStep onCreateRoom={async () => {
-          const id = generateRoomCode();
-          await setDoc(doc(db, "rooms", id), { id, step: 3, gameMode: "individual", numTeams: 2, players: [{ id: userId, name: userName, age: userAge, teamIdx: 0 }], teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"], totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, currentWordIdx: 0, preGameTimer: 3, shuffledWords: [] });
+          const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+          const id = Array(4).fill(0).map(() => letters[Math.floor(Math.random() * letters.length)]).join("");
+          await setDoc(doc(db, "rooms", id), { id, step: 3, gameMode: "individual", numTeams: 2, players: [{ id: userId, name: userName, age: userAge, teamIdx: 0 }], teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"], totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, currentWordIdx: Math.floor(Math.random()*100), preGameTimer: 3 });
           setRoomId(id);
         }} onJoinRoom={async () => {
           const id = prompt("קוד חדר:"); if(!id) return;
-          if (id === "עומר") {
-             const qaPlayers = [{ id: userId, name: userName || "עומר", age: userAge || "30", teamIdx: 0 }, ...Array(7).fill(0).map((_,i)=>({id:`bot_${i}`, name:`שחקן ${i+2}`, age:"25", teamIdx: Math.floor((i+1)/2)}))];
-             await setDoc(doc(db, "rooms", "עומר"), { id: "עומר", step: 3, gameMode: "team", numTeams: 4, players: qaPlayers, teamNames: ["קבוצה א'","קבוצה ב'","קבוצה ג'","קבוצה ד'"], totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, currentWordIdx: 0, preGameTimer: 3, shuffledWords: [] });
-             setRoomId("עומר"); return;
-          }
-          const snap = await getDoc(doc(db, "rooms", id));
-          if(snap.exists()){ await updateDoc(doc(db, "rooms", id), { players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 }) }); setRoomId(id); }
+          const snap = await getDoc(doc(db, "rooms", id.toUpperCase()));
+          if(snap.exists()){ await updateDoc(doc(db, "rooms", id.toUpperCase()), { players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 }) }); setRoomId(id.toUpperCase()); }
         }} />}
-        {step === 3 && roomData && <SetupStep roomId={roomId!} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} numTeams={roomData.numTeams} setNumTeams={(n) => { const up = roomData.players.map((p:any) => p.teamIdx >= n ? {...p, teamIdx: 0} : p); updateRoom({ numTeams: n, players: up }); }} teamNames={roomData.teamNames} editTeamName={(idx) => { const n = prompt("שם:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} players={roomData.players} onPlayerMove={(pId, teamIdx) => { const p = roomData.players.map((p:any) => p.id === pId ? {...p, teamIdx} : p); updateRoom({ players: p }); }} activeHover={activeHover} teamsRef={teamsRef as any} onStart={() => updateRoom({ step: 4, shuffledWords: getShuffledWords(currentPlayerCategory), currentWordIdx: 0, roundScore: 0, preGameTimer: 3 })} />}
-        {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP?.name || "", team: roomData.teamNames[currentP?.teamIdx] || ""}} isTeamMode={roomData.gameMode === "team"} />}
+
+        {step === 3 && roomData && <SetupStep roomId={roomId || ""} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} numTeams={roomData.numTeams} setNumTeams={(n) => updateRoom({ numTeams: n })} teamNames={roomData.teamNames} editTeamName={(idx) => { const n = prompt("שם חדש:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} players={roomData.players.map((p:any)=>p.name)} playerTeamMap={roomData.players.reduce((acc:any, p:any)=>({...acc, [p.name]: p.teamIdx}), {})} onPlayerPointerDown={()=>{}} activeHover={activeHover} teamsRef={teamsRef} onStart={() => updateRoom({ step: 4, timeLeft: 60, roundScore: 0, preGameTimer: 3 })} />}
+        
+        {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP.name, team: roomData.teamNames[currentP.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
+        
         {step === 5 && roomData && (
-          isIDescriber ? (
-            <GameStep timeLeft={roomData.timeLeft} currentWord={roomData.shuffledWords[roomData.currentWordIdx % roomData.shuffledWords.length]} wordRef={wordRef} skipRef={skipRef} onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { wordRef.current.style.position = 'fixed'; wordRef.current.style.left = `${e.clientX-140}px`; wordRef.current.style.top = `${e.clientY-100}px`; } }} isTextOnly={parseInt(userAge) > 10} isDraggingWord={isDraggingWord} targets={roomData.gameMode === "individual" ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]]} targetsRef={targetsRef as any} score={roomData.roundScore} onPause={() => updateRoom({ isPaused: true })} activeHover={activeHover} onTargetClick={(t) => handleGuess(false, t)} onSkipClick={() => handleGuess(true, "SKIP")} />
-          ) : <GuesserView timeLeft={roomData.timeLeft} describerName={currentP?.name} describerTeam={roomData.teamNames[currentP?.teamIdx]} isTeamMode={roomData.gameMode === 'team'} totalScores={roomData.totalScores} roundScore={roomData.roundScore} entities={roomData.gameMode === 'individual' ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} onPause={() => updateRoom({ isPaused: true })} />
+          <>
+            {isIDescriber ? (
+              <GameStep 
+                timeLeft={roomData.timeLeft} 
+                currentWord={WORD_DATABASE[currentPlayerCategory][roomData.currentWordIdx % WORD_DATABASE[currentPlayerCategory].length]} 
+                wordRef={wordRef} skipRef={skipRef} 
+                onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { wordRef.current.style.position = 'fixed'; wordRef.current.style.left = `${e.clientX-110}px`; wordRef.current.style.top = `${e.clientY-90}px`; } }} 
+                isTextOnly={currentPlayerCategory === "TEEN" || currentPlayerCategory === "ADULT"} 
+                isDraggingWord={isDraggingWord} 
+                targets={roomData.gameMode === "individual" ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]]} 
+                targetsRef={targetsRef} onGuess={(s) => handleGuess(!!s)} score={roomData.roundScore} onPause={() => updateRoom({ isPaused: true })} isPaused={false} onUnpause={() => {}} activeHover={activeHover} 
+              />
+            ) : (
+              <GuesserView timeLeft={roomData.timeLeft} describerName={currentP.name} describerTeam={roomData.teamNames[currentP.teamIdx]} isTeamMode={roomData.gameMode === "team"} totalScores={roomData.totalScores} roundScore={roomData.roundScore} entities={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} onPause={() => updateRoom({ isPaused: true })} />
+            )}
+            {roomData.isPaused && (
+              <div style={styles.pauseOverlay}>
+                <h2 style={{color: '#ffd700', marginBottom: '20px'}}>תיקון ניקוד</h2>
+                {(roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)).map((entity: string) => (
+                  <div key={entity} style={styles.scoreAdjustRow}>
+                    <span>{entity}</span>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
+                      <button style={styles.adjBtn} onClick={() => adjustScoreInPause(entity, -1)}>-</button>
+                      <span style={{minWidth: '20px', textAlign: 'center'}}>{roomData.totalScores[entity] || 0}</span>
+                      <button style={styles.adjBtn} onClick={() => adjustScoreInPause(entity, 1)}>+</button>
+                    </div>
+                  </div>
+                ))}
+                <button onClick={() => updateRoom({ isPaused: false })} style={styles.hugePlayBtn}>▶️ המשך</button>
+              </div>
+            )}
+          </>
         )}
-        {step === 6 && roomData && <ScoreStep scores={roomData.totalScores} entities={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} onNextRound={() => updateRoom({ step: 4, currentTurnIdx: (roomData.currentTurnIdx + 1) % roomData.players.length, timeLeft: 60, roundScore: 0, preGameTimer: 3, currentWordIdx: 0, shuffledWords: getShuffledWords(currentPlayerCategory) })} />}
-        {step === 7 && roomData && <VictoryStep winnerName={roomData.winner} onRestart={() => { localStorage.removeItem("alias_roomId"); updateRoom({ step: 1, players: [] }); setRoomId(null); setStep(1); }} />}
+
+        {step === 6 && roomData && <ScoreStep scores={roomData.totalScores} entities={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} onNextRound={() => updateRoom({ step: 4, currentTurnIdx: (roomData.currentTurnIdx + 1) % roomData.players.length, timeLeft: 60, roundScore: 0, preGameTimer: 3 })} />}
+        
+        {step === 7 && roomData && <VictoryStep winnerName={roomData.winner} onRestart={() => updateRoom({ step: 1, players: [] })} />}
       </div>
-      <button onClick={() => { localStorage.clear(); window.location.reload(); }} style={{ position: 'fixed', bottom: 5, left: 5, opacity: 0.1, fontSize: '10px' }}>Clear</button>
+      
+      {/* כפתור ה-Reset בתחתית לניקוי ה-Step התקוע */}
+      <button 
+        onClick={() => { localStorage.clear(); window.location.reload(); }} 
+        style={{ position: 'fixed', bottom: '5px', left: '5px', opacity: 0.2, fontSize: '10px', color: 'white', border: 'none', background: 'none' }}
+      >
+        Reset
+      </button>
     </div>
   );
 }
