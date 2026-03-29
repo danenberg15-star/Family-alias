@@ -1,5 +1,17 @@
 export type CategoryType = "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
 
+export interface WordItem {
+  word: string;
+  en: string;
+  img?: string;
+}
+
+export const HEBREW_ROOM_CODES = [
+  "עומר", "אריה", "בלון", "גמל", "דוב", "הרים", "וילון", "זמיר", "חלוץ", "טירה", "יונה",
+  "כדור", "לחם", "מפתח", "נחש", "סוס", "ענן", "פרח", "צפור", "קפה", "רכב",
+  "שעון", "תמר", "בית", "גינה", "חלון", "סולם", "מתנה", "דגל", "שוקו"
+];
+
 const KIDS_LIST = [
   { word: "מזגן", en: "air_conditioner", img: "/words/kids/air_conditioner.png" },
   { word: "נמלה", en: "ant", img: "/words/kids/ant.png" },
@@ -152,7 +164,7 @@ const JUNIOR_ONLY = [
   { word: "נבל", en: "harp", img: "/words/junior/harp.png" },
   { word: "רקטה", en: "rocket", img: "/words/junior/rocket.png" },
   { word: "טירה", en: "castle", img: "/words/junior/castle.png" },
-  { word: "טחנת רוח", en: "windmill", img: "/words/junior/windmill.png" },
+  { word: "טחנת רוח", en: "windmill", img: "/words/windmill.png" },
   { word: "סבון", en: "soap", img: "/words/junior/soap.png" },
   { word: "מנעול", en: "lock", img: "/words/junior/lock.png" },
   { word: "מטריה", en: "umbrella", img: "/words/junior/umbrella.png" },
