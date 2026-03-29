@@ -9,35 +9,18 @@ export interface WordItem {
   img?: string;
 }
 
-// בניית מסד הנתונים לפי חוקי הירושה
+// בניית מסד הנתונים
+const TEEN_MAP: WordItem[] = TEEN_ONLY.map(w => ({ word: w, en: "" }));
+const ADULT_MAP: WordItem[] = ADULT_ONLY.map(w => ({ word: w, en: "" }));
+
 export const WORD_DATABASE: Record<CategoryType, WordItem[]> = {
   KIDS: KIDS_LIST,
   JUNIOR: [...KIDS_LIST, ...JUNIOR_ONLY],
-  TEEN: [...KIDS_LIST, ...JUNIOR_ONLY, ...TEEN_ONLY],
-  ADULT: [...KIDS_LIST, ...JUNIOR_ONLY, ...TEEN_ONLY, ...ADULT_ONLY]
+  TEEN: [...KIDS_LIST, ...JUNIOR_ONLY, ...TEEN_MAP],
+  ADULT: [...KIDS_LIST, ...JUNIOR_ONLY, ...TEEN_MAP, ...ADULT_MAP]
 };
 
-// רשימת מילים בעברית לקוד החדר
 export const HEBREW_ROOM_CODES = [
   "עומר", "אריה", "בלון", "גמל", "דוב", "הרים", "וילון", "זמיר", "חלוץ", "טירה", "יונה",
-  "כדור", "לחם", "מפתח", "נחש", "סוס", "ענן", "פרח", "צפור", "קפה", "רכב",
-  "שעון", "תמר", "בית", "גינה", "חלון", "סולם", "מתנה", "דגל", "שוקו"
+  "כדור", "לחם", "מפתח", "נחש", "סוס", "ענן", "פרח", "צפור", "קפה", "רכב"
 ];
-
-/**
- * פונקציית ערבוב Fisher-Yates
- */
-export const getShuffledWords = (category: CategoryType, level: DifficultyLevel): WordItem[] => {
-  let baseWords: WordItem[] = [];
-  if (level === "EASY") baseWords = WORD_DATABASE["JUNIOR"];
-  else if (level === "MEDIUM") baseWords = WORD_DATABASE["TEEN"];
-  else if (level === "HARD") baseWords = WORD_DATABASE["ADULT"];
-  else baseWords = WORD_DATABASE[category];
-
-  const shuffled = [...baseWords];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-};
