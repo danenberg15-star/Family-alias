@@ -12,7 +12,8 @@ import GuesserView from "./components/GuesserView";
 import ScoreStep from "./components/ScoreStep";
 import VictoryStep from "./components/VictoryStep";
 import { styles } from "./game.styles";
-import { CategoryType, HEBREW_ROOM_CODES, getShuffledWords } from "./game.config";
+import { CategoryType, HEBREW_ROOM_CODES } from "./game.config";
+import { generateRoomCode, getShuffledWords } from "./lib/game-utils";
 
 export default function FamilyAliasApp() {
   const [mounted, setMounted] = useState(false);
@@ -23,14 +24,17 @@ export default function FamilyAliasApp() {
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState("");
 
+  // ניהול Refs בצורה תקינה עבור GameStep
   const wordRef = useRef<HTMLDivElement | null>(null);
   const skipRef = useRef<HTMLDivElement | null>(null);
   const targetsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const teamsRef = useRef<{ [key: number]: HTMLDivElement | null }>({} as any);
+  const teamsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
+  
   const isDragging = useRef(false);
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
 
+  // Persistence - זיכרון משתמש
   useEffect(() => {
     setMounted(true);
     const savedUserId = localStorage.getItem("alias_userId") || "u_" + Math.random().toString(36).substring(2, 9);
@@ -39,6 +43,7 @@ export default function FamilyAliasApp() {
     const rId = localStorage.getItem("alias_roomId");
     if (rId) setRoomId(rId);
     setUserName(localStorage.getItem("alias_userName") || "");
+    setUserAge(localStorage.getItem("alias_userAge") || "");
   }, []);
 
   useEffect(() => {
@@ -58,7 +63,9 @@ export default function FamilyAliasApp() {
     return () => unsub();
   }, [roomId]);
 
-  const updateRoom = async (newData: any) => { if (roomId) await updateDoc(doc(db, "rooms", roomId), newData); };
+  const updateRoom = async (newData: any) => {
+    if (roomId) await updateDoc(doc(db, "rooms", roomId), newData);
+  };
 
   const adjustScoreInPause = async (entity: string, amount: number) => {
     if (!roomData) return;
@@ -66,12 +73,13 @@ export default function FamilyAliasApp() {
     await updateRoom({ [`totalScores.${entity}`]: Math.max(0, current + amount) });
   };
 
+  // לוגיקת טיימר וספירה לאחור
   useEffect(() => {
     if (!roomId || !roomData || roomData.isPaused) return;
     const isIDescriber = roomData.players[roomData.currentTurnIdx]?.id === userId;
     if (!isIDescriber) return;
 
-    const timer = setInterval(() => {
+    const intervalId = setInterval(() => {
       if (step === 4) {
         if (roomData.preGameTimer > 0) updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
         else updateRoom({ step: 5, timeLeft: 60 });
@@ -80,11 +88,12 @@ export default function FamilyAliasApp() {
         else updateRoom({ step: 6 });
       }
     }, 1000);
-    return () => clearInterval(timer);
+    return () => clearInterval(intervalId);
   }, [step, roomId, roomData?.timeLeft, roomData?.preGameTimer, roomData?.isPaused, roomData?.currentTurnIdx, userId]);
 
   if (!mounted) return null;
 
+  // לוגיקת ניחוש
   const handleGuess = async (isSkip: boolean) => {
     if (!roomData) return;
     const curP = roomData.players[roomData.currentTurnIdx];
@@ -101,15 +110,24 @@ export default function FamilyAliasApp() {
       }
     }
     await updateRoom(updates);
-  };
 
-  const isIntersecting = (r1: DOMRect, r2: DOMRect) => {
-    return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+    // בדיקת ניצחון
+    const checkTargets = roomData.gameMode === 'individual' ? [curP.name, activeHover] : [roomData.teamNames[curP.teamIdx]];
+    for (const name of checkTargets) {
+      if (name && name !== 'SKIP' && (roomData.totalScores[name] || 0) + (isSkip ? 0 : 1) >= 50) {
+        await updateRoom({ step: 7, winner: name });
+        break;
+      }
+    }
   };
 
   const currentP = roomData?.players[roomData?.currentTurnIdx];
   const isIDescriber = currentP?.id === userId;
-  const currentPlayerCategory = currentP ? (parseInt(currentP.age) <= 6 ? "KIDS" : parseInt(currentP.age) <= 10 ? "JUNIOR" : parseInt(currentP.age) <= 16 ? "TEEN" : "ADULT") : "ADULT";
+  const currentPlayerCategory: CategoryType = currentP ? (parseInt(currentP.age) <= 6 ? "KIDS" : parseInt(currentP.age) <= 10 ? "JUNIOR" : parseInt(currentP.age) <= 16 ? "TEEN" : "ADULT") : "ADULT";
+
+  const isIntersecting = (r1: DOMRect, r2: DOMRect) => {
+    return !(r2.left > r1.right || r2.right < r1.left || r2.top > r1.bottom || r2.bottom < r1.top);
+  };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current || !isIDescriber || roomData?.isPaused) return;
@@ -118,9 +136,14 @@ export default function FamilyAliasApp() {
       wordRef.current.style.top = `${e.clientY - 90}px`;
       const wordRect = wordRef.current.getBoundingClientRect();
       let h: string | null = null;
+      
       if (skipRef.current && isIntersecting(wordRect, skipRef.current.getBoundingClientRect())) h = "SKIP";
-      const tgts = roomData.gameMode === "individual" ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]];
-      tgts.forEach((t:string) => { 
+      
+      const targets = roomData.gameMode === "individual" 
+        ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) 
+        : [roomData.teamNames[currentP.teamIdx]];
+        
+      targets.forEach((t:string) => { 
         const el = targetsRef.current[t]; 
         if (el && isIntersecting(wordRect, el.getBoundingClientRect())) h = t;
       });
@@ -135,11 +158,10 @@ export default function FamilyAliasApp() {
       if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
     }}>
       <div style={styles.safeAreaWrapper}>
-        {step === 1 && <EntryStep onNext={(n, a) => { setUserName(n); setUserAge(a); localStorage.setItem("alias_userName", n); setStep(2); }} />}
+        {step === 1 && <EntryStep onNext={(n, a) => { setUserName(n); setUserAge(a); localStorage.setItem("alias_userName", n); localStorage.setItem("alias_userAge", a); setStep(2); }} />}
         
         {step === 2 && <LobbyStep onCreateRoom={async () => {
-          const codes = HEBREW_ROOM_CODES.filter(c => c !== "עומר");
-          const id = codes[Math.floor(Math.random() * codes.length)]; 
+          const id = generateRoomCode();
           await setDoc(doc(db, "rooms", id), { id, step: 3, gameMode: "individual", numTeams: 2, players: [{ id: userId, name: userName, age: userAge, teamIdx: 0 }], teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"], totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, currentWordIdx: 0, preGameTimer: 3, shuffledWords: [] });
           setRoomId(id);
         }} onJoinRoom={async () => {
@@ -158,8 +180,35 @@ export default function FamilyAliasApp() {
         {step === 5 && roomData && (
           <>
             {isIDescriber ? (
-              <GameStep timeLeft={roomData.timeLeft} currentWord={roomData.shuffledWords[roomData.currentWordIdx % roomData.shuffledWords.length]} wordRef={wordRef} skipRef={skipRef} onPointerDown={(e) => { isDragging.current = true; setIsDraggingWord(true); if(wordRef.current) { wordRef.current.style.position = 'fixed'; wordRef.current.style.left = `${e.clientX-110}px`; wordRef.current.style.top = `${e.clientY-90}px`; } }} isTextOnly={currentPlayerCategory === 'TEEN' || currentPlayerCategory === 'ADULT'} isDraggingWord={isDraggingWord} targets={roomData.gameMode === "individual" ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]]} targetsRef={targetsRef} onGuess={()=>{}} score={roomData.roundScore} onPause={() => updateRoom({ isPaused: true })} isPaused={false} onUnpause={() => {}} activeHover={activeHover} />
-            ) : <GuesserView timeLeft={roomData.timeLeft} describerName={currentP.name} describerTeam={roomData.teamNames[currentP.teamIdx]} isTeamMode={roomData.gameMode === 'team'} totalScores={roomData.totalScores} roundScore={roomData.roundScore} entities={[]} onPause={() => updateRoom({ isPaused: true })} />}
+              <GameStep 
+                timeLeft={roomData.timeLeft} 
+                currentWord={roomData.shuffledWords[roomData.currentWordIdx % roomData.shuffledWords.length]} 
+                wordRef={wordRef} 
+                skipRef={skipRef} 
+                onPointerDown={(e) => { 
+                  isDragging.current = true; setIsDraggingWord(true); 
+                  if(wordRef.current) { wordRef.current.style.position = 'fixed'; wordRef.current.style.left = `${e.clientX-110}px`; wordRef.current.style.top = `${e.clientY-90}px`; } 
+                }} 
+                isTextOnly={currentPlayerCategory === 'TEEN' || currentPlayerCategory === 'ADULT'} 
+                isDraggingWord={isDraggingWord} 
+                targets={roomData.gameMode === "individual" ? roomData.players.filter((p:any) => p.id !== userId).map((p:any)=>p.name) : [roomData.teamNames[currentP.teamIdx]]} 
+                targetsRef={targetsRef} 
+                score={roomData.roundScore} 
+                onPause={() => updateRoom({ isPaused: true })} 
+                activeHover={activeHover} 
+              />
+            ) : (
+              <GuesserView 
+                timeLeft={roomData.timeLeft} 
+                describerName={currentP.name} 
+                describerTeam={roomData.teamNames[currentP.teamIdx]} 
+                isTeamMode={roomData.gameMode === 'team'} 
+                totalScores={roomData.totalScores} 
+                roundScore={roomData.roundScore} 
+                entities={roomData.gameMode === 'individual' ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} 
+                onPause={() => updateRoom({ isPaused: true })} 
+              />
+            )}
             
             {roomData.isPaused && (
               <div style={styles.pauseOverlay}>
