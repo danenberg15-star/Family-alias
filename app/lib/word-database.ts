@@ -4,9 +4,15 @@ import { TEEN_ONLY } from "./words/teen";
 import { ADULT_ONLY } from "./words/adult";
 import { WordItem, CategoryType } from "../game.config";
 
-const TEEN_MAP: WordItem[] = TEEN_ONLY.map(w => ({ word: w, en: "" }));
-const ADULT_MAP: WordItem[] = ADULT_ONLY.map(w => ({ word: w, en: "" }));
+// הפיכת רשימות הטקסט (Strings) לאובייקטים של WordItem
+const TEEN_MAP: WordItem[] = TEEN_ONLY.map(word => ({ word, en: "" }));
+const ADULT_MAP: WordItem[] = ADULT_ONLY.map(word => ({ word, en: "" }));
 
+// בניית המאגר המלא לפי חוקי הירושה:
+// Kids = Kids
+// Junior = Kids + Junior
+// Teen = Kids + Junior + Teen
+// Adult = Kids + Junior + Teen + Adult
 export const WORD_DATABASE: Record<CategoryType, WordItem[]> = {
   KIDS: KIDS_LIST,
   JUNIOR: [...KIDS_LIST, ...JUNIOR_ONLY],
