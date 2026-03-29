@@ -87,7 +87,6 @@ export const styles: { [key: string]: React.CSSProperties } = {
       fontWeight: 'bold',
       border: 'none',
       cursor: 'pointer',
-      transition: 'all 0.2s',
     },
     hugePlayBtn: {
       width: '220px',
@@ -143,5 +142,13 @@ export const styles: { [key: string]: React.CSSProperties } = {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    scoreAdjustRow: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      width: '100%',
+      padding: '15px',
+      borderBottom: '1px solid rgba(255,255,255,0.1)',
     }
   };

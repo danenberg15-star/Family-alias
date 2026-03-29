@@ -33,32 +33,44 @@ export default function FamilyAliasApp() {
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
 
+  // Persistence - טעינה ראשונית
   useEffect(() => {
     setMounted(true);
     const savedUserId = localStorage.getItem("alias_userId") || "u_" + Math.random().toString(36).substring(2, 9);
-    setUserId(savedUserId);
-    localStorage.setItem("alias_userId", savedUserId);
-    
     const savedName = localStorage.getItem("alias_userName");
     const savedAge = localStorage.getItem("alias_userAge");
-    const rId = localStorage.getItem("alias_roomId");
+    const savedRoomId = localStorage.getItem("alias_roomId");
+
+    setUserId(savedUserId);
+    localStorage.setItem("alias_userId", savedUserId);
 
     if (savedName && savedAge) {
       setUserName(savedName);
       setUserAge(savedAge);
-      if (rId) setRoomId(rId);
+      if (savedRoomId) {
+        setRoomId(savedRoomId);
+      } else {
+        setStep(2);
+      }
     } else {
-      setStep(1); // תמיד להתחיל בכניסה אם אין שם
+      // אם אין פרטים - מנקים הכל וחוזרים לשלב 1
+      localStorage.removeItem("alias_roomId");
+      setRoomId(null);
+      setStep(1);
     }
   }, []);
 
+  // האזנה ל-Firebase - רצה רק אם יש שם וחדר
   useEffect(() => {
     if (!roomId || !userName) return;
     const unsub = onSnapshot(doc(db, "rooms", roomId), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         setRoomData(data);
-        setStep(data.step);
+        // רק אם המשתמש כבר עבר את שלב הלובי, נאפשר ל-DB לשנות לו את ה-Step
+        if (step >= 2 || data.step > 2) {
+          setStep(data.step);
+        }
         localStorage.setItem("alias_roomId", roomId);
       } else {
         localStorage.removeItem("alias_roomId");
@@ -67,7 +79,7 @@ export default function FamilyAliasApp() {
       }
     });
     return () => unsub();
-  }, [roomId, userName]);
+  }, [roomId, userName, step]);
 
   const updateRoom = async (newData: any) => {
     if (roomId) await updateDoc(doc(db, "rooms", roomId), newData);
@@ -79,6 +91,7 @@ export default function FamilyAliasApp() {
     await updateRoom({ [`totalScores.${entity}`]: Math.max(0, current + amount) });
   };
 
+  // טיימר
   useEffect(() => {
     if (!roomId || !roomData || roomData.isPaused) return;
     const isIDescriber = roomData.players[roomData.currentTurnIdx]?.id === userId;
@@ -152,7 +165,13 @@ export default function FamilyAliasApp() {
       if (wordRef.current) Object.assign(wordRef.current.style, { position: 'relative', left: 'auto', top: 'auto' });
     }}>
       <div style={styles.safeAreaWrapper}>
-        {step === 1 && <EntryStep onNext={(n, a) => { setUserName(n); setUserAge(a); localStorage.setItem("alias_userName", n); localStorage.setItem("alias_userAge", a); setStep(2); }} />}
+        {step === 1 && <EntryStep onNext={(n, a) => { 
+          setUserName(n); 
+          setUserAge(a); 
+          localStorage.setItem("alias_userName", n); 
+          localStorage.setItem("alias_userAge", a); 
+          setStep(2); 
+        }} />}
         
         {step === 2 && <LobbyStep onCreateRoom={async () => {
           const id = generateRoomCode();
@@ -171,6 +190,8 @@ export default function FamilyAliasApp() {
 
         {step === 3 && roomData && <SetupStep roomId={roomId!} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} numTeams={roomData.numTeams} setNumTeams={(n) => { const up = roomData.players.map((p:any) => p.teamIdx >= n ? {...p, teamIdx: 0} : p); updateRoom({ numTeams: n, players: up }); }} teamNames={roomData.teamNames} editTeamName={(idx) => { const n = prompt("שם:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} players={roomData.players} onPlayerMove={(pId, teamIdx) => { const p = roomData.players.map((p:any) => p.id === pId ? {...p, teamIdx} : p); updateRoom({ players: p }); }} activeHover={activeHover} teamsRef={teamsRef} onStart={() => updateRoom({ step: 4, shuffledWords: getShuffledWords(currentPlayerCategory), currentWordIdx: 0, roundScore: 0 })} />}
 
+        {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP.name, team: roomData.teamNames[currentP.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
+
         {step === 5 && roomData && (
           <>
             {isIDescriber ? (
@@ -182,8 +203,8 @@ export default function FamilyAliasApp() {
                 <h1 style={{...styles.title, marginBottom: '20px'}}>תיקון ניקוד בלייב</h1>
                 <div style={{width:'100%', maxWidth:'400px', background:'rgba(255,255,255,0.05)', borderRadius:'15px', padding:'15px'}}>
                   {(roomData.gameMode === 'individual' ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)).map((entity: string) => (
-                    <div key={entity} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px 0', borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
-                      <span style={{fontSize:'18px', fontWeight:'bold'}}>{entity}</span>
+                    <div key={entity} style={styles.scoreAdjustRow}>
+                      <span style={{fontSize:'18px', fontWeight:'bold', color: '#fff'}}>{entity}</span>
                       <div style={{display:'flex', alignItems:'center', gap:'15px'}}>
                         <button style={styles.adjBtn} onClick={() => adjustScoreInPause(entity, -1)}>-</button>
                         <span style={{fontSize:'22px', minWidth:'30px', textAlign:'center', color:'#ffd700'}}>{roomData.totalScores[entity] || 0}</span>
@@ -198,7 +219,6 @@ export default function FamilyAliasApp() {
           </>
         )}
 
-        {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP.name, team: roomData.teamNames[currentP.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
         {step === 6 && roomData && <ScoreStep scores={roomData.totalScores} entities={roomData.gameMode === "individual" ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)} onNextRound={() => updateRoom({ step: 4, currentTurnIdx: (roomData.currentTurnIdx + 1) % roomData.players.length, timeLeft: 60, roundScore: 0, preGameTimer: 3, currentWordIdx: 0, shuffledWords: getShuffledWords(currentPlayerCategory) })} />}
         {step === 7 && roomData && <VictoryStep winnerName={roomData.winner} onRestart={() => { localStorage.removeItem("alias_roomId"); updateRoom({ step: 1, players: [] }); setRoomId(null); setStep(1); }} />}
       </div>

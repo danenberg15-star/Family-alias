@@ -14,13 +14,16 @@ export default function EntryStep({ onNext }: EntryStepProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onNext(name, age);
+    if (name && age) {
+      onNext(name, age);
+    }
   };
 
   return (
     <div style={styles.flexLayout}>
       <Logo />
       <div style={styles.formCard}>
+        <h2 style={{...styles.title, fontSize: '20px', marginBottom: '20px'}}>ברוכים הבאים!</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
           <input 
             type="text" 
