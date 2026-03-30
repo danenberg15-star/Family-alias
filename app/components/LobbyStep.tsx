@@ -1,3 +1,4 @@
+// app/components/LobbyStep.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -21,22 +22,19 @@ export default function LobbyStep({ onCreateRoom, onJoinRoom }: LobbyStepProps) 
 
   return (
     <div style={styles.flexLayout}>
-      <h1 style={{ ...styles.title, marginTop: '40px' }}>בחרו איך להתחיל</h1>
+      <h1 style={{ ...styles.entryTitle, marginTop: '40px' }}>בחרו איך להתחיל</h1>
 
       <div style={styles.lobbyCenterArea}>
-        {/* כפתור יצירה */}
-        <button onClick={onCreateRoom} style={styles.goldButton}>
+        <button onClick={onCreateRoom} style={styles.lobbyButton}>
           צור חדר חדש +
         </button>
 
-        {/* מסגרת הצטרפות ממורכזת */}
-        <div style={styles.joinFrameBtn} onClick={() => setIsModalOpen(true)}>
+        <div style={styles.lobbyJoinFrame} onClick={() => setIsModalOpen(true)}>
           <span style={{ color: '#ffd700', fontSize: '1.3rem', fontWeight: '900', marginBottom: '8px' }}>הצטרפות לחדר</span>
           <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>לחצו כאן להזנת קוד חדר</span>
         </div>
       </div>
 
-      {/* מיני תפריט (Modal) */}
       {isModalOpen && (
         <div style={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -46,12 +44,12 @@ export default function LobbyStep({ onCreateRoom, onJoinRoom }: LobbyStepProps) 
               value={inputCode} 
               onChange={(e) => setInputCode(e.target.value)} 
               placeholder="למשל: עומר" 
-              style={styles.inputField}
+              style={styles.entryInput}
               autoFocus
             />
             <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
-              <button onClick={handleManualJoin} style={styles.goldButton}>כנס לחדר</button>
-              <button onClick={() => setIsModalOpen(false)} style={{ ...styles.goldButton, background: 'rgba(255,255,255,0.1)', color: 'white' }}>ביטול</button>
+              <button onClick={handleManualJoin} style={styles.lobbyButton}>כנס לחדר</button>
+              <button onClick={() => setIsModalOpen(false)} style={{ ...styles.lobbyButton, background: 'rgba(255,255,255,0.1)', color: 'white' }}>ביטול</button>
             </div>
           </div>
         </div>
