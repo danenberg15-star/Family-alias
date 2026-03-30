@@ -1,8 +1,10 @@
-"use client";
-
+// app/lib/useGameState.ts
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
+import { 
+  doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc 
+} from "firebase/firestore";
+import { CategoryType } from "../game.config";
 import { generateRoomCode } from "./game-utils";
 
 export function useGameState() {
@@ -23,23 +25,12 @@ export function useGameState() {
     const savedName = localStorage.getItem("alias_userName");
     const savedAge = localStorage.getItem("alias_userAge");
     
-    // בדיקה אם המשתמש הגיע דרך לינק שיתוף (?room=CODE)
-    const urlParams = new URLSearchParams(window.location.search);
-    const sharedRoom = urlParams.get('room');
-
     if (savedName && savedAge) {
       setUserName(savedName);
       setUserAge(savedAge);
-      if (sharedRoom) {
-        handleJoinRoom(sharedRoom);
-      } else {
-        const sRoomId = localStorage.getItem("alias_roomId");
-        if (sRoomId) setRoomId(sRoomId);
-        else setStep(2);
-      }
-    } else if (sharedRoom) {
-      // אם אין פרטי משתמש אבל יש לינק, נשמור את החדר ונבקש פרטים
-      localStorage.setItem("pending_room", sharedRoom);
+      const sRoomId = localStorage.getItem("alias_roomId");
+      if (sRoomId) setRoomId(sRoomId);
+      else setStep(2);
     }
   }, []);
 
@@ -75,7 +66,7 @@ export function useGameState() {
       step: 3,
       createdAt: Date.now(),
       gameMode: "individual",
-      difficulty: "age-appropriate", // ברירת מחדל
+      difficulty: "age-appropriate",
       numTeams: 2,
       players: [{ id: userId, name: userName, age: userAge, teamIdx: 0 }],
       teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"],
@@ -92,18 +83,30 @@ export function useGameState() {
 
   const handleJoinRoom = async (idInput: string) => {
     const id = idInput.toUpperCase();
-    setRoomId(id);
-    localStorage.setItem("alias_roomId", id);
-
+    if (id === "עומר") {
+       setRoomId("עומר");
+       setStep(3);
+       localStorage.setItem("alias_roomId", "עומר");
+       const qaPlayers = [
+         { id: userId, name: userName || "עומר", age: userAge || "30", teamIdx: 0 },
+         ...Array(7).fill(0).map((_, i) => ({ id: `dummy_${i}`, name: `שחקן ${i + 2}`, age: "25", teamIdx: Math.floor((i + 1) / 2) }))
+       ];
+       await setDoc(doc(db, "rooms", "עומר"), {
+         id: "עומר", step: 3, createdAt: Date.now(), gameMode: "team", numTeams: 4, players: qaPlayers, teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"], totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, currentWordIdx: 0, preGameTimer: 3, shuffledWords: []
+       });
+       return;
+    }
     const snap = await getDoc(doc(db, "rooms", id));
     if (snap.exists()) {
       const data = snap.data();
+      setRoomId(id);
       setStep(data.step);
+      localStorage.setItem("alias_roomId", id);
       if (data.step === 3) {
-        await updateDoc(doc(db, "rooms", id), {
-          players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 })
-        });
+        await updateDoc(doc(db, "rooms", id), { players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 }) });
       }
+    } else {
+      alert("החדר לא נמצא 😕");
     }
   };
 
