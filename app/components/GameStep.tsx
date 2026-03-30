@@ -22,7 +22,10 @@ export default function GameStep(props: GameStepProps) {
   return (
     <div style={{ ...styles.flexLayout, justifyContent: 'space-between', padding: '10px 0' }}>
       
-      {/* 1. דלג למעלה */}
+      {/* 4. טיימר הכי למעלה */}
+      <div style={styles.timerDisplay}>{props.timeLeft}</div>
+
+      {/* 4. מתחתיו כפתור הדלג */}
       <div 
         ref={props.skipRef} 
         style={{
@@ -39,17 +42,16 @@ export default function GameStep(props: GameStepProps) {
         דלג (1-) ⏭️
       </div>
 
-      <div style={styles.timerDisplay}>{props.timeLeft}</div>
-
-      {/* 2. האובייקט באמצע */}
-      <div style={{ width: '320px', height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+      {/* 2+3. האובייקט באמצע - רקע כהה ועברית/אנגלית */}
+      <div style={{ width: '320px', height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <div
           ref={props.wordRef}
           onPointerDown={props.onPointerDown}
           style={{
-            width: '260px',
-            height: '220px',
-            backgroundColor: 'white',
+            width: '280px',
+            minHeight: '240px',
+            backgroundColor: 'rgba(255,255,255,0.05)', // רקע כהה
+            border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: '24px',
             display: 'flex',
             flexDirection: 'column',
@@ -63,14 +65,19 @@ export default function GameStep(props: GameStepProps) {
           }}
         >
           {props.currentWord?.img && !props.isTextOnly && (
-            <img src={props.currentWord.img} alt="" style={{ width: '100px', height: '100px', objectFit: 'contain', marginBottom: '10px' }} />
+            <img 
+              src={props.currentWord.img} 
+              alt="" 
+              style={{ width: '110px', height: '110px', objectFit: 'contain', marginBottom: '15px' }} 
+              onError={(e) => (e.currentTarget.style.display = 'none')} // הסתרה אם התמונה לא נמצאה
+            />
           )}
-          <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#05081c', textAlign: 'center' }}>{props.currentWord?.word}</div>
-          <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#64748b', textAlign: 'center', marginTop: '5px' }}>{props.currentWord?.en}</div>
+          <div style={{ fontSize: '32px', fontWeight: '900', color: '#fff', textAlign: 'center' }}>{props.currentWord?.word}</div>
+          <div style={{ fontSize: '32px', fontWeight: '900', color: '#64748b', textAlign: 'center', marginTop: '5px' }}>{props.currentWord?.en}</div>
         </div>
       </div>
 
-      {/* 3. שחקנים למטה */}
+      {/* שחקנים למטה */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '320px', marginBottom: '10px' }}>
         {props.targets.map((t) => (
           <div
