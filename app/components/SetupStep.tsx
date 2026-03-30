@@ -4,12 +4,6 @@
 import React, { useState, useRef } from "react";
 import { styles } from "../game.styles";
 
-const ShareIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="white" xmlns="http://www.w3.org/2000/svg">
-    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
-  </svg>
-);
-
 interface SetupStepProps {
   roomId: string; gameMode: "individual" | "team"; setGameMode: (m: "individual" | "team") => void;
   difficulty: "age-appropriate" | "easy"; setDifficulty: (d: "age-appropriate" | "easy") => void;
@@ -55,16 +49,21 @@ export default function SetupStep(props: SetupStepProps) {
   return (
     <div style={styles.flexLayout} onPointerMove={onPointerMove} onPointerUp={() => { if(draggedPlayer && localHover !== null) props.onPlayerMove(draggedPlayer.id, localHover); setDraggedPlayer(null); setLocalHover(null); if(ghostRef.current) ghostRef.current.style.display = 'none'; }}>
       <div ref={ghostRef} style={{ position: 'fixed', pointerEvents: 'none', display: 'none', backgroundColor: '#ffd700', color: '#05081c', padding: '10px 20px', borderRadius: '12px', zIndex: 5000, fontWeight: 'bold', top: 0, left: 0 }} />
+      
       <div style={styles.setupTop}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
-          <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
-          <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent('קוד: ' + props.roomId + '\n' + window.location.origin + '?room=' + props.roomId)}`)} style={{ background: '#25D366', border: 'none', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ShareIcon /></button>
-        </div>
+        <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
         <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-          <div style={styles.toggleContainer}><button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button><button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button></div>
-          <div style={styles.toggleContainer}><button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button><button onClick={() => props.setDifficulty("easy")} style={props.difficulty === "easy" ? styles.toggleActive : styles.toggleInactive}>קלה</button></div>
+          <div style={styles.toggleContainer}>
+            <button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button>
+            <button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button>
+          </div>
+          <div style={styles.toggleContainer}>
+            <button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button>
+            <button onClick={() => props.setDifficulty("easy")} style={props.difficulty === "easy" ? styles.toggleActive : styles.toggleInactive}>קלה</button>
+          </div>
         </div>
       </div>
+
       {!showTeamMenu && (
         <div style={{ ...styles.teamsGrid, gridTemplateColumns: '1fr 1fr', gridTemplateRows: props.numTeams > 2 ? '1fr 1fr' : '1fr' }}>
           {(props.gameMode === "team" ? props.teamNames.slice(0, props.numTeams) : ["שחקנים"]).map((tName, tIdx) => (
@@ -82,11 +81,14 @@ export default function SetupStep(props: SetupStepProps) {
           ))}
         </div>
       )}
+
       {showTeamMenu && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '15px', width: '100%' }}>
+          <h2 style={{ color: 'white', textAlign: 'center' }}>כמה קבוצות תרצו?</h2>
           {[2, 3, 4].map(n => <button key={n} onClick={() => { props.setNumTeams(n); setShowTeamMenu(false); }} style={{ ...styles.entryButton, background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid #ffd700' }}>{n} קבוצות</button>)}
         </div>
       )}
+
       <button onClick={props.onStart} style={styles.goldButtonFixed}>בואו נשחק! 🚀</button>
     </div>
   );
