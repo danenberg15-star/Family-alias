@@ -4,46 +4,40 @@
 import React, { useState, useRef } from "react";
 import { styles } from "../game.styles";
 
+const ShareIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="white" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+  </svg>
+);
+
 interface SetupStepProps {
-  roomId: string;
-  gameMode: "individual" | "team";
-  setGameMode: (mode: "individual" | "team") => void;
-  difficulty: "age-appropriate" | "easy";
-  setDifficulty: (d: "age-appropriate" | "easy") => void;
-  numTeams: number;
-  setNumTeams: (n: number) => void;
-  teamNames: string[];
-  editTeamName: (idx: number) => void;
-  players: any[];
-  onPlayerMove: (pId: string, teamIdx: number) => void;
-  activeHover: string | null; // הוספת השדה שפתרה את השגיאה ב-PAGE
-  teamsRef: React.MutableRefObject<{ [key: number]: HTMLDivElement | null }>;
-  onStart: () => void;
+  roomId: string; gameMode: "individual" | "team"; setGameMode: (m: "individual" | "team") => void;
+  difficulty: "age-appropriate" | "easy"; setDifficulty: (d: "age-appropriate" | "easy") => void;
+  numTeams: number; setNumTeams: (n: number) => void; teamNames: string[]; editTeamName: (i: number) => void;
+  players: any[]; onPlayerMove: (pId: string, tIdx: number) => void; activeHover: string | null;
+  teamsRef: React.MutableRefObject<{ [key: number]: HTMLDivElement | null }>; onStart: () => void;
 }
 
 export default function SetupStep(props: SetupStepProps) {
-  const [isSelectingTeams, setIsSelectingTeams] = useState(false);
-  const draggedPlayer = useRef<any>(null);
-  const lastHoveredTeam = useRef<number | null>(null);
+  const [showTeamMenu, setShowTeamMenu] = useState(false);
+  const [draggedPlayer, setDraggedPlayer] = useState<any>(null);
+  const [localHover, setLocalHover] = useState<number | null>(null);
   const ghostRef = useRef<HTMLDivElement>(null);
 
-  // גרירה "חלקה" - Direct DOM Manipulation
-  const onPointerDown = (e: React.PointerEvent, player: any) => {
-    draggedPlayer.current = player;
+  const h = props.players.length > 10 ? '34px' : '48px';
+
+  const onPointerDown = (e: React.PointerEvent, p: any) => {
+    setDraggedPlayer(p);
     if (ghostRef.current) {
       ghostRef.current.style.display = 'flex';
-      ghostRef.current.style.transform = `translate3d(${e.clientX - 60}px, ${e.clientY - 25}px, 0)`;
-      ghostRef.current.innerText = player.name;
+      ghostRef.current.style.transform = `translate3d(${e.clientX - 60}px, ${e.clientY - 20}px, 0)`;
+      ghostRef.current.innerText = p.name;
     }
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    if (!draggedPlayer.current || !ghostRef.current) return;
-    
-    // הזזה דרך ה-GPU (הכי מהיר שיש)
-    ghostRef.current.style.transform = `translate3d(${e.clientX - 60}px, ${e.clientY - 25}px, 0)`;
-
-    // זיהוי קבוצה "זוהרת"
+    if (!draggedPlayer || !ghostRef.current) return;
+    ghostRef.current.style.transform = `translate3d(${e.clientX - 60}px, ${e.clientY - 20}px, 0)`;
     let found: number | null = null;
     const targets = props.gameMode === "team" ? props.numTeams : 1;
     for (let i = 0; i < targets; i++) {
@@ -55,45 +49,22 @@ export default function SetupStep(props: SetupStepProps) {
         }
       }
     }
-
-    // עדכון ויזואלי של ה"זוהר" בלי לרנדר את כל ה-React
-    if (found !== lastHoveredTeam.current) {
-      if (lastHoveredTeam.current !== null) {
-        const oldEl = props.teamsRef.current[lastHoveredTeam.current];
-        if (oldEl) oldEl.style.borderColor = 'rgba(255,255,255,0.1)';
-      }
-      if (found !== null) {
-        const newEl = props.teamsRef.current[found];
-        if (newEl) newEl.style.borderColor = '#ffd700';
-      }
-      lastHoveredTeam.current = found;
-    }
-  };
-
-  const onPointerUp = () => {
-    if (draggedPlayer.current && lastHoveredTeam.current !== null) {
-      props.onPlayerMove(draggedPlayer.current.id, lastHoveredTeam.current);
-    }
-    if (lastHoveredTeam.current !== null) {
-      const el = props.teamsRef.current[lastHoveredTeam.current];
-      if (el) el.style.borderColor = 'rgba(255,255,255,0.1)';
-    }
-    draggedPlayer.current = null;
-    lastHoveredTeam.current = null;
-    if (ghostRef.current) ghostRef.current.style.display = 'none';
+    setLocalHover(found);
   };
 
   return (
-    <div style={styles.flexLayout} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
-      {/* אלמנט הגרירה */}
-      <div ref={ghostRef} style={{ position: 'fixed', pointerEvents: 'none', display: 'none', backgroundColor: '#ffd700', color: '#05081c', padding: '10px 20px', borderRadius: '12px', zIndex: 5000, fontWeight: 'bold', top: 0, left: 0, willChange: 'transform' }} />
-
+    <div style={styles.flexLayout} onPointerMove={onPointerMove} onPointerUp={() => { if(draggedPlayer && localHover !== null) props.onPlayerMove(draggedPlayer.id, localHover); setDraggedPlayer(null); setLocalHover(null); if(ghostRef.current) ghostRef.current.style.display = 'none'; }}>
+      <div ref={ghostRef} style={{ position: 'fixed', pointerEvents: 'none', display: 'none', backgroundColor: '#ffd700', color: '#05081c', padding: '10px 20px', borderRadius: '12px', zIndex: 5000, fontWeight: 'bold', top: 0, left: 0 }} />
+      
       <div style={styles.setupTop}>
-        <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
+          <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
+          <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent('קוד חדר: ' + props.roomId + '\n' + window.location.origin + '?room=' + props.roomId)}`)} style={{ background: '#25D366', border: 'none', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ShareIcon /></button>
+        </div>
         <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
           <div style={styles.toggleContainer}>
-            <button onClick={() => { props.setGameMode("individual"); setIsSelectingTeams(false); }} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button>
-            <button onClick={() => setIsSelectingTeams(true)} style={props.gameMode === "team" && !isSelectingTeams ? styles.toggleActive : styles.toggleInactive}>קבוצות</button>
+            <button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button>
+            <button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button>
           </div>
           <div style={styles.toggleContainer}>
             <button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button>
@@ -102,28 +73,28 @@ export default function SetupStep(props: SetupStepProps) {
         </div>
       </div>
 
-      {isSelectingTeams ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '15px', width: '100%' }}>
-          <h2 style={{ color: 'white', textAlign: 'center' }}>כמה קבוצות תרצו?</h2>
-          {[2, 3, 4].map(n => (
-            <button key={n} onClick={() => { props.setNumTeams(n); props.setGameMode("team"); setIsSelectingTeams(false); }} style={{ ...styles.entryButton, background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid #ffd700' }}>{n} קבוצות</button>
-          ))}
-        </div>
-      ) : (
+      {!showTeamMenu && (
         <div style={{ ...styles.teamsGrid, gridTemplateColumns: '1fr 1fr', gridTemplateRows: props.numTeams > 2 ? '1fr 1fr' : '1fr' }}>
-          {(props.gameMode === "team" ? props.teamNames.slice(0, props.numTeams) : ["שחקנים בחדר"]).map((tName, tIdx) => (
-            <div key={tIdx} ref={el => { if(props.teamsRef.current) props.teamsRef.current[tIdx] = el; }} style={styles.teamBox}>
+          {(props.gameMode === "team" ? props.teamNames.slice(0, props.numTeams) : ["שחקנים"]).map((tName, tIdx) => (
+            <div key={tIdx} ref={el => { if(props.teamsRef.current) props.teamsRef.current[tIdx] = el; }} style={{ ...styles.teamBox, ...(localHover === tIdx ? styles.teamBoxGlowing : {}) }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px', marginBottom: '4px' }}>
                 <span style={{ color: '#ffd700', fontSize: '0.9rem', fontWeight: 'bold' }}>{tName}</span>
                 {props.gameMode === "team" && <button onClick={() => props.editTeamName(tIdx)} style={{ background: 'none', border: 'none', color: '#ffd700' }}>✏️</button>}
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', flex: 1 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
                 {props.players.filter(p => props.gameMode === "individual" || p.teamIdx === tIdx).map(p => (
-                  <div key={p.id} onPointerDown={(e) => onPointerDown(e, p)} style={styles.playerCard}>{p.name}</div>
+                  <div key={p.id} onPointerDown={(e) => onPointerDown(e, p)} style={{ ...styles.playerCard, height: h, opacity: draggedPlayer?.id === p.id ? 0.4 : 1 }}>{p.name}</div>
                 ))}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {showTeamMenu && (
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '15px', width: '100%' }}>
+          <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '10px' }}>כמה קבוצות תרצו?</h2>
+          {[2, 3, 4].map(n => <button key={n} onClick={() => { props.setNumTeams(n); setShowTeamMenu(false); }} style={{ ...styles.entryButton, background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid #ffd700' }}>{n} קבוצות</button>)}
         </div>
       )}
 
