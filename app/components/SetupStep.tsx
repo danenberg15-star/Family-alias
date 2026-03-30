@@ -1,7 +1,21 @@
+// app/components/SetupStep.tsx
 "use client";
 
 import React from "react";
 import { styles } from "../game.styles";
+
+// רכיב SVG פנימי של אייקון השיתוף הסטנדרטי (nodes-and-lines)
+const ShareIcon = () => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width="24" 
+    height="24" 
+    fill="white" // צבע לבן לאייקון
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/>
+  </svg>
+);
 
 interface SetupStepProps {
   roomId: string;
@@ -33,8 +47,26 @@ export default function SetupStep(props: SetupStepProps) {
         <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>קוד חדר</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', justifyContent: 'center' }}>
           <h1 style={{ color: '#ffd700', fontSize: '3.5rem', fontWeight: '900', margin: '0' }}>{props.roomId}</h1>
-          <button onClick={shareLink} style={{ background: '#25D366', border: 'none', borderRadius: '50%', width: '45px', height: '45px', cursor: 'pointer', fontSize: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
-            🔗
+          
+          {/* כפתור שיתוף מעודכן עם אייקון שיתוף סטנדרטי על רקע ירוק */}
+          <button 
+            onClick={shareLink} 
+            style={{ 
+              background: '#25D366', // שומרים על הרקע הירוק של וואטסאפ
+              border: 'none', 
+              borderRadius: '50%', 
+              width: '45px', 
+              height: '45px', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+              padding: '0'
+            }}
+            title="שתף קישור לחדר"
+          >
+            <ShareIcon />
           </button>
         </div>
       </div>
