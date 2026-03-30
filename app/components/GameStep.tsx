@@ -11,7 +11,6 @@ interface GameStepProps {
   skipRef: React.RefObject<HTMLButtonElement>;
   isDraggingWord: boolean;
   onPointerDown: (e: React.PointerEvent) => void;
-  isTextOnly: boolean;
   targets: string[];
   targetsRef: React.MutableRefObject<{ [key: string]: HTMLDivElement | null }>;
   score: number;
@@ -23,20 +22,66 @@ interface GameStepProps {
 export default function GameStep(props: GameStepProps) {
   return (
     <div style={styles.flexLayout}>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ color: 'white', fontWeight: 'bold' }}>ניקוד: {props.score}</div>
-        <button onClick={props.onPause} style={{ color: 'white', background: 'none', border: '1px solid white', borderRadius: '10px', padding: '5px 15px' }}>השהה ⏸️</button>
+      {/* שורת כותרת */}
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+        <div style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}>ניקוד נוכחי: {props.score}</div>
+        <button onClick={props.onPause} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid white', color: 'white', padding: '6px 18px', borderRadius: '12px', fontWeight: 'bold' }}>
+          עצור ⏸️
+        </button>
       </div>
-      <div style={styles.timerDisplay}>{props.timeLeft}</div>
-      <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <img src={props.currentWord?.image} alt={props.currentWord?.word} style={styles.gameImage} />
-        <h2 style={{ color: 'white', fontSize: '2.5rem', marginTop: '10px' }}>{props.currentWord?.word}</h2>
+
+      {/* טיימר מודגש */}
+      <div style={styles.timerBold}>{props.timeLeft}</div>
+
+      {/* אזור התמונה - תופס את רוב המסך */}
+      <div style={styles.imageContainer}>
+        <div 
+          ref={props.wordRef}
+          onPointerDown={props.onPointerDown}
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'grab',
+            touchAction: 'none',
+            zIndex: 100,
+            visibility: props.isDraggingWord ? 'hidden' : 'visible'
+          }}
+        >
+          <img src={props.currentWord?.image} alt={props.currentWord?.word} style={styles.fullImage} />
+          <div style={styles.wordOverlay}>{props.currentWord?.word}</div>
+        </div>
       </div>
-      <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '20px' }}>
-        {props.targets.map(t => (
-          <button key={t} onClick={() => props.onGuess(t)} style={styles.targetBtn}>{t}</button>
+
+      {/* רשת המטרות - שחקנים/קבוצות ודילוג */}
+      <div style={styles.gameTargetsGrid}>
+        {props.targets.map((t) => (
+          <div 
+            key={t}
+            ref={el => { if(props.targetsRef.current) props.targetsRef.current[t] = el; }}
+            onClick={() => props.onGuess(t)}
+            style={{ 
+              ...styles.targetBtn, 
+              ...(props.activeHover === t ? styles.targetBtnActive : {}) 
+            }}
+          >
+            {t}
+          </div>
         ))}
-        <button onClick={() => props.onGuess("SKIP")} style={{ gridColumn: 'span 2', padding: '15px', borderRadius: '12px', background: '#ef4444', color: 'white', border: 'none', fontWeight: 'bold' }}>דלג (1-)</button>
+        
+        <button 
+          ref={props.skipRef as any}
+          onClick={() => props.onGuess("SKIP")}
+          style={{ 
+            ...styles.skipBtn, 
+            ...(props.activeHover === "SKIP" ? styles.skipBtnActive : {}) 
+          }}
+        >
+          דילוג (נקודה אדומה -1) ❌
+        </button>
       </div>
     </div>
   );
