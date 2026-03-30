@@ -8,12 +8,7 @@ import {
   onSnapshot, 
   updateDoc, 
   arrayUnion, 
-  getDoc, 
-  query, 
-  collection, 
-  where, 
-  limit, 
-  orderBy 
+  getDoc 
 } from "firebase/firestore";
 import EntryStep from "./components/EntryStep";
 import LobbyStep from "./components/LobbyStep";
@@ -35,7 +30,6 @@ export default function FamilyAliasApp() {
   const [step, setStep] = useState(1);
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState("");
-  const [recentRooms, setRecentRooms] = useState<any[]>([]);
 
   const wordRef = useRef<HTMLDivElement | null>(null);
   const skipRef = useRef<HTMLDivElement | null>(null);
@@ -45,7 +39,6 @@ export default function FamilyAliasApp() {
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
 
-  // אתחול המשתמש
   useEffect(() => {
     setMounted(true);
     const savedUserId = localStorage.getItem("alias_userId") || "u_" + Math.random().toString(36).substring(2, 9);
@@ -63,7 +56,6 @@ export default function FamilyAliasApp() {
     }
   }, []);
 
-  // האזנה לנתוני החדר הנוכחי
   useEffect(() => {
     if (!roomId) return;
     const unsub = onSnapshot(doc(db, "rooms", roomId), (snap) => {
@@ -75,23 +67,6 @@ export default function FamilyAliasApp() {
     });
     return () => unsub();
   }, [roomId]);
-
-  // האזנה לחדרים פעילים מה-3 דקות האחרונות (ללובי)
-  useEffect(() => {
-    if (step !== 2) return;
-    const threeMinsAgo = Date.now() - (3 * 60 * 1000);
-    const q = query(
-      collection(db, "rooms"),
-      where("createdAt", ">", threeMinsAgo),
-      limit(20)
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      const rooms = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // מציגים רק חדרים שעדיין בשלב ההמתנה (Step 3)
-      setRecentRooms(rooms.filter((r: any) => r.step === 3));
-    });
-    return () => unsub();
-  }, [step]);
 
   const updateRoom = async (newData: any) => {
     if (roomId) await updateDoc(doc(db, "rooms", roomId), newData);
@@ -111,7 +86,7 @@ export default function FamilyAliasApp() {
     await setDoc(doc(db, "rooms", id), {
       id,
       step: 3,
-      createdAt: Date.now(), // קריטי לסינון חדרים אחרונים
+      createdAt: Date.now(),
       gameMode: "individual",
       numTeams: 2,
       players: [{ id: userId, name: userName, age: userAge, teamIdx: 0 }],
@@ -130,15 +105,53 @@ export default function FamilyAliasApp() {
   };
 
   const handleJoinRoom = async (id: string) => {
+    // לוגיקת "עומר" - חדר QA עם משתמשי דמה
+    if (id === "עומר") {
+       const qaPlayers = [
+         { id: userId, name: userName || "עומר", age: userAge || "30", teamIdx: 0 },
+         ...Array(7).fill(0).map((_, i) => ({
+           id: `dummy_${i}`,
+           name: `שחקן ${i + 2}`,
+           age: "25",
+           teamIdx: Math.floor((i + 1) / 2)
+         }))
+       ];
+       await setDoc(doc(db, "rooms", "עומר"), {
+         id: "עומר",
+         step: 3,
+         createdAt: Date.now(),
+         gameMode: "team",
+         numTeams: 4,
+         players: qaPlayers,
+         teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"],
+         totalScores: {},
+         roundScore: 0,
+         timeLeft: 60,
+         isPaused: false,
+         currentTurnIdx: 0,
+         currentWordIdx: 0,
+         preGameTimer: 3,
+         shuffledWords: []
+       });
+       setRoomId("עומר");
+       localStorage.setItem("alias_roomId", "עומר");
+       return;
+    }
+
+    // הצטרפות רגילה
     const snap = await getDoc(doc(db, "rooms", id));
     if (snap.exists()) {
-      await updateDoc(doc(db, "rooms", id), {
-        players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 })
-      });
+      const data = snap.data();
+      // אם החדר כבר התחיל, פשוט נכנסים לצפייה. אם הוא ב-Setup, מוסיפים את השחקן.
+      if (data.step === 3) {
+        await updateDoc(doc(db, "rooms", id), {
+          players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 })
+        });
+      }
       setRoomId(id);
       localStorage.setItem("alias_roomId", id);
     } else {
-      alert("החדר לא נמצא או פג תוקפו 😕");
+      alert("החדר לא נמצא 😕");
     }
   };
 
@@ -153,7 +166,6 @@ export default function FamilyAliasApp() {
   };
   const currentPlayerCategory = currentP ? getCategoryByAge(currentP.age) : "ADULT";
 
-  // לוגיקת טיימרים
   useEffect(() => {
     if (!roomId || !roomData || roomData.isPaused || step < 4 || !isIDescriber) return;
     const timer = setInterval(() => {
@@ -210,13 +222,7 @@ export default function FamilyAliasApp() {
         
         {step === 1 && <EntryStep onNext={(n, a) => { setUserName(n); setUserAge(a); localStorage.setItem("alias_userName", n); localStorage.setItem("alias_userAge", a); setStep(2); }} />}
         
-        {step === 2 && (
-          <LobbyStep 
-            onCreateRoom={handleCreateRoom} 
-            onJoinRoom={handleJoinRoom} 
-            recentRooms={recentRooms} 
-          />
-        )}
+        {step === 2 && <LobbyStep onCreateRoom={handleCreateRoom} onJoinRoom={handleJoinRoom} />}
 
         {step === 3 && roomData && (
           <SetupStep 
