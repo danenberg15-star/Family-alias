@@ -16,7 +16,6 @@ export default function EntryStep({ onNext }: EntryStepProps) {
     <div style={styles.flexLayout}>
       <img src="/logo.webp" alt="Logo" style={styles.entryLogo} />
       <h1 style={styles.entryTitle}>נראה אתכם תופסים את המילה הנרדפת</h1>
-      
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', marginBottom: 'auto' }}>
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="שם" style={styles.entryInput} />
         <input type="number" value={age} onChange={(e) => setAge(e.target.value)} placeholder="גיל" style={styles.entryInput} />

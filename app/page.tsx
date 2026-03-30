@@ -1,18 +1,14 @@
 // app/page.tsx
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useGameState } from "./lib/useGameState";
 import { styles } from "./game.styles";
-import { getShuffledWords } from "./lib/game-utils";
 
 import EntryStep from "./components/EntryStep";
 import LobbyStep from "./components/LobbyStep";
 import SetupStep from "./components/SetupStep";
 import CountdownStep from "./components/CountdownStep";
-import GameStep from "./components/GameStep";
-import GuesserView from "./components/GuesserView";
-import ScoreStep from "./components/ScoreStep";
 import VictoryStep from "./components/VictoryStep";
 
 export default function FamilyAliasApp() {
@@ -46,7 +42,6 @@ export default function FamilyAliasApp() {
           />
         )}
         {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: roomData.players[roomData.currentTurnIdx]?.name, team: roomData.teamNames[roomData.players[roomData.currentTurnIdx]?.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
-        {/* שאר השלבים נשמרים כרגיל */}
         {step === 7 && roomData && <VictoryStep winnerName={roomData.winner} onRestart={handleFullReset} />}
       </div>
     </div>

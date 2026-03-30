@@ -49,7 +49,6 @@ export default function SetupStep(props: SetupStepProps) {
   return (
     <div style={styles.flexLayout} onPointerMove={onPointerMove} onPointerUp={() => { if(draggedPlayer && localHover !== null) props.onPlayerMove(draggedPlayer.id, localHover); setDraggedPlayer(null); setLocalHover(null); if(ghostRef.current) ghostRef.current.style.display = 'none'; }}>
       <div ref={ghostRef} style={{ position: 'fixed', pointerEvents: 'none', display: 'none', backgroundColor: '#ffd700', color: '#05081c', padding: '10px 20px', borderRadius: '12px', zIndex: 5000, fontWeight: 'bold', top: 0, left: 0 }} />
-      
       <div style={styles.setupTop}>
         <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
         <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
@@ -88,7 +87,6 @@ export default function SetupStep(props: SetupStepProps) {
           {[2, 3, 4].map(n => <button key={n} onClick={() => { props.setNumTeams(n); setShowTeamMenu(false); }} style={{ ...styles.entryButton, background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid #ffd700' }}>{n} קבוצות</button>)}
         </div>
       )}
-
       <button onClick={props.onStart} style={styles.goldButtonFixed}>בואו נשחק! 🚀</button>
     </div>
   );
