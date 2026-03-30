@@ -1,11 +1,11 @@
 // app/lib/useGameState.ts
 import { useState, useEffect } from "react";
-import { db } from "./firebase"; // תיקון נתיב
+import { db } from "./firebase";
 import { 
   doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc 
 } from "firebase/firestore";
-import { CategoryType } from "../game.config"; // תיקון נתיב
-import { generateRoomCode, getShuffledWords } from "./game-utils"; // תיקון נתיב
+import { CategoryType } from "../game.config";
+import { generateRoomCode, getShuffledWords } from "./game-utils";
 
 export function useGameState() {
   const [mounted, setMounted] = useState(false);
@@ -39,11 +39,12 @@ export function useGameState() {
       if (snap.exists()) {
         const data = snap.data();
         setRoomData(data);
-        setStep(data.step);
+        // מעדכנים את הסטפ רק אם הוא שונה מהנוכחי (כדי לא להפריע למעבר המהיר שלנו)
+        if (data.step !== step) setStep(data.step);
       }
     });
     return () => unsub();
-  }, [roomId]);
+  }, [roomId, step]);
 
   const updateRoom = async (newData: any) => {
     if (roomId) await updateDoc(doc(db, "rooms", roomId), newData);
@@ -56,6 +57,12 @@ export function useGameState() {
 
   const handleCreateRoom = async () => {
     const id = generateRoomCode();
+    // 1. מעבר מיידי ב-UI (לפני ה-Network)
+    setRoomId(id);
+    setStep(3); 
+    localStorage.setItem("alias_roomId", id);
+
+    // 2. יצירת הנתונים ב-Firebase (קורה ברקע)
     await setDoc(doc(db, "rooms", id), {
       id,
       step: 3,
@@ -73,13 +80,17 @@ export function useGameState() {
       preGameTimer: 3,
       shuffledWords: []
     });
-    setRoomId(id);
-    localStorage.setItem("alias_roomId", id);
   };
 
   const handleJoinRoom = async (idInput: string) => {
     const id = idInput.toUpperCase();
+    
     if (id === "עומר") {
+       // מעבר מהיר לחדר QA
+       setRoomId("עומר");
+       setStep(3);
+       localStorage.setItem("alias_roomId", "עומר");
+
        const qaPlayers = [
          { id: userId, name: userName || "עומר", age: userAge || "30", teamIdx: 0 },
          ...Array(7).fill(0).map((_, i) => ({
@@ -106,21 +117,22 @@ export function useGameState() {
          preGameTimer: 3,
          shuffledWords: []
        });
-       setRoomId("עומר");
-       localStorage.setItem("alias_roomId", "עומר");
        return;
     }
 
     const snap = await getDoc(doc(db, "rooms", id));
     if (snap.exists()) {
       const data = snap.data();
+      // מעבר מהיר
+      setRoomId(id);
+      setStep(data.step);
+      localStorage.setItem("alias_roomId", id);
+
       if (data.step === 3) {
         await updateDoc(doc(db, "rooms", id), {
           players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 })
         });
       }
-      setRoomId(id);
-      localStorage.setItem("alias_roomId", id);
     } else {
       alert("החדר לא נמצא 😕");
     }
