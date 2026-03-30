@@ -11,20 +11,11 @@ const ShareIcon = () => (
 );
 
 interface SetupStepProps {
-  roomId: string;
-  gameMode: "individual" | "team";
-  setGameMode: (mode: "individual" | "team") => void;
-  difficulty: "age-appropriate" | "easy";
-  setDifficulty: (d: "age-appropriate" | "easy") => void;
-  numTeams: number;
-  setNumTeams: (n: number) => void;
-  teamNames: string[];
-  editTeamName: (idx: number) => void;
-  players: any[];
-  onPlayerMove: (pId: string, teamIdx: number) => void;
-  activeHover: string | null;
-  teamsRef: React.MutableRefObject<{ [key: number]: HTMLDivElement | null }>;
-  onStart: () => void;
+  roomId: string; gameMode: "individual" | "team"; setGameMode: (m: "individual" | "team") => void;
+  difficulty: "age-appropriate" | "easy"; setDifficulty: (d: "age-appropriate" | "easy") => void;
+  numTeams: number; setNumTeams: (n: number) => void; teamNames: string[]; editTeamName: (i: number) => void;
+  players: any[]; onPlayerMove: (pId: string, tIdx: number) => void; activeHover: string | null;
+  teamsRef: React.MutableRefObject<{ [key: number]: HTMLDivElement | null }>; onStart: () => void;
 }
 
 export default function SetupStep(props: SetupStepProps) {
@@ -33,7 +24,6 @@ export default function SetupStep(props: SetupStepProps) {
   const [localHover, setLocalHover] = useState<number | null>(null);
   const ghostRef = useRef<HTMLDivElement>(null);
 
-  // חישוב גודל תג שחקן למניעת גלילה
   const h = props.players.length > 10 ? '34px' : props.players.length > 6 ? '46px' : '56px';
 
   const onPointerDown = (e: React.PointerEvent, p: any) => {
@@ -47,10 +37,7 @@ export default function SetupStep(props: SetupStepProps) {
 
   const onPointerMove = (e: React.PointerEvent) => {
     if (!draggedPlayer || !ghostRef.current) return;
-    
-    // שימוש ב-translate3d לביצועים מקסימליים
     ghostRef.current.style.transform = `translate3d(${e.clientX - 60}px, ${e.clientY - 20}px, 0)`;
-
     let found: number | null = null;
     const targets = props.gameMode === "team" ? props.numTeams : 1;
     for (let i = 0; i < targets; i++) {
@@ -71,29 +58,19 @@ export default function SetupStep(props: SetupStepProps) {
     if (ghostRef.current) ghostRef.current.style.display = 'none';
   };
 
-  const handleModeChange = (mode: "individual" | "team") => {
-    props.setGameMode(mode);
-    if (mode === "team") setShowTeamMenu(true);
-  };
-
   return (
     <div style={styles.flexLayout} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
-      {/* Ghost שנגרר בצורה חלקה */}
-      <div ref={ghostRef} style={{ position: 'fixed', pointerEvents: 'none', display: 'none', backgroundColor: '#ffd700', color: '#05081c', padding: '10px 20px', borderRadius: '12px', zIndex: 5000, fontWeight: 'bold', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', top: 0, left: 0 }} />
+      <div ref={ghostRef} style={{ position: 'fixed', pointerEvents: 'none', display: 'none', backgroundColor: '#ffd700', color: '#05081c', padding: '10px 20px', borderRadius: '12px', zIndex: 5000, fontWeight: 'bold', top: 0, left: 0 }} />
 
-      {/* חלק עליון */}
       <div style={styles.setupTop}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
           <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
-          <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent('בואו לשחק אליאס: ' + props.roomId + '\n' + window.location.origin + '?room=' + props.roomId)}`)} style={{ background: '#25D366', border: 'none', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShareIcon />
-          </button>
+          <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent('קוד: ' + props.roomId + '\n' + window.location.origin + '?room=' + props.roomId)}`)} style={{ background: '#25D366', border: 'none', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ShareIcon /></button>
         </div>
-        
         <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
           <div style={styles.toggleContainer}>
-            <button onClick={() => handleModeChange("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button>
-            <button onClick={() => handleModeChange("team")} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button>
+            <button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button>
+            <button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button>
           </div>
           <div style={styles.toggleContainer}>
             <button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button>
@@ -102,27 +79,17 @@ export default function SetupStep(props: SetupStepProps) {
         </div>
       </div>
 
-      {/* לוח הקבוצות והשחקנים - נעלם כשהתפריט פתוח */}
       {!showTeamMenu && (
-        <div style={{ 
-          ...styles.teamsGrid, 
-          gridTemplateColumns: '1fr 1fr', 
-          gridTemplateRows: (props.gameMode === "team" && props.numTeams > 2) ? '1fr 1fr' : '1fr' 
-        }}>
+        <div style={{ ...styles.teamsGrid, gridTemplateColumns: '1fr 1fr', gridTemplateRows: (props.gameMode === "team" && props.numTeams > 2) ? '1fr 1fr' : '1fr' }}>
           {(props.gameMode === "team" ? props.teamNames.slice(0, props.numTeams) : ["שחקנים בחדר"]).map((tName, tIdx) => (
-            <div 
-              key={tIdx} ref={el => { if(props.teamsRef.current) props.teamsRef.current[tIdx] = el; }}
-              style={{ ...styles.teamBox, ...(localHover === tIdx ? styles.teamBoxGlowing : {}) }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px' }}>
+            <div key={tIdx} ref={el => { if(props.teamsRef.current) props.teamsRef.current[tIdx] = el; }} style={{ ...styles.teamBox, ...(localHover === tIdx ? styles.teamBoxGlowing : {}) }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px' }}>
                 <span style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '0.9rem' }}>{tName}</span>
                 {props.gameMode === "team" && <button onClick={() => props.editTeamName(tIdx)} style={{ background: 'none', border: 'none', color: '#ffd700' }}>✏️</button>}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1, overflowY: 'auto' }}>
                 {props.players.filter(p => props.gameMode === "individual" || p.teamIdx === tIdx).map(p => (
-                  <div key={p.id} onPointerDown={(e) => onPointerDown(e, p)} style={{ ...styles.playerCard, height: h, opacity: draggedPlayer?.id === p.id ? 0.4 : 1 }}>
-                    {p.name}
-                  </div>
+                  <div key={p.id} onPointerDown={(e) => onPointerDown(e, p)} style={{ ...styles.playerCard, height: h, opacity: draggedPlayer?.id === p.id ? 0.4 : 1 }}>{p.name}</div>
                 ))}
               </div>
             </div>
@@ -130,23 +97,15 @@ export default function SetupStep(props: SetupStepProps) {
         </div>
       )}
 
-      {/* תפריט ורטיקלי - נפתח רק בבחירת קבוצות */}
       {showTeamMenu && (
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'center', width: '100%', gap: '15px' }}>
-          <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '10px' }}>כמה קבוצות תרצו?</h2>
+          <h2 style={{ color: 'white', textAlign: 'center' }}>כמה קבוצות?</h2>
           {[2, 3, 4].map(n => (
-            <button 
-              key={n} 
-              onClick={() => { props.setNumTeams(n); setShowTeamMenu(false); }}
-              style={{ ...styles.goldButtonFixed, marginTop: '0', background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid #ffd700' }}
-            >
-              {n} קבוצות
-            </button>
+            <button key={n} onClick={() => { props.setNumTeams(n); setShowTeamMenu(false); }} style={{ ...styles.entryButton, background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid #ffd700' }}>{n} קבוצות</button>
           ))}
         </div>
       )}
 
-      {/* כפתור תחתון קבוע */}
       <button onClick={props.onStart} style={styles.goldButtonFixed}>בואו נשחק! 🚀</button>
     </div>
   );
