@@ -1,5 +1,4 @@
 // app/lib/word-database.ts
-
 import { KIDS_WORDS } from "./words/kids";
 import { JUNIOR_WORDS } from "./words/junior";
 import { TEEN_WORDS } from "./words/teen";

@@ -1,5 +1,4 @@
 // app/lib/game-utils.ts
-
 import { CategoryType, HEBREW_ROOM_CODES, WordItem } from "../game.config";
 import { WORD_DATABASE } from "./word-database";
 
