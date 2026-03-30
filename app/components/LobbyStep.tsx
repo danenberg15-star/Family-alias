@@ -13,29 +13,44 @@ export default function LobbyStep({ onCreateRoom, onJoinRoom }: LobbyStepProps) 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inputCode, setInputCode] = useState("");
 
+  const handleManualJoin = () => {
+    if (inputCode.trim()) {
+      onJoinRoom(inputCode.toUpperCase());
+      setIsModalOpen(false);
+    }
+  };
+
   return (
     <div style={styles.flexLayout}>
-      <h1 style={styles.lobbyTitle}>בחרו איך להתחיל</h1>
+      <h1 style={{ ...styles.entryTitle, marginTop: '40px', fontSize: '2rem' }}>בחרו איך להתחיל</h1>
 
       <div style={styles.lobbyCenterArea}>
-        <div style={{ textAlign: 'right', width: '100%', paddingRight: '15%' }}>
-          <button onClick={onCreateRoom} style={styles.lobbyButtonWhite}>
-            צור חדר חדש +
-          </button>
-        </div>
+        <button onClick={onCreateRoom} style={styles.lobbyButton}>
+          צור חדר חדש +
+        </button>
 
-        <div style={styles.lobbyJoinText} onClick={() => setIsModalOpen(true)}>
-          <span style={{ color: '#ffd700' }}>הצטרפות לחדר</span>
-          <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 'normal' }}> לחצו כאן להזנת קוד חדר</span>
+        <div style={styles.lobbyJoinFrame} onClick={() => setIsModalOpen(true)}>
+          <span style={{ color: '#ffd700', fontSize: '1.5rem', fontWeight: '900', marginBottom: '8px' }}>הצטרפות לחדר</span>
+          <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1.1rem' }}>לחצו כאן להזנת קוד חדר</span>
         </div>
       </div>
 
       {isModalOpen && (
         <div style={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <div style={{ width: '100%', maxWidth: '350px', backgroundColor: '#0f172a', borderRadius: '24px', padding: '30px', border: '1px solid #ffd700', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ color: 'white', textAlign: 'center' }}>מה קוד החדר?</h2>
-            <input type="text" value={inputCode} onChange={(e) => setInputCode(e.target.value)} placeholder="הזן קוד..." style={styles.entryInput} autoFocus />
-            <button onClick={() => { onJoinRoom(inputCode); setIsModalOpen(false); }} style={styles.entryButton}>כנס לחדר</button>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ color: 'white', fontSize: '1.3rem', textAlign: 'center', fontWeight: 'bold' }}>מה קוד החדר שאתה רוצה להיכנס אליו?</h2>
+            <input 
+              type="text" 
+              value={inputCode} 
+              onChange={(e) => setInputCode(e.target.value)} 
+              placeholder="למשל: עומר" 
+              style={styles.entryInput}
+              autoFocus
+            />
+            <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+              <button onClick={handleManualJoin} style={styles.entryButton}>כנס לחדר</button>
+              <button onClick={() => setIsModalOpen(false)} style={{ ...styles.entryButton, background: 'rgba(255,255,255,0.1)', color: 'white' }}>ביטול</button>
+            </div>
           </div>
         </div>
       )}

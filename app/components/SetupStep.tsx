@@ -24,8 +24,6 @@ export default function SetupStep(props: SetupStepProps) {
   const [localHover, setLocalHover] = useState<number | null>(null);
   const ghostRef = useRef<HTMLDivElement>(null);
 
-  const h = props.players.length > 10 ? '34px' : '48px';
-
   const onPointerDown = (e: React.PointerEvent, p: any) => {
     setDraggedPlayer(p);
     if (ghostRef.current) {
@@ -52,27 +50,21 @@ export default function SetupStep(props: SetupStepProps) {
     setLocalHover(found);
   };
 
+  const h = props.players.length > 10 ? '34px' : '48px';
+
   return (
     <div style={styles.flexLayout} onPointerMove={onPointerMove} onPointerUp={() => { if(draggedPlayer && localHover !== null) props.onPlayerMove(draggedPlayer.id, localHover); setDraggedPlayer(null); setLocalHover(null); if(ghostRef.current) ghostRef.current.style.display = 'none'; }}>
       <div ref={ghostRef} style={{ position: 'fixed', pointerEvents: 'none', display: 'none', backgroundColor: '#ffd700', color: '#05081c', padding: '10px 20px', borderRadius: '12px', zIndex: 5000, fontWeight: 'bold', top: 0, left: 0 }} />
-      
       <div style={styles.setupTop}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center' }}>
           <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
-          <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent('קוד חדר: ' + props.roomId + '\n' + window.location.origin + '?room=' + props.roomId)}`)} style={{ background: '#25D366', border: 'none', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ShareIcon /></button>
+          <button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent('קוד: ' + props.roomId + '\n' + window.location.origin + '?room=' + props.roomId)}`)} style={{ background: '#25D366', border: 'none', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ShareIcon /></button>
         </div>
         <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-          <div style={styles.toggleContainer}>
-            <button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button>
-            <button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button>
-          </div>
-          <div style={styles.toggleContainer}>
-            <button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button>
-            <button onClick={() => props.setDifficulty("easy")} style={props.difficulty === "easy" ? styles.toggleActive : styles.toggleInactive}>קלה</button>
-          </div>
+          <div style={styles.toggleContainer}><button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button><button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button></div>
+          <div style={styles.toggleContainer}><button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button><button onClick={() => props.setDifficulty("easy")} style={props.difficulty === "easy" ? styles.toggleActive : styles.toggleInactive}>קלה</button></div>
         </div>
       </div>
-
       {!showTeamMenu && (
         <div style={{ ...styles.teamsGrid, gridTemplateColumns: '1fr 1fr', gridTemplateRows: props.numTeams > 2 ? '1fr 1fr' : '1fr' }}>
           {(props.gameMode === "team" ? props.teamNames.slice(0, props.numTeams) : ["שחקנים"]).map((tName, tIdx) => (
@@ -90,14 +82,11 @@ export default function SetupStep(props: SetupStepProps) {
           ))}
         </div>
       )}
-
       {showTeamMenu && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '15px', width: '100%' }}>
-          <h2 style={{ color: 'white', textAlign: 'center', marginBottom: '10px' }}>כמה קבוצות תרצו?</h2>
           {[2, 3, 4].map(n => <button key={n} onClick={() => { props.setNumTeams(n); setShowTeamMenu(false); }} style={{ ...styles.entryButton, background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid #ffd700' }}>{n} קבוצות</button>)}
         </div>
       )}
-
       <button onClick={props.onStart} style={styles.goldButtonFixed}>בואו נשחק! 🚀</button>
     </div>
   );
