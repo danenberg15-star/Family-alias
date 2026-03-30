@@ -29,22 +29,20 @@ export default function FamilyAliasApp() {
   const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
 
-  // טיפול בכניסה ישירה מלינק
   useEffect(() => {
     const pending = localStorage.getItem("pending_room");
     if (step === 2 && pending) {
       localStorage.removeItem("pending_room");
       handleJoinRoom(pending);
     }
-  }, [step]);
+  }, [step, handleJoinRoom]);
 
   const currentP = roomData?.players?.[roomData?.currentTurnIdx];
   const isIDescriber = currentP?.id === userId;
 
-  // פונקציה לקביעת הקטגוריה לפי רמת הקושי והגיל
   const getEffectiveCategory = () => {
-    if (roomData.difficulty === "easy") return "JUNIOR"; // רמה קלה תמיד משתמשת ב-KIDS+JUNIOR
-    const age = parseInt(currentP.age);
+    if (roomData?.difficulty === "easy") return "JUNIOR";
+    const age = parseInt(currentP?.age || "20");
     if (age <= 6) return "KIDS";
     if (age <= 10) return "JUNIOR";
     if (age <= 16) return "TEEN";
@@ -64,7 +62,7 @@ export default function FamilyAliasApp() {
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [step, roomId, roomData?.timeLeft, roomData?.preGameTimer, roomData?.isPaused, isIDescriber]);
+  }, [step, roomId, roomData, isIDescriber]);
 
   const handleGuess = async (isSkip: boolean) => {
     if (!roomData) return;
