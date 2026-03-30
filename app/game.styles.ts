@@ -14,22 +14,17 @@ export const styles: { [key: string]: CSSProperties } = {
   },
   flexLayout: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%', boxSizing: 'border-box' },
   
-  // מסך פתיחה (Entry)
-  entryLogo: { width: 'min(270px, 70vw)', height: 'auto', marginTop: '20px', marginBottom: '20px', objectFit: 'contain' },
+  // --- מסך פתיחה ולובי ---
+  entryLogo: { width: 'min(270px, 70vw)', height: 'auto', marginTop: '20px', marginBottom: '20px' },
   entryTitle: { color: '#ffd700', fontSize: '1.4rem', fontWeight: '900', textAlign: 'center', marginBottom: '25px' },
-  entryInput: { width: '100%', minHeight: '48px', padding: '12px', borderRadius: '16px', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', fontSize: '1.2rem', textAlign: 'center', marginBottom: '15px', boxSizing: 'border-box' },
+  entryInput: { width: '100%', minHeight: '48px', padding: '12px', borderRadius: '16px', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', fontSize: '1.2rem', textAlign: 'center', marginBottom: '15px' },
   entryButton: { width: '100%', minHeight: '54px', padding: '12px', borderRadius: '16px', background: 'linear-gradient(135deg, #ffd700, #b8860b)', color: '#05081c', fontWeight: '900', border: 'none', cursor: 'pointer', fontSize: '1.2rem' },
 
-  // לובי (Lobby)
-  lobbyTitle: { color: 'white', fontSize: '2rem', fontWeight: 'bold', marginTop: '40px', marginBottom: '30px' },
-  lobbyButton: { width: '100%', maxWidth: '220px', minHeight: '50px', borderRadius: '12px', backgroundColor: 'white', color: 'black', fontWeight: 'bold', border: 'none', fontSize: '1.1rem', cursor: 'pointer' },
-  lobbyJoinFrame: { width: '100%', minHeight: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: '2px dashed rgba(255, 215, 0, 0.3)', borderRadius: '24px', marginTop: '20px' },
-
-  // אפיון (Setup)
+  // --- מסך אפיון (Setup) ---
   setupTop: { textAlign: 'center', width: '100%', transform: 'scale(0.85)', transformOrigin: 'top', marginBottom: '5px' },
-  teamsGrid: { display: 'grid', gap: '10px', width: '100%', flex: 1.3, marginTop: '10px', boxSizing: 'border-box' },
+  teamsGrid: { display: 'grid', gap: '10px', width: '100%', flex: 1, marginTop: '10px', boxSizing: 'border-box' },
   teamBox: { backgroundColor: 'rgba(255, 255, 255, 0.03)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', flexDirection: 'column', padding: '10px', overflow: 'hidden' },
-  teamBoxGlowing: { borderColor: '#ffd700', backgroundColor: 'rgba(255, 215, 0, 0.15)', boxShadow: '0 0 15px rgba(255, 215, 0, 0.2)' },
+  teamBoxGlowing: { borderColor: '#ffd700', backgroundColor: 'rgba(255, 215, 0, 0.15)' },
   playerCard: { backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'white', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.15)', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', fontWeight: 'bold', margin: '4px 0' },
   goldButtonFixed: { width: '100%', minHeight: '65px', borderRadius: '20px', background: 'linear-gradient(135deg, #ffd700, #b8860b)', color: '#05081c', fontWeight: '900', border: 'none', fontSize: '1.5rem', marginTop: 'auto' },
   
