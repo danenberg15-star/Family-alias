@@ -18,7 +18,7 @@ export default function LobbyStep({ onCreateRoom, onJoinRoom }: LobbyStepProps) 
       <h1 style={styles.lobbyTitle}>בחרו איך להתחיל</h1>
 
       <div style={styles.lobbyCenterArea}>
-        <div style={{ textAlign: 'right', width: '100%', paddingRight: '20%' }}>
+        <div style={{ textAlign: 'right', width: '100%', paddingRight: '15%' }}>
           <button onClick={onCreateRoom} style={styles.lobbyButtonWhite}>
             צור חדר חדש +
           </button>
@@ -32,13 +32,9 @@ export default function LobbyStep({ onCreateRoom, onJoinRoom }: LobbyStepProps) 
 
       {isModalOpen && (
         <div style={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <div style={{ ...styles.modalContent }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ width: '100%', maxWidth: '350px', backgroundColor: '#0f172a', borderRadius: '24px', padding: '30px', border: '1px solid #ffd700', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }} onClick={(e) => e.stopPropagation()}>
             <h2 style={{ color: 'white', textAlign: 'center' }}>מה קוד החדר?</h2>
-            <input 
-              type="text" value={inputCode} 
-              onChange={(e) => setInputCode(e.target.value)} 
-              placeholder="הזן קוד..." style={styles.entryInput} autoFocus 
-            />
+            <input type="text" value={inputCode} onChange={(e) => setInputCode(e.target.value)} placeholder="הזן קוד..." style={styles.entryInput} autoFocus />
             <button onClick={() => { onJoinRoom(inputCode); setIsModalOpen(false); }} style={styles.entryButton}>כנס לחדר</button>
           </div>
         </div>
