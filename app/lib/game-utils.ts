@@ -1,4 +1,7 @@
-import { CategoryType, HEBREW_ROOM_CODES, WORD_DATABASE, WordItem } from "../game.config";
+// app/lib/game-utils.ts
+
+import { CategoryType, HEBREW_ROOM_CODES, WordItem } from "../game.config";
+import { WORD_DATABASE } from "./word-database";
 
 export const generateRoomCode = (): string => {
   const codes = HEBREW_ROOM_CODES.filter(c => c !== "עומר");

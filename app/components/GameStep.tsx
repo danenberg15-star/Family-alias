@@ -22,46 +22,29 @@ export default function GameStep(props: GameStepProps) {
   return (
     <div style={{ ...styles.flexLayout, justifyContent: 'space-between', padding: '10px 0' }}>
       
-      {/* 4. טיימר הכי למעלה */}
       <div style={styles.timerDisplay}>{props.timeLeft}</div>
 
-      {/* 4. מתחתיו כפתור הדלג */}
       <div 
         ref={props.skipRef} 
         style={{
-          width: '320px',
-          padding: '12px',
-          borderRadius: '12px',
-          border: '2px solid #ef4444',
-          textAlign: 'center',
-          color: 'white',
-          fontWeight: 'bold',
+          width: '320px', padding: '12px', borderRadius: '12px', border: '2px solid #ef4444',
+          textAlign: 'center', color: 'white', fontWeight: 'bold',
           backgroundColor: props.activeHover === "SKIP" ? "rgba(239, 68, 68, 0.4)" : "transparent"
         }}
       >
         דלג (1-) ⏭️
       </div>
 
-      {/* 2+3. האובייקט באמצע - רקע כהה ועברית/אנגלית */}
       <div style={{ width: '320px', height: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <div
           ref={props.wordRef}
           onPointerDown={props.onPointerDown}
           style={{
-            width: '280px',
-            minHeight: '240px',
-            backgroundColor: 'rgba(255,255,255,0.05)', // רקע כהה
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
+            width: '280px', minHeight: '240px', backgroundColor: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)', borderRadius: '24px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             boxShadow: props.isDraggingWord ? '0 20px 50px rgba(0,0,0,0.5)' : 'none',
-            cursor: 'grab',
-            touchAction: 'none',
-            zIndex: 100,
-            padding: '20px'
+            cursor: 'grab', touchAction: 'none', zIndex: 100, padding: '20px'
           }}
         >
           {props.currentWord?.img && !props.isTextOnly && (
@@ -69,7 +52,7 @@ export default function GameStep(props: GameStepProps) {
               src={props.currentWord.img} 
               alt="" 
               style={{ width: '110px', height: '110px', objectFit: 'contain', marginBottom: '15px' }} 
-              onError={(e) => (e.currentTarget.style.display = 'none')} // הסתרה אם התמונה לא נמצאה
+              onError={(e) => (e.currentTarget.style.display = 'none')}
             />
           )}
           <div style={{ fontSize: '32px', fontWeight: '900', color: '#fff', textAlign: 'center' }}>{props.currentWord?.word}</div>
@@ -77,20 +60,15 @@ export default function GameStep(props: GameStepProps) {
         </div>
       </div>
 
-      {/* שחקנים למטה */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '320px', marginBottom: '10px' }}>
         {props.targets.map((t) => (
           <div
             key={t}
             ref={(el) => { if (props.targetsRef.current) props.targetsRef.current[t] = el; }}
             style={{
-              padding: '15px',
-              borderRadius: '16px',
-              border: '1px solid rgba(255,255,255,0.1)',
+              padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)',
               backgroundColor: props.activeHover === t ? "rgba(255, 215, 0, 0.2)" : "rgba(255,255,255,0.05)",
-              color: 'white',
-              fontWeight: 'bold',
-              textAlign: 'center'
+              color: 'white', fontWeight: 'bold', textAlign: 'center'
             }}
           >
             {t}
