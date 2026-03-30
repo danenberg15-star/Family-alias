@@ -13,11 +13,8 @@ interface GameStepProps {
   isDraggingWord: boolean;
   targets: string[];
   targetsRef: React.MutableRefObject<{ [key: string]: HTMLDivElement | null }>;
-  onGuess: (isSkip: boolean) => void;
   score: number;
   onPause: () => void;
-  isPaused: boolean;
-  onUnpause: () => void;
   activeHover: string | null;
 }
 
@@ -28,29 +25,30 @@ export default function GameStep(props: GameStepProps) {
       {/* 1. דלג למעלה */}
       <div 
         ref={props.skipRef} 
-        onClick={() => props.onGuess(true)}
         style={{
-          ...styles.skipButton,
-          borderColor: props.activeHover === "SKIP" ? "#fff" : "#ef4444",
-          backgroundColor: props.activeHover === "SKIP" ? "rgba(239, 68, 68, 0.4)" : "transparent",
-          cursor: 'pointer'
+          width: '320px',
+          padding: '12px',
+          borderRadius: '12px',
+          border: '2px solid #ef4444',
+          textAlign: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          backgroundColor: props.activeHover === "SKIP" ? "rgba(239, 68, 68, 0.4)" : "transparent"
         }}
       >
-        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>דלג (1-) ⏭️</span>
+        דלג (1-) ⏭️
       </div>
 
-      <div style={{...styles.timerDisplay, color: props.timeLeft <= 10 ? '#ef4444' : 'white', margin: '5px 0'}}>
-        {props.timeLeft}
-      </div>
+      <div style={styles.timerDisplay}>{props.timeLeft}</div>
 
       {/* 2. האובייקט באמצע */}
-      <div style={styles.wordCardArea}>
+      <div style={{ width: '320px', height: '240px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <div
           ref={props.wordRef}
           onPointerDown={props.onPointerDown}
           style={{
-            width: '280px',
-            minHeight: '240px',
+            width: '260px',
+            height: '220px',
             backgroundColor: 'white',
             borderRadius: '24px',
             display: 'flex',
@@ -61,41 +59,41 @@ export default function GameStep(props: GameStepProps) {
             cursor: 'grab',
             touchAction: 'none',
             zIndex: 100,
-            padding: '20px',
-            position: 'relative'
+            padding: '20px'
           }}
         >
           {props.currentWord?.img && !props.isTextOnly && (
             <img src={props.currentWord.img} alt="" style={{ width: '100px', height: '100px', objectFit: 'contain', marginBottom: '10px' }} />
           )}
-          <div style={{ fontSize: '32px', fontWeight: '900', color: '#05081c', textAlign: 'center', lineHeight: '1.2' }}>{props.currentWord?.word}</div>
-          <div style={{ fontSize: '32px', fontWeight: '900', color: '#64748b', textAlign: 'center', marginTop: '5px', lineHeight: '1.2' }}>{props.currentWord?.en}</div>
+          <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#05081c', textAlign: 'center' }}>{props.currentWord?.word}</div>
+          <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#64748b', textAlign: 'center', marginTop: '5px' }}>{props.currentWord?.en}</div>
         </div>
       </div>
 
-      {/* 3. כפתורי המטרה למטה */}
+      {/* 3. שחקנים למטה */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '320px', marginBottom: '10px' }}>
         {props.targets.map((t) => (
           <div
             key={t}
             ref={(el) => { if (props.targetsRef.current) props.targetsRef.current[t] = el; }}
-            onClick={() => props.onGuess(false)}
             style={{
-              ...styles.guesserButton,
-              borderColor: props.activeHover === t ? "#ffd700" : "rgba(255,255,255,0.1)",
-              backgroundColor: props.activeHover === t ? "rgba(255, 215, 0, 0.15)" : "rgba(255,255,255,0.05)",
-              cursor: 'pointer'
+              padding: '15px',
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.1)',
+              backgroundColor: props.activeHover === t ? "rgba(255, 215, 0, 0.2)" : "rgba(255,255,255,0.05)",
+              color: 'white',
+              fontWeight: 'bold',
+              textAlign: 'center'
             }}
           >
-            <div style={styles.miniAvatar}>{t[0]}</div>
-            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '18px' }}>{t}</span>
+            {t}
           </div>
         ))}
       </div>
 
-      <div style={styles.gameFooter}>
-        <button onClick={props.onPause} style={styles.modernPauseBtn}>⏸️</button>
-        <div style={styles.bottomScore}>{props.score}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '320px', paddingBottom: '20px' }}>
+        <button onClick={props.onPause} style={{ background: 'rgba(255,255,255,0.1)', width: '45px', height: '45px', borderRadius: '12px', border: 'none', color: 'white' }}>⏸️</button>
+        <div style={{ color: '#ffd700', fontSize: '28px', fontWeight: 'bold' }}>{props.score}</div>
       </div>
     </div>
   );
