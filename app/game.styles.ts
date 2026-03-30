@@ -32,34 +32,26 @@ export const styles: { [key: string]: CSSProperties } = {
     flex: 1, 
     display: 'flex', 
     flexDirection: 'column', 
-    justifyContent: 'space-between', 
     alignItems: 'center', 
     width: '100%',
     height: '100%',
     boxSizing: 'border-box'
   },
   logo: {
-    width: '180px', // גודל לוגו מותאם
+    // 1. הגדלת הלוגו ב-50% (מ-180px ל-270px)
+    width: 'min(270px, 70vw)', 
     height: 'auto',
-    marginBottom: '10px',
+    marginTop: '20px', // תזוזה למעלה
+    marginBottom: '20px',
     objectFit: 'contain'
   },
-  exitBtn: { 
-    position: 'absolute', 
-    top: 'env(safe-area-inset-top, 10px)', 
-    left: 'env(safe-area-inset-left, 10px)', 
-    background: 'rgba(255,255,255,0.1)', 
-    border: 'none', 
-    color: 'white', 
-    borderRadius: '50%', 
-    width: '40px', 
-    height: '40px', 
-    fontSize: '20px', 
-    cursor: 'pointer', 
-    zIndex: 1000, 
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
+  title: { 
+    color: '#ffd700', 
+    fontSize: '1.4rem', // התאמה לטקסט הארוך
+    fontWeight: '900', 
+    textAlign: 'center', 
+    marginBottom: '25px',
+    lineHeight: '1.3'
   },
   inputField: { 
     width: '100%', 
@@ -71,7 +63,7 @@ export const styles: { [key: string]: CSSProperties } = {
     border: '1px solid rgba(255,255,255,0.1)', 
     fontSize: '1.2rem',
     textAlign: 'center',
-    marginBottom: '15px',
+    marginBottom: '15px', // מרווח בין השדות
     boxSizing: 'border-box'
   },
   goldButton: { 
@@ -86,17 +78,12 @@ export const styles: { [key: string]: CSSProperties } = {
     cursor: 'pointer', 
     fontSize: '1.2rem',
     boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)',
-    marginTop: 'auto',
-    marginBottom: '20px'
+    // 3. הוסרת המרג'ין האוטומטי כדי שייצמד למעלה
+    marginTop: '0px' 
   },
-  title: { 
-    color: '#ffd700', 
-    fontSize: '1.6rem', 
-    fontWeight: '900', 
-    textAlign: 'center', 
-    marginBottom: '20px' 
-  },
-  // שאר הסגנונות הקיימים (Timer, Pause, וכו') נשארים אותו דבר
+  
+  // שאר הסגנונות הקיימים נשמרים
+  exitBtn: { position: 'absolute', top: 'env(safe-area-inset-top, 10px)', left: 'env(safe-area-inset-left, 10px)', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '40px', height: '40px', fontSize: '20px', cursor: 'pointer', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   timerDisplay: { fontSize: 'min(15vw, 60px)', fontWeight: '900', color: '#ffd700', margin: '10px 0' },
   pauseOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 8, 28, 0.98)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 3000, padding: '20px' },
   scoreTable: { width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '20px', padding: '10px', marginBottom: '20px' },

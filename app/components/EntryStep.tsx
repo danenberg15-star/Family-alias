@@ -22,18 +22,19 @@ export default function EntryStep({ onNext }: EntryStepProps) {
 
   return (
     <div style={styles.flexLayout}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%', marginTop: 'auto', marginBottom: 'auto' }}>
-        
-        {/* החזרת הלוגו */}
-        <img 
-          src="/logo.webp" 
-          alt="Alias Logo" 
-          style={styles.logo} 
-          onError={(e) => (e.currentTarget.style.display = 'none')} 
-        />
+      {/* 1. הלוגו הועלה למעלה */}
+      <img 
+        src="/logo.webp" 
+        alt="Alias Logo" 
+        style={styles.logo} 
+        onError={(e) => (e.currentTarget.style.display = 'none')} 
+      />
 
-        <h1 style={styles.title}>משפחת אליאס הכי טובה בעולם</h1>
-        
+      {/* 2. עדכון הטקסט */}
+      <h1 style={styles.title}>נראה אתכם תופסים את המילה הנרדפת</h1>
+      
+      {/* אזור השדות והכפתור צמודים יחד */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', marginBottom: 'auto' }}>
         <input 
           type="text" 
           value={name} 
@@ -51,14 +52,15 @@ export default function EntryStep({ onNext }: EntryStepProps) {
           min="1"
           max="120"
         />
-      </div>
 
-      <button 
-        onClick={handleStart} 
-        style={styles.goldButton}
-      >
-        בואו נתחיל
-      </button>
+        {/* 3. הכפתור הועלה למעלה וצמוד לשדה הגיל */}
+        <button 
+          onClick={handleStart} 
+          style={styles.goldButton}
+        >
+          בואו נתחיל
+        </button>
+      </div>
     </div>
   );
 }
