@@ -1,4 +1,3 @@
-// app/components/SetupStep.tsx
 "use client";
 
 import React, { useState, useRef } from "react";
@@ -16,7 +15,7 @@ export default function SetupStep(props: SetupStepProps) {
   const [showTeamMenu, setShowTeamMenu] = useState(false);
   const [draggedPlayer, setDraggedPlayer] = useState<any>(null);
   const [localHover, setLocalHover] = useState<number | null>(null);
-  const ghostRef = useRef<HTMLDivElement>(null);
+  const ghostRef = useRef<HTMLDivElement>(null!);
 
   const onPointerDown = (e: React.PointerEvent, p: any) => {
     setDraggedPlayer(p);
@@ -31,8 +30,7 @@ export default function SetupStep(props: SetupStepProps) {
     if (!draggedPlayer || !ghostRef.current) return;
     ghostRef.current.style.transform = `translate3d(${e.clientX - 60}px, ${e.clientY - 20}px, 0)`;
     let found: number | null = null;
-    const targets = props.gameMode === "team" ? props.numTeams : 1;
-    for (let i = 0; i < targets; i++) {
+    for (let i = 0; i < (props.gameMode === "team" ? props.numTeams : 1); i++) {
       const el = props.teamsRef.current[i];
       if (el) {
         const r = el.getBoundingClientRect();
@@ -50,14 +48,8 @@ export default function SetupStep(props: SetupStepProps) {
       <div style={styles.setupTop}>
         <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
         <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-          <div style={styles.toggleContainer}>
-            <button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button>
-            <button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button>
-          </div>
-          <div style={styles.toggleContainer}>
-            <button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button>
-            <button onClick={() => props.setDifficulty("easy")} style={props.difficulty === "easy" ? styles.toggleActive : styles.toggleInactive}>קלה</button>
-          </div>
+          <div style={styles.toggleContainer}><button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button><button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button></div>
+          <div style={styles.toggleContainer}><button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button><button onClick={() => props.setDifficulty("easy")} style={props.difficulty === "easy" ? styles.toggleActive : styles.toggleInactive}>קלה</button></div>
         </div>
       </div>
       {!showTeamMenu && (

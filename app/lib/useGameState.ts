@@ -1,4 +1,3 @@
-// app/lib/useGameState.ts
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
 import { doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
@@ -19,11 +18,7 @@ export function useGameState() {
     setUserId(id); localStorage.setItem("alias_userId", id);
     const n = localStorage.getItem("alias_userName");
     const a = localStorage.getItem("alias_userAge");
-    if (n && a) {
-      setUserName(n); setUserAge(a);
-      const r = localStorage.getItem("alias_roomId");
-      if (r) setRoomId(r); else setStep(2);
-    }
+    if (n && a) { setUserName(n); setUserAge(a); const r = localStorage.getItem("alias_roomId"); if (r) setRoomId(r); else setStep(2); }
   }, []);
 
   useEffect(() => {
@@ -52,17 +47,15 @@ export function useGameState() {
 
   const handleJoinRoom = async (idInput: string) => {
     const id = idInput.toUpperCase();
-    const snap = await getDoc(doc(db, "rooms", id));
-    if (snap.exists()) {
-      setRoomId(id); setStep(snap.data().step); localStorage.setItem("alias_roomId", id);
-      if (snap.data().step === 3) await updateRoom({ players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 }) });
+    if (id === "עומר") {
+      const qp = [{ id: userId, name: userName || "עומר", age: userAge || "30", teamIdx: 0 }, ...Array(5).fill(0).map((_, i) => ({ id: `d_${i}`, name: `שחקן ${i+2}`, age: "25", teamIdx: 1 }))];
+      await setDoc(doc(db, "rooms", "עומר"), { id: "עומר", step: 3, createdAt: Date.now(), gameMode: "team", numTeams: 2, players: qp, teamNames: ["קבוצה א'", "קבוצה ב'"], totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, currentWordIdx: 0, preGameTimer: 3, shuffledWords: [] });
+      setRoomId("עומר"); setStep(3); localStorage.setItem("alias_roomId", "עומר");
+      return;
     }
+    const snap = await getDoc(doc(db, "rooms", id));
+    if (snap.exists()) { setRoomId(id); setStep(snap.data().step); localStorage.setItem("alias_roomId", id); if (snap.data().step === 3) await updateRoom({ players: arrayUnion({ id: userId, name: userName, age: userAge, teamIdx: 0 }) }); }
   };
 
-  // כאן היה התיקון הקריטי - החזרת ה-setters
-  return { 
-    mounted, userId, roomId, roomData, step, setStep, 
-    userName, setUserName, userAge, setUserAge, 
-    updateRoom, handleFullReset, handleCreateRoom, handleJoinRoom 
-  };
+  return { mounted, userId, roomId, roomData, step, setStep, userName, setUserName, userAge, setUserAge, updateRoom, handleFullReset, handleCreateRoom, handleJoinRoom };
 }
