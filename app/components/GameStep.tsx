@@ -107,11 +107,13 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
                   </div>
                 )}
                 <div style={s.heb}>{wordData.word}</div>
+                {/* הגדלת גופן אנגלית לצעירים */}
                 <div style={s.en}>{wordData.en}</div>
               </>
             ) : (
               <>
                 <div style={s.hebL}>{wordData.word}</div>
+                {/* הגדלת גופן אנגלית לבוגרים */}
                 <div style={s.enL}>{wordData.en}</div>
               </>
             )}
@@ -140,12 +142,17 @@ const s: any = {
   center: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '10px 0' },
   // גובה הוקטן ב-30% מ-400px ל-280px
   card: { width: '100%', maxWidth: '320px', height: '100%', maxHeight: '280px', backgroundColor: '#1a1d2e', borderRadius: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  imgBox: { width: '100%', height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' },
-  img: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' },
-  heb: { fontSize: '2rem', fontWeight: '900', textAlign: 'center' }, 
-  en: { fontSize: '1.1rem', opacity: 0.6, textAlign: 'center' },
+  // הגדלת מרחב התמונה למקסימום
+  imgBox: { width: '100%', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px', overflow: 'hidden' },
+  // הגדרת אובייקט למילוי המרחב תוך שמירה על יחס גובה-רוחב
+  img: { width: '100%', height: '100%', objectFit: 'contain' },
+  // התאמת גופנים בהתאם לגובה הכרטיס המוקטן
+  heb: { fontSize: '1.8rem', fontWeight: '900', textAlign: 'center' }, 
+  // הגדלת גופן אנגלית לצעירים מ-1.1rem ל-1.3rem
+  en: { fontSize: '1.3rem', opacity: 0.6, textAlign: 'center' },
   hebL: { fontSize: '2.5rem', fontWeight: '900', textAlign: 'center' }, 
-  enL: { fontSize: '1.4rem', opacity: 0.6, textAlign: 'center' },
+  // הגדלת גופן אנגלית לבוגרים מ-1.4rem ל-1.6rem
+  enL: { fontSize: '1.6rem', opacity: 0.6, textAlign: 'center' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', paddingBottom: '10px' },
   target: { height: '75px', border: '2px solid #ffd700', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: '900', backgroundColor: 'rgba(255,215,0,0.05)', color: '#ffd700', cursor: 'pointer' },
   pauseBox: { width: '100%', height: '100%', backgroundColor: '#1a1d2e', borderRadius: '35px', padding: '20px', display: 'flex', flexDirection: 'column' },
