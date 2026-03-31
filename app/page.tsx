@@ -21,14 +21,18 @@ export default function FamilyAliasApp() {
   const wordRef = useRef<HTMLDivElement>(null!);
   const skipRef = useRef<HTMLButtonElement>(null!);
   const targetsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const [activeHover, setActiveHover] = useState<string | null>(null);
+  
+  // רפרנסים לשיפור ביצועי גרירה - מונעים רינדור מיותר
+  const targetRects = useRef<{ name: string, rect: DOMRect }[]>([]);
+  const dragOffset = useRef({ x: 0, y: 0 });
   const isDragging = useRef(false);
+  
+  const [activeHover, setActiveHover] = useState<string | null>(null);
   const [isDraggingWord, setIsDraggingWord] = useState(false);
 
   const currentP = roomData?.players?.[roomData?.currentTurnIdx];
   const isIDescriber = currentP?.id === userId;
 
-  // טיימר עם תיקון הבוטים והספירה לאחור (Step 4 & 5)
   useEffect(() => {
     if (!roomId || !roomData || roomData.isPaused || step < 4) return;
     const isBot = currentP?.id?.startsWith('d_');
@@ -70,34 +74,44 @@ export default function FamilyAliasApp() {
 
   return (
     <div 
-      style={{ backgroundColor: '#05081c', minHeight: '100dvh', color: 'white', direction: 'rtl' }}
+      style={{ backgroundColor: '#05081c', minHeight: '100dvh', color: 'white', direction: 'rtl', touchAction: 'none' }}
       onPointerMove={(e) => {
-        // הגנה על קפסולת מסך 2: אם אנחנו לא במסך המשחק, אל תפעיל גרירה גלובלית
         if (step !== 5 || !isDragging.current || !isIDescriber || roomData.isPaused) return;
         
         if (wordRef.current) {
-          wordRef.current.style.position = 'fixed';
-          wordRef.current.style.transform = `translate3d(${e.clientX - 75}px, ${e.clientY - 75}px, 0)`;
-          const rect = wordRef.current.getBoundingClientRect();
-          let h: string | null = null;
-          if (skipRef.current?.getBoundingClientRect()) {
-            const s = skipRef.current.getBoundingClientRect();
-            if (!(s.left > rect.right || s.right < rect.left || s.top > rect.bottom || s.bottom < rect.top)) h = "SKIP";
+          // הזזה ישירה ב-DOM לביצועים חלקים
+          const x = e.clientX - dragOffset.current.x;
+          const y = e.clientY - dragOffset.current.y;
+          wordRef.current.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+          // בדיקת התנגשות מתמטית מול הערכים ששמרנו ב-targetRects
+          let foundHover: string | null = null;
+          for (const target of targetRects.current) {
+            if (e.clientX >= target.rect.left && e.clientX <= target.rect.right &&
+                e.clientY >= target.rect.top && e.clientY <= target.rect.bottom) {
+              foundHover = target.name;
+              break;
+            }
           }
-          Object.keys(targetsRef.current).forEach(t => {
-            const r = targetsRef.current[t]?.getBoundingClientRect();
-            if (r && !(r.left > rect.right || r.right < rect.left || r.top > rect.bottom || r.bottom < rect.top)) h = t;
-          });
-          setActiveHover(h);
+          
+          if (foundHover !== activeHover) {
+            setActiveHover(foundHover);
+          }
         }
       }} 
       onPointerUp={() => {
-        // הגנה על קפסולת מסך 2
         if (step !== 5) return;
-        
         if (isDragging.current && activeHover) handleScoreAction(activeHover);
-        isDragging.current = false; setActiveHover(null); setIsDraggingWord(false);
-        if (wordRef.current) { wordRef.current.style.position = 'relative'; wordRef.current.style.transform = 'none'; }
+        
+        isDragging.current = false; 
+        setActiveHover(null); 
+        setIsDraggingWord(false);
+        targetRects.current = [];
+        
+        if (wordRef.current) { 
+          wordRef.current.style.position = 'relative'; 
+          wordRef.current.style.transform = 'none'; 
+        }
       }}
     >
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -128,7 +142,31 @@ export default function FamilyAliasApp() {
         {step === 5 && roomData && (
           <GameStep 
             roomData={roomData} userId={userId!} wordRef={wordRef} skipRef={skipRef} 
-            isDraggingWord={isDraggingWord} onPointerDown={() => { isDragging.current = true; setIsDraggingWord(true); }}
+            isDraggingWord={isDraggingWord} 
+            onPointerDown={(e: React.PointerEvent) => { 
+              isDragging.current = true; 
+              setIsDraggingWord(true); 
+              
+              // חישוב אופסט כדי שהכרטיס לא יקפוץ למרכז האצבע
+              const rect = wordRef.current.getBoundingClientRect();
+              dragOffset.current = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+              };
+              
+              wordRef.current.style.position = 'fixed';
+              wordRef.current.style.width = `${rect.width}px`;
+              wordRef.current.style.height = `${rect.height}px`;
+
+              // שמירת מיקומי היעדים פעם אחת בלבד בתחילת הגרירה
+              const rects: { name: string, rect: DOMRect }[] = [];
+              if (skipRef.current) rects.push({ name: "SKIP", rect: skipRef.current.getBoundingClientRect() });
+              Object.keys(targetsRef.current).forEach(t => {
+                const r = targetsRef.current[t]?.getBoundingClientRect();
+                if (r) rects.push({ name: t, rect: r });
+              });
+              targetRects.current = rects;
+            }}
             targets={gameTargets} targetsRef={targetsRef as any} activeHover={activeHover}
             updateRoom={updateRoom} handleAction={handleScoreAction} onExit={handleFullReset} 
           />
