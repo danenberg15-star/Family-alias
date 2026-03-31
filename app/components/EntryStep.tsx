@@ -25,8 +25,8 @@ export default function EntryStep({ onNext }: EntryStepProps) {
 
   return (
     <div style={styles.flexLayout}>
-      {/* קבוצה עליונה: לוגו וכותרת */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', paddingTop: '10px' }}>
+      {/* קבוצה עליונה: לוגו מוגדל וכותרת */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
         <img src="/logo.webp" alt="Logo" style={styles.entryLogo} />
         <h1 style={styles.entryTitle}>נראה אתכם תופסים את המילה הנרדפת</h1>
       </div>
@@ -45,7 +45,7 @@ export default function EntryStep({ onNext }: EntryStepProps) {
         />
       </div>
 
-      <div style={{ flex: 1 }} /> {/* רווח גמיש 2 - גדול יותר כדי לדחוף למטה */}
+      <div style={{ flex: 1 }} /> {/* רווח גמיש 2 */}
 
       {/* קבוצה תחתונה: כפתורי פעולה */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '10px' }}>
