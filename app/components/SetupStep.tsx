@@ -17,7 +17,6 @@ export default function SetupStep(props: SetupStepProps) {
   const ghostRef = useRef<HTMLDivElement>(null);
   const teamRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
-  // מניעת רענון דף במובייל בזמן גרירה
   useEffect(() => {
     const preventDefault = (e: TouchEvent) => {
       if (draggedPlayer) e.preventDefault();
@@ -83,12 +82,17 @@ export default function SetupStep(props: SetupStepProps) {
         display: 'grid',
         gridTemplateRows: 'auto auto 1fr auto',
         height: '100dvh',
+        width: '100vw',
+        maxWidth: '100%',
         gap: '10px',
         padding: '10px',
+        margin: '0 auto',
         overflow: 'hidden',
-        touchAction: 'none', // מנטרל רענון ומחוות דפדפן
-        userSelect: 'none', // מונע בחירת טקסט
-        overscrollBehavior: 'none' // מנטרל קפיציות קצוות
+        boxSizing: 'border-box',
+        touchAction: 'none',
+        userSelect: 'none',
+        overscrollBehavior: 'none',
+        direction: 'rtl'
       }}
       onPointerMove={handlePointerMove}
       onPointerUp={() => {
@@ -96,31 +100,37 @@ export default function SetupStep(props: SetupStepProps) {
         setDraggedPlayer(null); setHoveredTeam(null);
       }}
     >
-      <button onClick={props.onExit} style={styles.exitBtnRed}>✕</button>
+      <button onClick={props.onExit} style={{...styles.exitBtnRed, zIndex: 10}}>✕</button>
 
-      <div style={styles.setupHeader}>
+      {/* Header */}
+      <div style={{...styles.setupHeader, width: '100%', boxSizing: 'border-box', padding: '0 5px'}}>
         <div style={{ color: 'white', fontSize: '1rem', display: 'flex', alignItems: 'center' }}>
-          קוד: <span style={{ color: '#ffd700', fontWeight: '900', fontSize: '1.8rem', marginRight: '5px' }}>{props.roomId}</span>
+          קוד: <span style={{ color: '#ffd700', fontWeight: '900', fontSize: '1.6rem', marginRight: '5px' }}>{props.roomId}</span>
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => props.setGameMode("individual")} style={{ ...styles.bigToggleBtn, flex: 1, ...(props.gameMode === "individual" ? styles.bigToggleBtnActive : {}) }}>יחידים</button>
-          <button onClick={() => props.setGameMode("team")} style={{ ...styles.bigToggleBtn, flex: 1, ...(props.gameMode === "team" ? styles.bigToggleBtnActive : {}) }}>קבוצות</button>
+      {/* Toggles */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+          <button onClick={() => props.setGameMode("individual")} style={{ ...styles.bigToggleBtn, flex: 1, margin: 0, ...(props.gameMode === "individual" ? styles.bigToggleBtnActive : {}) }}>יחידים</button>
+          <button onClick={() => props.setGameMode("team")} style={{ ...styles.bigToggleBtn, flex: 1, margin: 0, ...(props.gameMode === "team" ? styles.bigToggleBtnActive : {}) }}>קבוצות</button>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button onClick={() => props.setDifficulty("age-appropriate")} style={{ ...styles.bigToggleBtn, flex: 1, ...(props.difficulty === "age-appropriate" ? styles.bigToggleBtnActive : {}) }}>מותאמת גיל</button>
-          <button onClick={() => props.setDifficulty("easy")} style={{ ...styles.bigToggleBtn, flex: 1, ...(props.difficulty === "easy" ? styles.bigToggleBtnActive : {}) }}>רמה קלה</button>
+        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+          <button onClick={() => props.setDifficulty("age-appropriate")} style={{ ...styles.bigToggleBtn, flex: 1, margin: 0, ...(props.difficulty === "age-appropriate" ? styles.bigToggleBtnActive : {}) }}>מותאמת גיל</button>
+          <button onClick={() => props.setDifficulty("easy")} style={{ ...styles.bigToggleBtn, flex: 1, margin: 0, ...(props.difficulty === "easy" ? styles.bigToggleBtnActive : {}) }}>רמה קלה</button>
         </div>
       </div>
 
+      {/* Players Grid */}
       <div style={{ 
         ...styles.setupGrid, 
         gridTemplateColumns: props.gameMode === "team" ? '1fr 1fr' : '1fr',
+        width: '100%',
         height: '100%',
         overflow: 'hidden',
-        marginTop: 0
+        marginTop: 0,
+        boxSizing: 'border-box',
+        gap: '8px'
       }}>
         {Array.from({ length: props.gameMode === "team" ? props.numTeams : 1 }).map((_, tIdx) => {
           const teamPlayers = props.players.filter(p => props.gameMode === "individual" || p.teamIdx === tIdx);
@@ -129,12 +139,14 @@ export default function SetupStep(props: SetupStepProps) {
               ...styles.teamBox, 
               minHeight: 0, 
               height: '100%', 
+              width: '100%',
               display: 'flex', 
               flexDirection: 'column',
+              boxSizing: 'border-box',
               touchAction: 'none',
               ...(hoveredTeam === tIdx ? { borderColor: '#ffd700', backgroundColor: 'rgba(255,215,0,0.1)' } : {}) 
             }}>
-              <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px', textAlign: 'center', fontSize: '0.8rem', color: '#ffd700', fontWeight: 'bold' }}>
+              <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px', textAlign: 'center', fontSize: '0.75rem', color: '#ffd700', fontWeight: 'bold' }}>
                 {props.gameMode === "team" ? props.teamNames[tIdx] : "משתתפים"}
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '5px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
@@ -145,28 +157,29 @@ export default function SetupStep(props: SetupStepProps) {
                       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
                       setDraggedPlayer(p);
                     }} 
-                    style={{ ...styles.playerCard, padding: '8px 0', fontSize: '0.9rem', flexShrink: 0, touchAction: 'none' }}
+                    style={{ ...styles.playerCard, padding: '6px 2px', fontSize: '0.85rem', flexShrink: 0, touchAction: 'none', width: '100%', boxSizing: 'border-box' }}
                   >
                     {p.name}
                   </div>
                 ))}
                 {props.gameMode === "team" && props.numTeams > 2 && teamPlayers.length === 0 && (
-                  <button onClick={() => handleRemoveTeam(tIdx)} style={styles.minusBtnCentered}>-</button>
+                  <button onClick={() => handleRemoveTeam(tIdx)} style={{...styles.minusBtnCentered, margin: '5px auto'}}>-</button>
                 )}
               </div>
             </div>
           );
         })}
         {props.gameMode === "team" && props.numTeams < 4 && !hasEmptyTeam && (
-          <button onClick={handleAddTeam} style={{ ...styles.teamBox, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', minHeight: 0 }}>
-            <span style={{ fontSize: '2rem', color: '#ffd700' }}>+</span>
+          <button onClick={handleAddTeam} style={{ ...styles.teamBox, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', minHeight: 0, width: '100%', boxSizing: 'border-box' }}>
+            <span style={{ fontSize: '1.5rem', color: '#ffd700' }}>+</span>
           </button>
         )}
       </div>
 
-      <div style={{ width: '100%', paddingBottom: '5px' }}>
-        {!canStart && props.gameMode === "team" && <p style={{ color: '#ef4444', fontSize: '0.75rem', textAlign: 'center', marginBottom: '4px' }}>לפחות 2 בכל קבוצה</p>}
-        <button onClick={props.onStart} disabled={!canStart} style={canStart ? styles.lobbyButton : styles.disabledButton}>בואו נשחק! 🚀</button>
+      {/* Footer */}
+      <div style={{ width: '100%', paddingBottom: '5px', boxSizing: 'border-box' }}>
+        {!canStart && props.gameMode === "team" && <p style={{ color: '#ef4444', fontSize: '0.7rem', textAlign: 'center', marginBottom: '4px' }}>לפחות 2 בכל קבוצה</p>}
+        <button onClick={props.onStart} disabled={!canStart} style={{...(canStart ? styles.lobbyButton : styles.disabledButton), width: '100%', margin: 0}}>בואו נשחק! 🚀</button>
       </div>
 
       {draggedPlayer && (
