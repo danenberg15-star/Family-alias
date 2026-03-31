@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { styles } from "../game.styles";
 
 interface SetupStepProps {
@@ -16,6 +16,15 @@ export default function SetupStep(props: SetupStepProps) {
   const [hoveredTeam, setHoveredTeam] = useState<number | null>(null);
   const ghostRef = useRef<HTMLDivElement>(null);
   const teamRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
+
+  // מניעת רענון דף במובייל בזמן גרירה
+  useEffect(() => {
+    const preventDefault = (e: TouchEvent) => {
+      if (draggedPlayer) e.preventDefault();
+    };
+    document.addEventListener('touchmove', preventDefault, { passive: false });
+    return () => document.removeEventListener('touchmove', preventDefault);
+  }, [draggedPlayer]);
 
   const HEBREW_LETTERS = ['א', 'ב', 'ג', 'ד'];
 
@@ -72,12 +81,14 @@ export default function SetupStep(props: SetupStepProps) {
       style={{ 
         ...styles.flexLayout, 
         display: 'grid',
-        gridTemplateRows: 'auto auto 1fr auto', // חלוקה חכמה של גובה המסך
+        gridTemplateRows: 'auto auto 1fr auto',
         height: '100dvh',
         gap: '10px',
         padding: '10px',
         overflow: 'hidden',
-        touchAction: 'none' 
+        touchAction: 'none', // מנטרל רענון ומחוות דפדפן
+        userSelect: 'none', // מונע בחירת טקסט
+        overscrollBehavior: 'none' // מנטרל קפיציות קצוות
       }}
       onPointerMove={handlePointerMove}
       onPointerUp={() => {
@@ -87,14 +98,12 @@ export default function SetupStep(props: SetupStepProps) {
     >
       <button onClick={props.onExit} style={styles.exitBtnRed}>✕</button>
 
-      {/* Header */}
       <div style={styles.setupHeader}>
         <div style={{ color: 'white', fontSize: '1rem', display: 'flex', alignItems: 'center' }}>
           קוד: <span style={{ color: '#ffd700', fontWeight: '900', fontSize: '1.8rem', marginRight: '5px' }}>{props.roomId}</span>
         </div>
       </div>
 
-      {/* Toggles */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <div style={{ display: 'flex', gap: '10px' }}>
           <button onClick={() => props.setGameMode("individual")} style={{ ...styles.bigToggleBtn, flex: 1, ...(props.gameMode === "individual" ? styles.bigToggleBtnActive : {}) }}>יחידים</button>
@@ -106,12 +115,11 @@ export default function SetupStep(props: SetupStepProps) {
         </div>
       </div>
 
-      {/* Players Grid - החלק הגמיש */}
       <div style={{ 
         ...styles.setupGrid, 
         gridTemplateColumns: props.gameMode === "team" ? '1fr 1fr' : '1fr',
         height: '100%',
-        overflow: 'hidden', // מונע מהגריד לדחוף את הכפתור
+        overflow: 'hidden',
         marginTop: 0
       }}>
         {Array.from({ length: props.gameMode === "team" ? props.numTeams : 1 }).map((_, tIdx) => {
@@ -123,6 +131,7 @@ export default function SetupStep(props: SetupStepProps) {
               height: '100%', 
               display: 'flex', 
               flexDirection: 'column',
+              touchAction: 'none',
               ...(hoveredTeam === tIdx ? { borderColor: '#ffd700', backgroundColor: 'rgba(255,215,0,0.1)' } : {}) 
             }}>
               <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '4px', textAlign: 'center', fontSize: '0.8rem', color: '#ffd700', fontWeight: 'bold' }}>
@@ -130,7 +139,14 @@ export default function SetupStep(props: SetupStepProps) {
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '5px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {teamPlayers.map(p => (
-                  <div key={p.id} onPointerDown={() => setDraggedPlayer(p)} style={{ ...styles.playerCard, padding: '8px 0', fontSize: '0.9rem', flexShrink: 0 }}>
+                  <div 
+                    key={p.id} 
+                    onPointerDown={(e) => {
+                      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+                      setDraggedPlayer(p);
+                    }} 
+                    style={{ ...styles.playerCard, padding: '8px 0', fontSize: '0.9rem', flexShrink: 0, touchAction: 'none' }}
+                  >
                     {p.name}
                   </div>
                 ))}
@@ -148,7 +164,6 @@ export default function SetupStep(props: SetupStepProps) {
         )}
       </div>
 
-      {/* Footer - תמיד בתחתית */}
       <div style={{ width: '100%', paddingBottom: '5px' }}>
         {!canStart && props.gameMode === "team" && <p style={{ color: '#ef4444', fontSize: '0.75rem', textAlign: 'center', marginBottom: '4px' }}>לפחות 2 בכל קבוצה</p>}
         <button onClick={props.onStart} disabled={!canStart} style={canStart ? styles.lobbyButton : styles.disabledButton}>בואו נשחק! 🚀</button>
