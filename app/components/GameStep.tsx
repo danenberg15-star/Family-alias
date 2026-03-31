@@ -1,75 +1,90 @@
 // app/components/GameStep.tsx
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { styles } from "../game.styles";
 
 interface GameStepProps {
-  timeLeft: number;
-  currentWord: any;
-  wordRef: React.RefObject<HTMLDivElement | null>;
-  skipRef: React.RefObject<HTMLButtonElement | null>;
-  isDraggingWord: boolean;
-  onPointerDown: (e: React.PointerEvent) => void;
-  isTextOnly: boolean;
-  targets: string[];
-  targetsRef: React.MutableRefObject<{ [key: string]: HTMLDivElement | null }>;
-  score: number;
-  onPause: () => void;
-  activeHover: string | null;
-  onGuess: (target: string) => void;
+  roomData: any; userId: string; wordRef: any; skipRef: any;
+  isDraggingWord: boolean; onPointerDown: () => void;
+  targets: string[]; targetsRef: any; activeHover: string | null;
+  updateRoom: (data: any) => void;
 }
 
 export default function GameStep(props: GameStepProps) {
-  return (
-    <div style={styles.flexLayout}>
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ color: 'white', fontWeight: 'bold' }}>ניקוד: {props.score}</div>
-        <button onClick={props.onPause} style={{ color: 'white', background: 'none', border: '1px solid white', borderRadius: '10px', padding: '5px 15px' }}>השהה ⏸️</button>
-      </div>
+  const { roomData, userId } = props;
+  const currentP = roomData.players[roomData.currentTurnIdx];
+  const isIDescriber = currentP.id === userId;
 
-      <div style={{ fontSize: '4rem', color: '#ffd700', fontWeight: '900', margin: '10px 0' }}>{props.timeLeft}</div>
+  const currentWordData = useMemo(() => {
+    const age = parseInt(currentP.age) || 10;
+    const isEasy = roomData.difficulty === "easy";
+    
+    let poolKey: "KIDS" | "JUNIOR" | "TEEN" | "ADULT" = "ADULT";
+    let showAssets = false;
 
-      <div style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
-        <div 
-          ref={props.wordRef}
-          onPointerDown={props.onPointerDown}
-          style={{
-            zIndex: 100, cursor: 'grab', width: '100%', height: '100%',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            visibility: props.isDraggingWord ? 'hidden' : 'visible'
-          }}
-        >
-          {props.isTextOnly ? (
-            <h2 style={{ color: 'white', fontSize: '3.5rem', textAlign: 'center' }}>{props.currentWord?.word}</h2>
-          ) : (
-            <>
-              <img src={props.currentWord?.image} alt={props.currentWord?.word} style={{ maxWidth: '100%', maxHeight: '80%', objectFit: 'contain', borderRadius: '20px' }} />
-              <h2 style={{ color: 'white', fontSize: '2.5rem', marginTop: '10px' }}>{props.currentWord?.word}</h2>
-            </>
-          )}
+    if (isEasy) { poolKey = "KIDS"; showAssets = true; } 
+    else {
+      if (age <= 6) { poolKey = "KIDS"; showAssets = true; }
+      else if (age <= 10) { poolKey = "JUNIOR"; showAssets = true; }
+      else if (age <= 16) { poolKey = "TEEN"; showAssets = false; }
+      else { poolKey = "ADULT"; showAssets = false; }
+    }
+
+    const idx = roomData.poolIndices?.[poolKey] || 0;
+    const pool = roomData.shuffledPools?.[poolKey] || [];
+    const wordObj = pool[idx % pool.length] || { word: "טוען...", en: "" };
+
+    return { ...wordObj, showAssets, activeKey: poolKey };
+  }, [roomData.currentTurnIdx, roomData.poolIndices]);
+
+  if (!isIDescriber) {
+    return (
+      <div style={styles.flexLayout}>
+        <div style={{ marginTop: '120px', textAlign: 'center' }}>
+          <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{currentP.name} מתאר/ת...</h2>
+          <p style={{ color: 'white', fontSize: '1.2rem', opacity: 0.8 }}>נסו לנחש את המילה!</p>
         </div>
       </div>
+    );
+  }
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%', marginTop: '20px' }}>
-        {props.targets.map((t) => (
-          <div key={t} ref={el => { if(props.targetsRef.current) props.targetsRef.current[t] = el; }} onClick={() => props.onGuess(t)}
-            style={{ 
-              minHeight: '60px', borderRadius: '16px', border: '2px solid rgba(255,215,0,0.3)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white', fontWeight: 'bold', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              ...(props.activeHover === t ? { borderColor: '#ffd700', backgroundColor: 'rgba(255, 215, 0, 0.2)' } : {}) 
-            }}
-          >
-            {t}
+  return (
+    <div style={styles.flexLayout}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', padding: '15px 20px' }}>
+        <div style={{ color: '#ef4444', fontWeight: '900', fontSize: '2rem' }}>{roomData.timeLeft}</div>
+        <div style={{ color: '#ffd700', fontWeight: '900', fontSize: '2rem' }}>{roomData.roundScore}</div>
+      </div>
+
+      <div ref={props.wordRef} onPointerDown={props.onPointerDown} style={{
+          width: '280px', height: '380px', backgroundColor: 'white', borderRadius: '35px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 15px 45px rgba(0,0,0,0.6)', cursor: 'grab', zIndex: 100, padding: '20px',
+          position: 'relative', touchAction: 'none'
+        }}>
+        {currentWordData.showAssets && currentWordData.img && (
+          <div style={{ width: '100%', height: '180px', marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
+            <img src={currentWordData.img} alt="" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+          </div>
+        )}
+        <div style={{ color: '#05081c', fontSize: '2.5rem', fontWeight: '900', textAlign: 'center', lineHeight: 1.1 }}>
+          {currentWordData.word}
+        </div>
+        {currentWordData.showAssets && currentWordData.en && (
+          <div style={{ color: '#05081c', fontSize: '1.2rem', opacity: 0.5, marginTop: '10px', fontWeight: 'bold' }}>
+            {currentWordData.en}
+          </div>
+        )}
+      </div>
+
+      <div style={{ width: '100%', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '30px' }}>
+        <button ref={props.skipRef} style={{ height: '70px', borderRadius: '20px', border: '2px dashed #ef4444', color: '#ef4444', fontWeight: '900', fontSize: '1.2rem' }}>דלג (-1)</button>
+        {props.targets.map(target => (
+          <div key={target} ref={(el) => { if (props.targetsRef.current) props.targetsRef.current[target] = el; }} 
+            style={{ height: '90px', borderRadius: '25px', border: '2px solid #ffd700', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: '900', backgroundColor: props.activeHover === target ? '#ffd700' : 'rgba(255,215,0,0.05)', color: props.activeHover === target ? '#05081c' : '#ffd700' }}>
+            {target} (+1)
           </div>
         ))}
-        <button ref={props.skipRef} onClick={() => props.onGuess("SKIP")}
-          style={{ 
-            gridColumn: 'span 2', minHeight: '55px', borderRadius: '16px', backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '2px solid #ef4444', color: '#ef4444', fontWeight: 'bold', fontSize: '1.1rem',
-            ...(props.activeHover === "SKIP" ? { backgroundColor: '#ef4444', color: 'white' } : {}) 
-          }}
-        >
-          דילוג ❌
-        </button>
       </div>
     </div>
   );

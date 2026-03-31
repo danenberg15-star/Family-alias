@@ -1,18 +1,27 @@
 // app/lib/game-utils.ts
-import { CategoryType, HEBREW_ROOM_CODES, WordItem } from "../game.config";
-import { WORD_DATABASE } from "./word-database";
+import { KIDS_WORDS } from "./words/kids";
+import { JUNIOR_WORDS } from "./words/junior";
+import { TEEN_WORDS } from "./words/teen";
+import { ADULT_WORDS } from "./words/adult";
 
-export const generateRoomCode = (): string => {
-  const codes = HEBREW_ROOM_CODES.filter(c => c !== "עומר");
-  return codes[Math.floor(Math.random() * codes.length)];
+export const generateRoomCode = () => {
+  return Math.random().toString(36).substring(2, 6).toUpperCase();
 };
 
-export const getShuffledWords = (category: CategoryType): WordItem[] => {
-  const baseWords = WORD_DATABASE[category] || [];
-  const shuffled = [...baseWords];
-  for (let i = shuffled.length - 1; i > 0; i--) {
+export const shuffleArray = (array: any[]) => {
+  const newArr = [...array];
+  for (let i = newArr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
   }
-  return shuffled;
+  return newArr;
+};
+
+export const getInitialShuffledPools = () => {
+  return {
+    KIDS: shuffleArray(KIDS_WORDS),
+    JUNIOR: shuffleArray(JUNIOR_WORDS),
+    TEEN: shuffleArray(TEEN_WORDS),
+    ADULT: shuffleArray(ADULT_WORDS)
+  };
 };
