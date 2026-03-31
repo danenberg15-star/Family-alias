@@ -84,7 +84,16 @@ export default function FamilyAliasApp() {
         isDragging.current = false; setActiveHover(null); setIsDraggingWord(false);
         if (wordRef.current) { wordRef.current.style.position = 'relative'; wordRef.current.style.transform = 'none'; }
       }}>
-      {step === 1 && <EntryStep onNext={(n, a, action, code) => { setUserName(n); setUserAge(a); if (action === 'create') handleCreateRoom(); else if (action === 'join' && code) handleJoinRoom(code); }} />}
+      {step === 1 && (
+        <EntryStep 
+          onNext={(n, a, action, code) => { 
+            setUserName(n); 
+            setUserAge(a); 
+            if (action === 'create') handleCreateRoom(n, a); 
+            else if (action === 'join' && code) handleJoinRoom(code, n, a); 
+          }} 
+        />
+      )}
       {step === 3 && roomData && <SetupStep roomId={roomId!} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} difficulty={roomData.difficulty || "age-appropriate"} setDifficulty={(d) => updateRoom({ difficulty: d })} numTeams={roomData.numTeams} setNumTeams={(n) => updateRoom({ numTeams: n })} players={roomData.players} teamNames={roomData.teamNames} updateTeamNames={(names) => updateRoom({ teamNames: names })} onPlayerMove={(pId, tIdx) => { const p = roomData.players.map((pl:any) => pl.id === pId ? {...pl, teamIdx: tIdx} : pl); updateRoom({ players: p }); }} editTeamName={(idx: number) => { const n = prompt("שם קבוצה:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} onStart={() => updateRoom({ step: 4, preGameTimer: 3, shuffledPools: getInitialShuffledPools(), poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, roundScore: 0 })} onExit={handleFullReset} />}
       {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP?.name, team: roomData.teamNames[currentP?.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
       {step === 5 && roomData && <GameStep roomData={roomData} userId={userId!} wordRef={wordRef} skipRef={skipRef} isDraggingWord={isDraggingWord} onPointerDown={() => { isDragging.current = true; setIsDraggingWord(true); }} targets={gameTargets} targetsRef={targetsRef as any} activeHover={activeHover} updateRoom={updateRoom} handleAction={handleScoreAction} onExit={handleFullReset} />}
