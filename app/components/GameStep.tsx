@@ -8,9 +8,23 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
   const wordData = useMemo(() => {
     const age = parseInt(currentP.age) || 10;
     const isEasy = roomData.difficulty === "easy";
-    const key: any = (age <= 6 || isEasy) ? "KIDS" : (age <= 10) ? "JUNIOR" : (age <= 16) ? "TEEN" : "ADULT";
+    const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
+    
+    // לוגיקת בחירת מאגר מעורבב (צריכה להיות זהה ל-page.tsx)
+    let key: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
+    if (isEasy || age <= 6) {
+      key = "KIDS";
+    } else if (age <= 10) {
+      key = "JUNIOR";
+    } else if (age <= 16) {
+      key = (idxs.TEEN + idxs.JUNIOR) % 2 === 0 ? "TEEN" : "JUNIOR";
+    } else {
+      key = (idxs.ADULT + idxs.TEEN) % 2 === 0 ? "ADULT" : "TEEN";
+    }
+
     const pool = roomData.shuffledPools?.[key] || [];
-    const index = roomData.poolIndices?.[key] || 0;
+    const index = idxs[key] || 0;
+    
     return { 
       ...(pool[index % (pool.length || 1)] || { word: "טוען...", en: "" }), 
       isYoung: (age <= 10 || isEasy) 
@@ -47,12 +61,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
 
       <div style={s.scoreTop}>ניקוד מצטבר: {scoreTotal + (roomData.roundScore || 0)}</div>
       
-      <button 
-        onClick={() => handleAction("SKIP")} 
-        style={s.skip}
-      >
-        דלג (-1)
-      </button>
+      <button onClick={() => handleAction("SKIP")} style={s.skip}>דלג (-1)</button>
 
       <div style={s.center}>
         {roomData.isPaused ? (
@@ -105,13 +114,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
       {!roomData.isPaused && (
         <div style={s.grid}>
           {targets.map((n: string) => (
-            <button 
-              key={n} 
-              onClick={() => handleAction(n)} 
-              style={s.target}
-            >
-              {n} (+1)
-            </button>
+            <button key={n} onClick={() => handleAction(n)} style={s.target}>{n} (+1)</button>
           ))}
         </div>
       )}

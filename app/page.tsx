@@ -39,9 +39,23 @@ export default function FamilyAliasApp() {
     if (roomData.isPaused) return;
     const age = parseInt(currentP.age) || 10;
     const isEasy = roomData.difficulty === "easy";
-    const poolKey = (isEasy || age <= 6) ? "KIDS" : (age <= 10) ? "JUNIOR" : (age <= 16) ? "TEEN" : "ADULT";
+    const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
     
-    const newIndices = { ...roomData.poolIndices };
+    // לוגיקת בחירת מאגר מעורבב (Mixed Pool Logic)
+    let poolKey: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
+    if (isEasy || age <= 6) {
+      poolKey = "KIDS";
+    } else if (age <= 10) {
+      poolKey = "JUNIOR";
+    } else if (age <= 16) {
+      // גילאי 11-16: ערבוב של TEEN ו-JUNIOR
+      poolKey = (idxs.TEEN + idxs.JUNIOR) % 2 === 0 ? "TEEN" : "JUNIOR";
+    } else {
+      // גילאי 17+: ערבוב של ADULT ו-TEEN
+      poolKey = (idxs.ADULT + idxs.TEEN) % 2 === 0 ? "ADULT" : "TEEN";
+    }
+    
+    const newIndices = { ...idxs };
     newIndices[poolKey] = (newIndices[poolKey] || 0) + 1;
     const newScores = { ...roomData.totalScores };
 
@@ -61,7 +75,6 @@ export default function FamilyAliasApp() {
     : [roomData?.teamNames[currentP?.teamIdx]];
 
   return (
-    // כאן הוספתי את overscrollBehavior: 'none' למניעת רפרוש
     <div style={{ backgroundColor: '#05081c', minHeight: '100dvh', color: 'white', direction: 'rtl', overscrollBehavior: 'none' }}>
       {step === 1 && (
         <EntryStep 
