@@ -4,28 +4,56 @@ import { CSSProperties } from "react";
 export const styles: { [key: string]: CSSProperties } = {
   container: { 
     display: 'flex', justifyContent: 'center', height: '100dvh', width: '100vw', 
-    backgroundColor: '#05081c', direction: 'rtl', overflow: 'hidden', position: 'fixed' 
+    backgroundColor: '#05081c', direction: 'rtl', overflow: 'hidden', position: 'fixed',
+    touchAction: 'none', userSelect: 'none', overscrollBehavior: 'none' 
   },
   safeAreaWrapper: { 
     width: '100%', maxWidth: '450px', height: '100%', display: 'flex', flexDirection: 'column', 
     paddingTop: 'env(safe-area-inset-top, 10px)', paddingBottom: 'env(safe-area-inset-bottom, 20px)', 
-    paddingLeft: '20px', paddingRight: '20px', alignItems: 'center', boxSizing: 'border-box',
-    justifyContent: 'space-between'
+    paddingLeft: '15px', paddingRight: '15px', alignItems: 'center', boxSizing: 'border-box',
+    justifyContent: 'space-between', position: 'relative'
   },
-  flexLayout: { 
-    flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', 
-    height: '100%', justifyContent: 'space-between' 
-  },
-  
-  // --- מסך כניסה מאוחד (Entry) ---
-  // עדכון: הגדלת הלוגו ל-90% מרוחב הקונטיינר
-  entryLogo: { width: '90%', height: 'auto', maxHeight: '30vh', objectFit: 'contain', marginTop: '10px' },
-  entryTitle: { color: '#ffd700', fontSize: '1.4rem', fontWeight: '900', textAlign: 'center', lineHeight: '1.2' },
-  entryInput: { width: '100%', minHeight: '52px', padding: '12px', borderRadius: '16px', backgroundColor: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', fontSize: '1.2rem', textAlign: 'center', boxSizing: 'border-box' },
-  lobbyButton: { width: '100%', minHeight: '60px', borderRadius: '18px', backgroundColor: '#ffd700', color: '#05081c', fontWeight: '900', border: 'none', fontSize: '1.3rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)' },
-  lobbyJoinFrame: { width: '100%', padding: '10px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
+  flexLayout: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' },
 
-  modalOverlay: { position: 'absolute', inset: 0, backgroundColor: 'rgba(5, 8, 28, 0.98)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '20px' },
-  modalContent: { width: '100%', maxWidth: '350px', backgroundColor: '#0f172a', borderRadius: '24px', padding: '25px', border: '1px solid #ffd700', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' },
-  exitBtn: { position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', borderRadius: '50%', width: '40px', height: '40px', fontSize: '20px', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+  // כפתורים גדולים (צהובים - כמו במסך הראשון)
+  lobbyButton: { 
+    width: '100%', minHeight: '60px', borderRadius: '20px', backgroundColor: '#ffd700', 
+    color: '#05081c', fontWeight: '900', border: 'none', fontSize: '1.3rem', cursor: 'pointer',
+    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.2)'
+  },
+  disabledButton: { 
+    width: '100%', minHeight: '60px', borderRadius: '20px', backgroundColor: 'rgba(255,255,255,0.1)', 
+    color: 'rgba(255,255,255,0.2)', fontWeight: '900', border: 'none', fontSize: '1.3rem'
+  },
+
+  // טוגלים של ה-Setup (עכשיו נראים כמו הכפתורים במסך הראשון)
+  setupToggleBtn: {
+    flex: 1, minHeight: '52px', borderRadius: '16px', border: '2px solid rgba(255,215,0,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.05)', color: 'white', fontWeight: '900', fontSize: '1.1rem',
+    cursor: 'pointer', transition: 'all 0.2s'
+  },
+  setupToggleActive: {
+    backgroundColor: '#ffd700', color: '#05081c', borderColor: '#ffd700',
+    boxShadow: '0 0 15px rgba(255, 215, 0, 0.3)'
+  },
+
+  // כפתור X אדום
+  exitBtnRed: { 
+    position: 'absolute', top: '15px', left: '15px', width: '38px', height: '38px',
+    borderRadius: '50%', backgroundColor: '#ef4444', border: 'none', color: 'white',
+    fontSize: '20px', fontWeight: 'bold', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'
+  },
+
+  // קבוצות וגרירה
+  setupGrid: { display: 'grid', gap: '10px', width: '100%', flex: 1, margin: '15px 0', alignContent: 'start' },
+  teamBox: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)', borderRadius: '18px',
+    border: '1px solid rgba(255,215,0,0.1)', padding: '12px', display: 'flex',
+    flexDirection: 'column', minHeight: '130px', position: 'relative'
+  },
+  playerCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', color: 'white', padding: '10px',
+    borderRadius: '12px', margin: '4px 0', fontSize: '1rem', textAlign: 'center', fontWeight: 'bold'
+  },
+  whatsappIcon: { backgroundColor: '#25D366', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' }
 };
