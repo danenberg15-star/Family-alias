@@ -1,80 +1,119 @@
+// app/components/SetupStep.tsx
 "use client";
 
-import React, { useState, useRef } from "react";
+import React from "react";
 import { styles } from "../game.styles";
 
 interface SetupStepProps {
-  roomId: string; gameMode: "individual" | "team"; setGameMode: (m: "individual" | "team") => void;
-  difficulty: "age-appropriate" | "easy"; setDifficulty: (d: "age-appropriate" | "easy") => void;
-  numTeams: number; setNumTeams: (n: number) => void; teamNames: string[]; editTeamName: (i: number) => void;
-  players: any[]; onPlayerMove: (pId: string, tIdx: number) => void; activeHover: string | null;
-  teamsRef: React.MutableRefObject<{ [key: number]: HTMLDivElement | null }>; onStart: () => void;
+  roomId: string;
+  gameMode: "individual" | "team";
+  setGameMode: (m: "individual" | "team") => void;
+  difficulty: "age-appropriate" | "easy";
+  setDifficulty: (d: "age-appropriate" | "easy") => void;
+  numTeams: number;
+  setNumTeams: (n: number) => void;
+  players: any[];
+  onPlayerMove: (pId: string, tIdx: number) => void;
+  onStart: () => void;
+  teamNames: string[];
 }
 
 export default function SetupStep(props: SetupStepProps) {
-  const [showTeamMenu, setShowTeamMenu] = useState(false);
-  const [draggedPlayer, setDraggedPlayer] = useState<any>(null);
-  const [localHover, setLocalHover] = useState<number | null>(null);
-  const ghostRef = useRef<HTMLDivElement>(null!);
+  
+  // בדיקה אם אפשר להתחיל: בכל קבוצה פעילה חייבים להיות לפחות 2 שחקנים
+  const canStart = props.gameMode === "individual" 
+    ? props.players.length >= 2
+    : Array.from({ length: props.numTeams }).every((_, i) => 
+        props.players.filter(p => p.teamIdx === i).length >= 2
+      );
 
-  const onPointerDown = (e: React.PointerEvent, p: any) => {
-    setDraggedPlayer(p);
-    if (ghostRef.current) {
-      ghostRef.current.style.display = 'flex';
-      ghostRef.current.style.transform = `translate3d(${e.clientX - 60}px, ${e.clientY - 20}px, 0)`;
-      ghostRef.current.innerText = p.name;
-    }
+  const shareWhatsApp = () => {
+    const text = `בואו לשחק איתי אליאס! כנסו לחדר: ${props.roomId}\nלינק: ${window.location.href}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!draggedPlayer || !ghostRef.current) return;
-    ghostRef.current.style.transform = `translate3d(${e.clientX - 60}px, ${e.clientY - 20}px, 0)`;
-    let found: number | null = null;
-    for (let i = 0; i < (props.gameMode === "team" ? props.numTeams : 1); i++) {
-      const el = props.teamsRef.current[i];
-      if (el) {
-        const r = el.getBoundingClientRect();
-        if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
-          found = i; break;
-        }
-      }
-    }
-    setLocalHover(found);
+  // חישוב גריד דינמי
+  const gridStyle = {
+    ...styles.setupGrid,
+    gridTemplateColumns: props.gameMode === "team" && props.numTeams === 2 ? '1fr 1fr' : 'repeat(auto-fit, minmax(130px, 1fr))'
   };
 
   return (
-    <div style={styles.flexLayout} onPointerMove={onPointerMove} onPointerUp={() => { if(draggedPlayer && localHover !== null) props.onPlayerMove(draggedPlayer.id, localHover); setDraggedPlayer(null); setLocalHover(null); if(ghostRef.current) ghostRef.current.style.display = 'none'; }}>
-      <div ref={ghostRef} style={{ position: 'fixed', pointerEvents: 'none', display: 'none', backgroundColor: '#ffd700', color: '#05081c', padding: '10px 20px', borderRadius: '12px', zIndex: 5000, fontWeight: 'bold', top: 0, left: 0 }} />
-      <div style={styles.setupTop}>
-        <h1 style={{ color: '#ffd700', fontSize: '2.4rem', fontWeight: '900', margin: 0 }}>{props.roomId}</h1>
-        <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-          <div style={styles.toggleContainer}><button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button><button onClick={() => { props.setGameMode("team"); setShowTeamMenu(true); }} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button></div>
-          <div style={styles.toggleContainer}><button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת</button><button onClick={() => props.setDifficulty("easy")} style={props.difficulty === "easy" ? styles.toggleActive : styles.toggleInactive}>קלה</button></div>
+    <div style={styles.flexLayout}>
+      {/* כותרת וקוד חדר */}
+      <div style={{ textAlign: 'center', width: '100%', paddingTop: '10px' }}>
+        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem' }}>קוד החדר שלך:</span>
+        <h1 style={{ ...styles.entryTitle, fontSize: '2.5rem', marginTop: '0' }}>{props.roomId}</h1>
+        <button onClick={shareWhatsApp} style={styles.whatsappBtn}>הזמן שחקנים בוואטסאפ 📱</button>
+      </div>
+
+      {/* הגדרות משחק */}
+      <div style={{ width: '100%', marginTop: '20px' }}>
+        <div style={styles.toggleContainer}>
+          <button onClick={() => props.setGameMode("individual")} style={props.gameMode === "individual" ? styles.toggleActive : styles.toggleInactive}>יחידים</button>
+          <button onClick={() => props.setGameMode("team")} style={props.gameMode === "team" ? styles.toggleActive : styles.toggleInactive}>קבוצות</button>
+        </div>
+        <div style={styles.toggleContainer}>
+          <button onClick={() => props.setDifficulty("age-appropriate")} style={props.difficulty === "age-appropriate" ? styles.toggleActive : styles.toggleInactive}>מותאמת גיל</button>
+          <button onClick={() => props.setDifficulty("easy")} style={props.difficulty === "easy" ? styles.toggleActive : styles.toggleInactive}>רמה קלה</button>
         </div>
       </div>
-      {!showTeamMenu && (
-        <div style={{ ...styles.teamsGrid, gridTemplateColumns: '1fr 1fr', gridTemplateRows: props.numTeams > 2 ? '1fr 1fr' : '1fr' }}>
-          {(props.gameMode === "team" ? props.teamNames.slice(0, props.numTeams) : ["שחקנים"]).map((tName, tIdx) => (
-            <div key={tIdx} ref={el => { if(props.teamsRef.current) props.teamsRef.current[tIdx] = el; }} style={{ ...styles.teamBox, ...(localHover === tIdx ? styles.teamBoxGlowing : {}) }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px', marginBottom: '4px' }}>
-                <span style={{ color: '#ffd700', fontSize: '0.9rem', fontWeight: 'bold' }}>{tName}</span>
-                {props.gameMode === "team" && <button onClick={() => props.editTeamName(tIdx)} style={{ background: 'none', border: 'none', color: '#ffd700' }}>✏️</button>}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
-                {props.players.filter(p => props.gameMode === "individual" || p.teamIdx === tIdx).map(p => (
-                  <div key={p.id} onPointerDown={(e) => onPointerDown(e, p)} style={{ ...styles.playerCard, height: '48px', opacity: draggedPlayer?.id === p.id ? 0.4 : 1 }}>{p.name}</div>
-                ))}
-              </div>
+
+      {/* אזור הקבוצות/שחקנים */}
+      <div style={gridStyle}>
+        {Array.from({ length: props.gameMode === "team" ? props.numTeams : 1 }).map((_, tIdx) => (
+          <div key={tIdx} style={styles.teamBox}>
+            <div style={{ borderBottom: '1px solid rgba(255,215,0,0.2)', paddingBottom: '5px', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+              <span style={styles.goldText}>{props.gameMode === "team" ? props.teamNames[tIdx] : "משתתפים"}</span>
+              <span style={{ color: 'white', fontSize: '0.8rem' }}>({props.players.filter(p => props.gameMode === "individual" || p.teamIdx === tIdx).length})</span>
             </div>
-          ))}
-        </div>
-      )}
-      {showTeamMenu && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '15px', width: '100%' }}>
-          {[2, 3, 4].map(n => <button key={n} onClick={() => { props.setNumTeams(n); setShowTeamMenu(false); }} style={{ ...styles.entryButton, background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid #ffd700' }}>{n} קבוצות</button>)}
-        </div>
-      )}
-      <button onClick={props.onStart} style={styles.goldButtonFixed}>בואו נשחק! 🚀</button>
+            <div style={{ flex: 1 }}>
+              {props.players.filter(p => props.gameMode === "individual" || p.teamIdx === tIdx).map(p => (
+                <div key={p.id} style={styles.playerBadge}>{p.name}</div>
+              ))}
+            </div>
+            {/* כפתור העברה מהירה בין קבוצות (במקום גרירה מסובכת בנייד) */}
+            {props.gameMode === "team" && (
+              <button 
+                onClick={() => {
+                  const pId = props.players.find(p => p.teamIdx === tIdx)?.id;
+                  if (pId) props.onPlayerMove(pId, (tIdx + 1) % props.numTeams);
+                }}
+                style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', marginTop: '5px' }}
+              >
+                העבר שחקן ⇄
+              </button>
+            )}
+          </div>
+        ))}
+        
+        {/* כפתור הוספת קבוצה */}
+        {props.gameMode === "team" && props.numTeams < 4 && (
+          <button 
+            onClick={() => props.setNumTeams(props.numTeams + 1)}
+            style={{ ...styles.teamBox, justifyContent: 'center', alignItems: 'center', borderStyle: 'dashed', opacity: 0.6 }}
+          >
+            <span style={{ fontSize: '2rem', color: '#ffd700' }}>+</span>
+            <span style={{ color: 'white', fontSize: '0.8rem' }}>הוסף קבוצה</span>
+          </button>
+        )}
+      </div>
+
+      {/* כפתור התחלה */}
+      <div style={{ width: '100%', paddingBottom: '10px' }}>
+        {!canStart && props.gameMode === "team" && (
+          <p style={{ color: '#ef4444', fontSize: '0.8rem', textAlign: 'center', marginBottom: '5px' }}>
+            חייבים לפחות 2 שחקנים בכל קבוצה כדי להתחיל
+          </p>
+        )}
+        <button 
+          onClick={props.onStart} 
+          disabled={!canStart}
+          style={canStart ? styles.lobbyButton : styles.disabledButton}
+        >
+          בואו נשחק! 🚀
+        </button>
+      </div>
     </div>
   );
 }
