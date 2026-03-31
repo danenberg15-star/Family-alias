@@ -3,7 +3,8 @@ import { JUNIOR_WORDS } from "./words/junior";
 import { TEEN_WORDS } from "./words/teen";
 import { ADULT_WORDS } from "./words/adult";
 
-export const generateRoomCode = () => Math.random().toString(36).substring(2, 6).toUpperCase();
+// יצירת קוד חדר המורכב מ-4 ספרות בדיוק (1000-9999)
+export const generateRoomCode = () => Math.floor(1000 + Math.random() * 9000).toString();
 
 export const shuffleArray = (array: any[]) => {
   const newArr = [...array];
