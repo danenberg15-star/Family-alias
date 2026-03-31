@@ -1,4 +1,4 @@
-import { CSSProperties, RefObject } from "react";
+import React, { CSSProperties, RefObject, memo } from "react";
 
 interface WordCardProps {
   word: string;
@@ -9,7 +9,8 @@ interface WordCardProps {
   isTextOnly?: boolean;
 }
 
-export default function WordCard({ word, en, img, wordRef, onPointerDown, isTextOnly }: WordCardProps) {
+// שימוש ב-memo מונע רינדור חוזר אם ה-props לא השתנו
+const WordCard = memo(({ word, en, img, wordRef, onPointerDown, isTextOnly }: WordCardProps) => {
   return (
     <div ref={wordRef} onPointerDown={onPointerDown} style={cardWrapperStyle}>
       <div style={{...innerCardStyle, minHeight: isTextOnly ? '180px' : 'auto', justifyContent: isTextOnly ? 'center' : 'flex-start'}}>
@@ -30,9 +31,23 @@ export default function WordCard({ word, en, img, wordRef, onPointerDown, isText
       </div>
     </div>
   );
-}
+});
 
-const cardWrapperStyle: CSSProperties = { cursor: 'pointer', touchAction: 'none', userSelect: 'none', textAlign: 'center', zIndex: 10, width: '100%', display: 'flex', justifyContent: 'center' };
+export default WordCard;
+
+const cardWrapperStyle: CSSProperties = { 
+  cursor: 'pointer', 
+  touchAction: 'none', 
+  userSelect: 'none', 
+  textAlign: 'center', 
+  zIndex: 10, 
+  width: '100%', 
+  display: 'flex', 
+  justifyContent: 'center',
+  // אופטימיזציית GPU לגרירה חלקה
+  willChange: 'transform',
+  transform: 'translateZ(0)'
+};
 
 const innerCardStyle: CSSProperties = { 
   backgroundColor: 'rgba(25, 30, 60, 0.9)', 
@@ -45,7 +60,6 @@ const innerCardStyle: CSSProperties = {
   gap: '0px', 
   boxShadow: '0 8px 20px rgba(0,0,0,0.5)',
   overflow: 'hidden',
-  // === שינוי כאן: הרוחב עכשיו 100% כדי להתאים לכפתורים ===
   width: '100%', 
   maxWidth: '100%', 
   userSelect: 'none'

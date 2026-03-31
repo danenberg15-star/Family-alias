@@ -1,7 +1,8 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useMemo, memo } from "react";
 
-export default function GameStep({ roomData, userId, wordRef, skipRef, isDraggingWord, onPointerDown, targets, targetsRef, activeHover, updateRoom, handleAction, onExit }: any) {
+// שימוש ב-memo מונע רינדור של כל המסך בזמן שהקואורדינטות משתנות
+const GameStep = memo(({ roomData, userId, wordRef, skipRef, isDraggingWord, onPointerDown, targets, targetsRef, activeHover, updateRoom, handleAction, onExit }: any) => {
   const currentP = roomData.players[roomData.currentTurnIdx];
   const isIDescriber = currentP.id === userId;
 
@@ -28,7 +29,18 @@ export default function GameStep({ roomData, userId, wordRef, skipRef, isDraggin
         {roomData.isPaused ? (
           <div style={s.pauseBox}><h3 style={{ color: '#ffd700' }}>ניהול ניקוד</h3><div style={s.scroll}>{(roomData.gameMode === 'individual' ? roomData.players.map((p:any)=>p.name) : roomData.teamNames.slice(0, roomData.numTeams)).map((n: string) => (<div key={n} style={s.row}><span>{n}</span><div style={s.rowBtn}><button onClick={() => { const sc = {...roomData.totalScores}; sc[n]=(sc[n]||0)-1; updateRoom({totalScores:sc}); }}>-</button><span>{roomData.totalScores[n] || 0}</span><button onClick={() => { const sc = {...roomData.totalScores}; sc[n]=(sc[n]||0)+1; updateRoom({totalScores:sc}); }}>+</button></div></div>))}</div><button onClick={() => updateRoom({ isPaused: false })} style={s.resume}>המשך</button></div>
         ) : (
-          <div ref={wordRef} onPointerDown={onPointerDown} style={{ ...s.card, opacity: isDraggingWord ? 0.8 : 1 }}>
+          <div 
+            ref={wordRef} 
+            onPointerDown={onPointerDown} 
+            style={{ 
+              ...s.card, 
+              opacity: isDraggingWord ? 0.9 : 1,
+              // אופטימיזציית ביצועים קריטית לגרירה
+              willChange: 'transform',
+              transform: isDraggingWord ? 'scale(1.02) translateZ(0)' : 'scale(1) translateZ(0)',
+              transition: isDraggingWord ? 'none' : 'transform 0.2s ease, opacity 0.2s ease'
+            }}
+          >
             {wordData.isYoung ? (<>{wordData.img && <div style={s.imgBox}><img src={wordData.img} alt="" style={s.img} /></div>}<div style={s.heb}>{wordData.word}</div><div style={s.en}>{wordData.en}</div></>) : <><div style={s.hebL}>{wordData.word}</div><div style={s.enL}>{wordData.en}</div></>}
           </div>
         )}
@@ -36,7 +48,9 @@ export default function GameStep({ roomData, userId, wordRef, skipRef, isDraggin
       {!roomData.isPaused && <div style={s.grid}>{targets.map((n: string) => (<div key={n} ref={(el) => { if (targetsRef.current) targetsRef.current[n] = el; }} onClick={() => handleAction(n)} style={{ ...s.target, backgroundColor: activeHover === n ? '#ffd700' : 'rgba(255,215,0,0.05)', color: activeHover === n ? '#05081c' : '#ffd700' }}>{n} (+1)</div>))}</div>}
     </div>
   );
-}
+});
+
+export default GameStep;
 
 const s: any = {
   layout: { display: 'flex', flexDirection: 'column', height: '100dvh', padding: 'env(safe-area-inset-top) 20px 20px', gap: '10px' },
