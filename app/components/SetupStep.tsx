@@ -55,12 +55,11 @@ export default function SetupStep(props: SetupStepProps) {
       <button onClick={props.onExit} style={styles.exitBtnRed}>✕</button>
 
       {draggedPlayer && (
-        <div style={{ position: 'fixed', pointerEvents: 'none', zIndex: 9999, left: ghostPos.x - 60, top: ghostPos.y - 25, backgroundColor: '#ffd700', padding: '10px', borderRadius: '12px', color: '#05081c', fontWeight: 'bold', width: '120px', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', pointerEvents: 'none', zIndex: 9999, left: ghostPos.x - 60, top: ghostPos.y - 25, backgroundColor: '#ffd700', padding: '1.2vh 10px', borderRadius: '12px', color: '#05081c', fontWeight: 'bold', width: '120px', textAlign: 'center' }}>
           {draggedPlayer.name}
         </div>
       )}
 
-      {/* כותרת ממורכזת עם וואטסאפ משמאל */}
       <div style={styles.setupHeader}>
         <div style={{ color: 'white', fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>
           קוד החדר: <span style={{ color: '#ffd700', fontWeight: '900', fontSize: '2.2rem', marginRight: '8px' }}>{props.roomId}</span>
@@ -81,22 +80,35 @@ export default function SetupStep(props: SetupStepProps) {
         </div>
       </div>
 
-      {/* גריד: 2 קבוצות בשורה */}
       <div style={{ ...styles.setupGrid, gridTemplateColumns: props.gameMode === "team" ? '1fr 1fr' : '1fr' }}>
         {Array.from({ length: props.gameMode === "team" ? props.numTeams : 1 }).map((_, tIdx) => {
           const teamPlayers = props.players.filter(p => props.gameMode === "individual" || p.teamIdx === tIdx);
           return (
-            <div key={tIdx} ref={el => { teamRefs.current[tIdx] = el; }} style={{ ...styles.teamBox, ...(hoveredTeam === tIdx ? { borderColor: '#ffd700', backgroundColor: 'rgba(255,215,0,0.1)' } : {}) }}>
+            <div key={tIdx} ref={el => { teamRefs.current[tIdx] = el; }} style={{ ...styles.teamBox, minHeight: '15vh', ...(hoveredTeam === tIdx ? { borderColor: '#ffd700', backgroundColor: 'rgba(255,215,0,0.1)' } : {}) }}>
               <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px', marginBottom: '8px', textAlign: 'center' }}>
                 <span style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '0.85rem' }}>
                   {props.gameMode === "team" ? props.teamNames[tIdx] : "משתתפים"}
                   {props.gameMode === "team" && <span onClick={() => props.editTeamName(tIdx)} style={{ fontSize: '0.8rem', opacity: 0.6, marginRight: '5px', cursor: 'pointer' }}> ✎</span>}
                 </span>
               </div>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', flexDirection: 'column', gap: '1vh' }}>
                 {teamPlayers.length > 0 ? (
                   teamPlayers.map(p => (
-                    <div key={p.id} onPointerDown={(e) => { setDraggedPlayer(p); setGhostPos({ x: e.clientX, y: e.clientY }); }} style={{ ...styles.playerCard, width: '100%', opacity: draggedPlayer?.id === p.id ? 0.3 : 1 }}>{p.name}</div>
+                    <div 
+                      key={p.id} 
+                      onPointerDown={(e) => { setDraggedPlayer(p); setGhostPos({ x: e.clientX, y: e.clientY }); }} 
+                      style={{ 
+                        ...styles.playerCard, 
+                        width: '100%', 
+                        padding: '1.5vh 0', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        opacity: draggedPlayer?.id === p.id ? 0.3 : 1 
+                      }}
+                    >
+                      {p.name}
+                    </div>
                   ))
                 ) : (
                   props.gameMode === "team" && props.numTeams > 2 && <button onClick={() => handleRemoveTeam(tIdx)} style={styles.minusBtnCentered}>-</button>
@@ -105,9 +117,8 @@ export default function SetupStep(props: SetupStepProps) {
             </div>
           );
         })}
-        {/* פלוס (+) מופיע רק אם אין קבוצה ריקה ופחות מ-4 קבוצות */}
         {props.gameMode === "team" && props.numTeams < 4 && !hasEmptyTeam && (
-          <button onClick={handleAddTeam} style={{ ...styles.teamBox, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' }}>
+          <button onClick={handleAddTeam} style={{ ...styles.teamBox, borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center', minHeight: '15vh' }}>
             <span style={{ fontSize: '2.5rem', color: '#ffd700' }}>+</span>
           </button>
         )}
