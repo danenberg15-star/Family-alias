@@ -57,12 +57,22 @@ export default function FamilyAliasApp() {
     const newScores = { ...roomData.totalScores };
 
     if (targetName === "SKIP") {
-      updateRoom({ roundScore: (roomData.roundScore || 0) - 1, poolIndices: newIndices });
+      // עדכון ניקוד בדילוג: הורדת נקודה למתאר (אישי) או לקבוצה (קבוצתי)
+      if (roomData.gameMode === "individual") {
+        newScores[currentP.name] = (newScores[currentP.name] || 0) - 1;
+      } else {
+        const teamName = roomData.teamNames[currentP.teamIdx];
+        newScores[teamName] = (newScores[teamName] || 0) - 1;
+      }
+      
+      updateRoom({ 
+        roundScore: (roomData.roundScore || 0) - 1, 
+        poolIndices: newIndices,
+        totalScores: newScores
+      });
     } else {
-      // עדכון ניקוד: המנחש מקבל נקודה
       newScores[targetName] = (newScores[targetName] || 0) + 1;
       
-      // אם משחק אישי - גם המתאר מקבל נקודה אחת
       if (roomData.gameMode === "individual") {
         newScores[currentP.name] = (newScores[currentP.name] || 0) + 1;
       }

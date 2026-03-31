@@ -6,7 +6,6 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
   const isIDescriber = currentP.id === userId;
   const me = roomData.players.find((p: any) => p.id === userId);
 
-  // חישוב הניקוד להצגה ב-Header לפי סוג משחק
   const myDisplayScore = useMemo(() => {
     if (roomData.gameMode === 'individual') {
       return roomData.totalScores[me?.name] || 0;
@@ -70,7 +69,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
         </div>
       </div>
       
-      <button onClick={() => handleAction("SKIP")} style={s.skip}>דלג (-1)</button>
+      <button onClick={() => handleAction("SKIP")} style={s.skip}>דלג (1-)</button>
 
       <div style={s.center}>
         {roomData.isPaused ? (
@@ -123,7 +122,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
       {!roomData.isPaused && (
         <div style={s.grid}>
           {targets.map((n: string) => (
-            <button key={n} onClick={() => handleAction(n)} style={s.target}>{n} (+1)</button>
+            <button key={n} onClick={() => handleAction(n)} style={s.target}>{n} (1+)</button>
           ))}
         </div>
       )}
@@ -139,13 +138,14 @@ const s: any = {
   icon: { background: 'none', border: 'none', color: 'white', fontSize: '1.8rem', cursor: 'pointer', padding: '5px' },
   skip: { width: '100%', height: '55px', border: '2px dashed #ef4444', borderRadius: '15px', color: '#ef4444', fontWeight: 'bold', background: 'none', cursor: 'pointer', fontSize: '1.1rem' },
   center: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '10px 0' },
-  card: { width: '100%', maxWidth: '320px', height: '100%', maxHeight: '400px', backgroundColor: '#1a1d2e', borderRadius: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  imgBox: { width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' },
+  // גובה הוקטן ב-30% מ-400px ל-280px
+  card: { width: '100%', maxWidth: '320px', height: '100%', maxHeight: '280px', backgroundColor: '#1a1d2e', borderRadius: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' },
+  imgBox: { width: '100%', height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' },
   img: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' },
   heb: { fontSize: '2rem', fontWeight: '900', textAlign: 'center' }, 
   en: { fontSize: '1.1rem', opacity: 0.6, textAlign: 'center' },
-  hebL: { fontSize: '3rem', fontWeight: '900', textAlign: 'center' }, 
-  enL: { fontSize: '1.6rem', opacity: 0.6, textAlign: 'center' },
+  hebL: { fontSize: '2.5rem', fontWeight: '900', textAlign: 'center' }, 
+  enL: { fontSize: '1.4rem', opacity: 0.6, textAlign: 'center' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', paddingBottom: '10px' },
   target: { height: '75px', border: '2px solid #ffd700', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: '900', backgroundColor: 'rgba(255,215,0,0.05)', color: '#ffd700', cursor: 'pointer' },
   pauseBox: { width: '100%', height: '100%', backgroundColor: '#1a1d2e', borderRadius: '35px', padding: '20px', display: 'flex', flexDirection: 'column' },
