@@ -17,11 +17,9 @@ export const shuffleArray = (array: any[]) => {
   return newArr;
 };
 
-export const getInitialShuffledPools = () => {
-  return {
-    KIDS: shuffleArray(KIDS_WORDS),
-    JUNIOR: shuffleArray(JUNIOR_WORDS),
-    TEEN: shuffleArray(TEEN_WORDS),
-    ADULT: shuffleArray(ADULT_WORDS)
-  };
-};
+export const getInitialShuffledPools = () => ({
+  KIDS: shuffleArray(KIDS_WORDS),
+  JUNIOR: shuffleArray(JUNIOR_WORDS),
+  TEEN: shuffleArray(TEEN_WORDS),
+  ADULT: shuffleArray(ADULT_WORDS)
+});
