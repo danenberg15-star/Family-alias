@@ -4,13 +4,23 @@ import React, { useMemo } from "react";
 export default function GameStep({ roomData, userId, targets, updateRoom, handleAction, onExit }: any) {
   const currentP = roomData.players[roomData.currentTurnIdx];
   const isIDescriber = currentP.id === userId;
+  const me = roomData.players.find((p: any) => p.id === userId);
+
+  // חישוב הניקוד להצגה ב-Header לפי סוג משחק
+  const myDisplayScore = useMemo(() => {
+    if (roomData.gameMode === 'individual') {
+      return roomData.totalScores[me?.name] || 0;
+    } else {
+      const myTeamName = roomData.teamNames[me?.teamIdx];
+      return roomData.totalScores[myTeamName] || 0;
+    }
+  }, [roomData.totalScores, roomData.gameMode, me]);
 
   const wordData = useMemo(() => {
     const age = parseInt(currentP.age) || 10;
     const isEasy = roomData.difficulty === "easy";
     const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
     
-    // לוגיקת בחירת מאגר מעורבב (צריכה להיות זהה ל-page.tsx)
     let key: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
     if (isEasy || age <= 6) {
       key = "KIDS";
@@ -31,19 +41,17 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     };
   }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty]);
 
-  const entityName = roomData.gameMode === 'individual' ? currentP.name : roomData.teamNames[currentP.teamIdx];
-  const scoreTotal = roomData.totalScores[entityName] || 0;
-
   if (!isIDescriber) {
     return (
       <div style={s.layout}>
         <div style={s.header}>
-          <button onClick={onExit} style={s.icon}>✕</button>
+          <div style={s.scoreBox}>🏆 {myDisplayScore}</div>
           <div style={s.timer}>{roomData.timeLeft}</div>
-          <div style={s.icon}></div>
+          <button onClick={onExit} style={s.icon}>✕</button>
         </div>
-        <div style={{ textAlign: 'center', marginTop: '100px' }}>
-          <h2 style={{ color: '#ffd700', fontSize: '2.5rem' }}>{currentP.name} מתאר/ת...</h2>
+        <div style={{ textAlign: 'center', marginTop: '80px' }}>
+          <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{currentP.name} מתאר/ת...</h2>
+          <p style={{ opacity: 0.7 }}>היו מוכנים לנחש!</p>
         </div>
       </div>
     );
@@ -52,14 +60,15 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
   return (
     <div style={s.layout}>
       <div style={s.header}>
-        <button onClick={onExit} style={s.icon}>✕</button>
+        <div style={s.scoreBox}>🏆 {myDisplayScore}</div>
         <div style={s.timer}>{roomData.timeLeft}</div>
-        <button onClick={() => updateRoom({ isPaused: !roomData.isPaused })} style={s.icon}>
-          {roomData.isPaused ? '▶️' : '⏸️'}
-        </button>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button onClick={() => updateRoom({ isPaused: !roomData.isPaused })} style={s.icon}>
+            {roomData.isPaused ? '▶️' : '⏸️'}
+          </button>
+          <button onClick={onExit} style={s.icon}>✕</button>
+        </div>
       </div>
-
-      <div style={s.scoreTop}>ניקוד מצטבר: {scoreTotal + (roomData.roundScore || 0)}</div>
       
       <button onClick={() => handleAction("SKIP")} style={s.skip}>דלג (-1)</button>
 
@@ -123,24 +132,26 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
 }
 
 const s: any = {
-  layout: { display: 'flex', flexDirection: 'column', height: '100dvh', padding: 'env(safe-area-inset-top) 20px 20px', gap: '10px' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '60px', position: 'relative' },
-  timer: { position: 'absolute', left: '50%', transform: 'translateX(-50%)', fontSize: '2.8rem', fontWeight: '900', color: '#ef4444' },
-  icon: { background: 'none', border: 'none', color: 'white', fontSize: '2rem', cursor: 'pointer' },
-  scoreTop: { textAlign: 'center', color: '#ffd700', fontWeight: 'bold', fontSize: '1.2rem' },
-  skip: { width: '100%', height: '60px', border: '2px dashed #ef4444', borderRadius: '15px', color: '#ef4444', fontWeight: 'bold', background: 'none', cursor: 'pointer' },
-  center: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  card: { width: '100%', maxWidth: '320px', height: '380px', backgroundColor: '#1a1d2e', borderRadius: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  imgBox: { width: '100%', height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' },
+  layout: { display: 'flex', flexDirection: 'column', height: '100dvh', padding: 'env(safe-area-inset-top) 20px 20px', gap: '10px', maxWidth: '600px', margin: '0 auto' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px', position: 'relative', borderBottom: '1px solid rgba(255,255,255,0.1)' },
+  scoreBox: { backgroundColor: 'rgba(255,215,0,0.15)', padding: '8px 15px', borderRadius: '15px', color: '#ffd700', fontWeight: '900', fontSize: '1.2rem', minWidth: '70px', textAlign: 'center' },
+  timer: { fontSize: '2.5rem', fontWeight: '900', color: '#ef4444', position: 'absolute', left: '50%', transform: 'translateX(-50%)' },
+  icon: { background: 'none', border: 'none', color: 'white', fontSize: '1.8rem', cursor: 'pointer', padding: '5px' },
+  skip: { width: '100%', height: '55px', border: '2px dashed #ef4444', borderRadius: '15px', color: '#ef4444', fontWeight: 'bold', background: 'none', cursor: 'pointer', fontSize: '1.1rem' },
+  center: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '10px 0' },
+  card: { width: '100%', maxWidth: '320px', height: '100%', maxHeight: '400px', backgroundColor: '#1a1d2e', borderRadius: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' },
+  imgBox: { width: '100%', height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' },
   img: { maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' },
-  heb: { fontSize: '2.2rem', fontWeight: '900' }, en: { fontSize: '1.2rem', opacity: 0.6 },
-  hebL: { fontSize: '3.5rem', fontWeight: '900', textAlign: 'center' }, enL: { fontSize: '1.8rem', opacity: 0.6 },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' },
-  target: { height: '80px', border: '2px solid #ffd700', borderRadius: '25px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem', fontWeight: '900', backgroundColor: 'rgba(255,215,0,0.05)', color: '#ffd700', cursor: 'pointer' },
+  heb: { fontSize: '2rem', fontWeight: '900', textAlign: 'center' }, 
+  en: { fontSize: '1.1rem', opacity: 0.6, textAlign: 'center' },
+  hebL: { fontSize: '3rem', fontWeight: '900', textAlign: 'center' }, 
+  enL: { fontSize: '1.6rem', opacity: 0.6, textAlign: 'center' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', paddingBottom: '10px' },
+  target: { height: '75px', border: '2px solid #ffd700', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: '900', backgroundColor: 'rgba(255,215,0,0.05)', color: '#ffd700', cursor: 'pointer' },
   pauseBox: { width: '100%', height: '100%', backgroundColor: '#1a1d2e', borderRadius: '35px', padding: '20px', display: 'flex', flexDirection: 'column' },
   scroll: { flex: 1, overflowY: 'auto', margin: '10px 0' },
   row: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #333', alignItems: 'center' },
   rowBtn: { display: 'flex', gap: '15px', alignItems: 'center' },
   miniBtn: { width: '30px', height: '30px', borderRadius: '50%', border: '1px solid #ffd700', background: 'none', color: '#ffd700', cursor: 'pointer' },
-  resume: { height: '50px', backgroundColor: '#ffd700', color: '#05081c', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', border: 'none' }
+  resume: { height: '50px', backgroundColor: '#ffd700', color: '#05081c', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', border: 'none', marginTop: '10px' }
 };

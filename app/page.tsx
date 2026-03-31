@@ -41,17 +41,14 @@ export default function FamilyAliasApp() {
     const isEasy = roomData.difficulty === "easy";
     const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
     
-    // לוגיקת בחירת מאגר מעורבב (Mixed Pool Logic)
     let poolKey: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
     if (isEasy || age <= 6) {
       poolKey = "KIDS";
     } else if (age <= 10) {
       poolKey = "JUNIOR";
     } else if (age <= 16) {
-      // גילאי 11-16: ערבוב של TEEN ו-JUNIOR
       poolKey = (idxs.TEEN + idxs.JUNIOR) % 2 === 0 ? "TEEN" : "JUNIOR";
     } else {
-      // גילאי 17+: ערבוב של ADULT ו-TEEN
       poolKey = (idxs.ADULT + idxs.TEEN) % 2 === 0 ? "ADULT" : "TEEN";
     }
     
@@ -62,16 +59,24 @@ export default function FamilyAliasApp() {
     if (targetName === "SKIP") {
       updateRoom({ roundScore: (roomData.roundScore || 0) - 1, poolIndices: newIndices });
     } else {
+      // עדכון ניקוד: המנחש מקבל נקודה
       newScores[targetName] = (newScores[targetName] || 0) + 1;
+      
+      // אם משחק אישי - גם המתאר מקבל נקודה אחת
       if (roomData.gameMode === "individual") {
         newScores[currentP.name] = (newScores[currentP.name] || 0) + 1;
       }
-      updateRoom({ roundScore: (roomData.roundScore || 0) + 1, poolIndices: newIndices, totalScores: newScores });
+      
+      updateRoom({ 
+        roundScore: (roomData.roundScore || 0) + 1, 
+        poolIndices: newIndices, 
+        totalScores: newScores 
+      });
     }
   };
 
   const gameTargets = roomData?.gameMode === "individual" 
-    ? roomData.players.filter((p: any) => p.id !== userId).map((p: any) => p.name) 
+    ? roomData.players.filter((p: any) => p.id !== currentP?.id).map((p: any) => p.name) 
     : [roomData?.teamNames[currentP?.teamIdx]];
 
   return (
