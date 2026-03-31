@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { styles } from "../game.styles";
 
 interface SetupStepProps {
@@ -13,8 +13,8 @@ interface SetupStepProps {
 
 export default function SetupStep(props: SetupStepProps) {
   const [draggedPlayer, setDraggedPlayer] = useState<any>(null);
-  const [ghostPos, setGhostPos] = useState({ x: 0, y: 0 });
   const [hoveredTeam, setHoveredTeam] = useState<number | null>(null);
+  const ghostRef = useRef<HTMLDivElement>(null);
   const teamRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   const HEBREW_LETTERS = ['א', 'ב', 'ג', 'ד'];
@@ -49,13 +49,62 @@ export default function SetupStep(props: SetupStepProps) {
   const canStart = props.gameMode === "individual" ? props.players.length >= 2 : 
     Array.from({ length: props.numTeams }).every((_, i) => props.players.filter(p => p.teamIdx === i).length >= 2);
 
+  // טיפול בתנועה בצורה אופטימלית דרך Ref
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!draggedPlayer) return;
+    
+    // הזזת ה"רוח" ישירות ב-DOM לביצועים מקסימליים
+    if (ghostRef.current) {
+      ghostRef.current.style.left = `${e.clientX - 60}px`;
+      ghostRef.current.style.top = `${e.clientY - 25}px`;
+    }
+
+    // זיהוי הקבוצה עליה מרחפים
+    let found: number | null = null;
+    const count = props.gameMode === "team" ? props.numTeams : 1;
+    for (let i = 0; i < count; i++) {
+      const rect = teamRefs.current[i]?.getBoundingClientRect();
+      if (rect && e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+        found = i;
+        break;
+      }
+    }
+    if (found !== hoveredTeam) setHoveredTeam(found);
+  };
+
   return (
-    <div style={styles.flexLayout} onPointerMove={(e) => { if (draggedPlayer) setGhostPos({ x: e.clientX, y: e.clientY }); let found: number | null = null; for (let i = 0; i < (props.gameMode === "team" ? props.numTeams : 1); i++) { const rect = teamRefs.current[i]?.getBoundingClientRect(); if (rect && e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) { found = i; break; } } setHoveredTeam(found); }} onPointerUp={() => { if (draggedPlayer && hoveredTeam !== null) props.onPlayerMove(draggedPlayer.id, hoveredTeam); setDraggedPlayer(null); setHoveredTeam(null); }}>
+    <div 
+      style={{ ...styles.flexLayout, touchAction: 'none' }} // touchAction: none חיוני למובייל
+      onPointerMove={handlePointerMove}
+      onPointerUp={() => {
+        if (draggedPlayer && hoveredTeam !== null) {
+          props.onPlayerMove(draggedPlayer.id, hoveredTeam);
+        }
+        setDraggedPlayer(null);
+        setHoveredTeam(null);
+      }}
+    >
       
       <button onClick={props.onExit} style={styles.exitBtnRed}>✕</button>
 
+      {/* הנגרר משתמש ב-Ref לעדכון חלק */}
       {draggedPlayer && (
-        <div style={{ position: 'fixed', pointerEvents: 'none', zIndex: 9999, left: ghostPos.x - 60, top: ghostPos.y - 25, backgroundColor: '#ffd700', padding: '1.2vh 10px', borderRadius: '12px', color: '#05081c', fontWeight: 'bold', width: '120px', textAlign: 'center' }}>
+        <div 
+          ref={ghostRef}
+          style={{ 
+            position: 'fixed', 
+            pointerEvents: 'none', 
+            zIndex: 9999, 
+            backgroundColor: '#ffd700', 
+            padding: '1.2vh 10px', 
+            borderRadius: '12px', 
+            color: '#05081c', 
+            fontWeight: 'bold', 
+            width: '120px', 
+            textAlign: 'center',
+            boxShadow: '0 10px 20px rgba(0,0,0,0.3)'
+          }}
+        >
           {draggedPlayer.name}
         </div>
       )}
@@ -96,7 +145,14 @@ export default function SetupStep(props: SetupStepProps) {
                   teamPlayers.map(p => (
                     <div 
                       key={p.id} 
-                      onPointerDown={(e) => { setDraggedPlayer(p); setGhostPos({ x: e.clientX, y: e.clientY }); }} 
+                      onPointerDown={(e) => { 
+                        setDraggedPlayer(p); 
+                        // אתחול מיקום ה"רוח" מיד בלחיצה
+                        if (ghostRef.current) {
+                          ghostRef.current.style.left = `${e.clientX - 60}px`;
+                          ghostRef.current.style.top = `${e.clientY - 25}px`;
+                        }
+                      }} 
                       style={{ 
                         ...styles.playerCard, 
                         width: '100%', 
@@ -104,7 +160,8 @@ export default function SetupStep(props: SetupStepProps) {
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
-                        opacity: draggedPlayer?.id === p.id ? 0.3 : 1 
+                        opacity: draggedPlayer?.id === p.id ? 0.3 : 1,
+                        touchAction: 'none'
                       }}
                     >
                       {p.name}

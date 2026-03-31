@@ -61,7 +61,8 @@ export default function FamilyAliasApp() {
     : [roomData?.teamNames[currentP?.teamIdx]];
 
   return (
-    <div style={{ backgroundColor: '#05081c', minHeight: '100dvh', color: 'white', direction: 'rtl' }}>
+    // כאן הוספתי את overscrollBehavior: 'none' למניעת רפרוש
+    <div style={{ backgroundColor: '#05081c', minHeight: '100dvh', color: 'white', direction: 'rtl', overscrollBehavior: 'none' }}>
       {step === 1 && (
         <EntryStep 
           onNext={(n, a, action, code) => { 
