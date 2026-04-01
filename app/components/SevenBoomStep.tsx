@@ -39,7 +39,7 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
   }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty]);
 
   const handleCorrect = (teamName: string) => {
-    handleAction(teamName, 2); // ניקוד כפול ב-7 בום
+    handleAction(teamName, 2); 
     if (wordsCount + 1 >= 7) {
       updateRoom({ step: 6 });
     } else {
@@ -56,7 +56,6 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
     }
   };
 
-  // מסך הסבר (Screen A)
   if (showExplanation) {
     return (
       <div style={{...s.layout, justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}>
@@ -74,19 +73,20 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
     );
   }
 
-  // מסך המשחק (Screen B) - תואם ל-GameStep
   return (
     <div style={s.layout}>
       <div style={s.header}>
         <div style={s.scoreBox}>🏆 {myDisplayScore}</div>
-        {/* מונה מילים במקום טיימר */}
         <div style={{...s.timer, color: '#ffd700', fontSize: '1.5rem', width: 'max-content'}}>מילה {wordsCount + 1} / 7</div>
         <div style={{ display: 'flex', gap: '15px' }}>
           <button onClick={onExit} style={s.icon}>✕</button>
         </div>
       </div>
       
-      <button onClick={handleSkip} style={s.skip}>דלג (1-)</button>
+      {/* הצגת כפתור דילוג רק למתאר */}
+      {isIDescriber && (
+        <button onClick={handleSkip} style={s.skip}>דלג (1-)</button>
+      )}
 
       <div style={s.center}>
           <div style={s.card}>
@@ -114,14 +114,17 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
           </div>
       </div>
 
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <p style={{ textAlign: 'center', fontSize: '0.9rem', opacity: 0.8 }}>מי ניחש נכון? (2+)</p>
-        <div style={s.grid}>
-          {roomData.teamNames.slice(0, roomData.numTeams).map((n: string) => (
-            <button key={n} onClick={() => handleCorrect(n)} style={s.target}>{n}</button>
-          ))}
+      {/* הצגת ניהול ניקוד וגריד קבוצות רק למתאר */}
+      {isIDescriber && (
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <p style={{ textAlign: 'center', fontSize: '0.9rem', opacity: 0.8 }}>מי ניחש נכון? (2+)</p>
+          <div style={s.grid}>
+            {roomData.teamNames.slice(0, roomData.numTeams).map((n: string) => (
+              <button key={n} onClick={() => handleCorrect(n)} style={s.target}>{n}</button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
