@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc, deleteDoc } from "firebase/firestore";
 import { generateRoomCode } from "./game-utils";
 
 export function useGameState() {
@@ -28,16 +28,40 @@ export function useGameState() {
 
   useEffect(() => {
     if (!roomId) return;
-    return onSnapshot(doc(db, "rooms", roomId), (snap) => {
+    return onSnapshot(doc(db, "rooms", roomId), async (snap) => {
       if (snap.exists()) {
         const d = snap.data();
+        
+        // --- מנגנון ניקוי חדרים לא פעילים (5 דקות) ---
+        const INACTIVITY_LIMIT = 5 * 60 * 1000; 
+        if (d.lastActivity && (Date.now() - d.lastActivity > INACTIVITY_LIMIT)) {
+            // רק המארח (השחקן הראשון) מוחק בפועל כדי למנוע כפילויות
+            if (d.players && d.players[0].id === userId) {
+                await deleteDoc(doc(db, "rooms", roomId));
+            }
+            handleFullReset(); 
+            return;
+        }
+
         setRoomData(d);
         if (d.step !== step) setStep(d.step);
+      } else {
+        // אם החדר נמחק (ידנית או עקב אי-פעילות), איפוס מקומי
+        if (roomId) handleFullReset();
       }
     });
-  }, [roomId, step]);
+  }, [roomId, step, userId]);
 
-  const updateRoom = async (newData: any) => { if (roomId) await updateDoc(doc(db, "rooms", roomId), newData); };
+  // כל לחיצת כפתור שקוראת ל-updateRoom תעדכן את ה-lastActivity
+  const updateRoom = async (newData: any) => { 
+    if (roomId) {
+      await updateDoc(doc(db, "rooms", roomId), { 
+        ...newData, 
+        lastActivity: Date.now() 
+      }); 
+    }
+  };
+
   const handleFullReset = () => { localStorage.clear(); window.location.href = '/'; };
 
   const handleCreateRoom = async (nameOverride?: string, ageOverride?: string) => {
@@ -52,7 +76,9 @@ export function useGameState() {
     localStorage.setItem("alias_userAge", finalAge);
 
     await setDoc(doc(db, "rooms", id), {
-      id, step: 3, createdAt: Date.now(), gameMode: "individual", difficulty: "age-appropriate", numTeams: 2,
+      id, step: 3, createdAt: Date.now(), 
+      lastActivity: Date.now(), // אתחול זמן פעילות
+      gameMode: "individual", difficulty: "age-appropriate", numTeams: 2,
       players: [{ id: userId, name: finalName, age: finalAge, teamIdx: 0 }],
       teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"],
       totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, 
@@ -71,7 +97,9 @@ export function useGameState() {
         ...Array(5).fill(0).map((_, i) => ({ id: `d_${i}`, name: `שחקן ${i+2}`, age: "21", teamIdx: 1 }))
       ];
       await setDoc(doc(db, "rooms", "עומר"), { 
-        id: "עומר", step: 3, createdAt: Date.now(), gameMode: "team", numTeams: 2, 
+        id: "עומר", step: 3, createdAt: Date.now(), 
+        lastActivity: Date.now(), 
+        gameMode: "team", numTeams: 2, 
         players: qp, teamNames: ["קבוצה א'", "קבוצה ב'"], totalScores: {}, roundScore: 0, 
         timeLeft: 60, isPaused: false, currentTurnIdx: 0, 
         poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {} 
@@ -82,12 +110,21 @@ export function useGameState() {
 
     const snap = await getDoc(doc(db, "rooms", id));
     if (snap.exists()) { 
+      const data = snap.data();
+      // בדיקה בעת הצטרפות אם החדר כבר "פג תוקף"
+      if (data.lastActivity && (Date.now() - data.lastActivity > 5 * 60 * 1000)) {
+          await deleteDoc(doc(db, "rooms", id));
+          alert("חדר זה נסגר עקב חוסר פעילות.");
+          return;
+      }
+
       setRoomId(id); 
-      setStep(snap.data().step); 
+      setStep(data.step); 
       localStorage.setItem("alias_roomId", id); 
-      if (snap.data().step === 3) {
+      if (data.step === 3) {
         await updateDoc(doc(db, "rooms", id), { 
-          players: arrayUnion({ id: userId, name: finalName, age: finalAge, teamIdx: 0 }) 
+          players: arrayUnion({ id: userId, name: finalName, age: finalAge, teamIdx: 0 }),
+          lastActivity: Date.now() // עדכון פעילות בעת הצטרפות
         }); 
       } 
     }
