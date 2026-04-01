@@ -7,11 +7,26 @@ interface CountdownStepProps {
   timer: number;
   turnInfo: { name: string; team: string };
   isTeamMode: boolean;
+  onExit: () => void; // הוספנו את השורה הזו כדי לפתור את השגיאה
 }
 
-export default function CountdownStep({ timer, turnInfo, isTeamMode }: CountdownStepProps) {
+export default function CountdownStep({ timer, turnInfo, isTeamMode, onExit }: CountdownStepProps) {
   return (
-    <div style={styles.flexLayout}>
+    <div style={{ ...styles.flexLayout, position: 'relative' }}>
+      {/* כפתור X לסגירה ואיפוס */}
+      <button 
+        onClick={onExit} 
+        style={{
+          ...styles.exitBtnRed,
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          zIndex: 10
+        }}
+      >
+        ✕
+      </button>
+
       <div style={{ textAlign: 'center', marginBottom: '40px' }}>
         <div style={{ fontSize: '24px', color: '#64748b', marginBottom: '10px' }}>מתחילים בעוד...</div>
         <div style={{ fontSize: '120px', fontWeight: '900', color: '#ffd700', lineHeight: '1' }}>{timer}</div>
