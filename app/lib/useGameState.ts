@@ -86,7 +86,8 @@ export function useGameState() {
       setStep(snap.data().step); 
       localStorage.setItem("alias_roomId", id); 
       if (snap.data().step === 3) {
-        await updateRoom({ 
+        // התיקון: שימוש ישיר ב-updateDoc עם ה-id כדי לעקוף את בעיית הסטייט
+        await updateDoc(doc(db, "rooms", id), { 
           players: arrayUnion({ id: userId, name: finalName, age: finalAge, teamIdx: 0 }) 
         }); 
       } 
