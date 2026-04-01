@@ -9,14 +9,19 @@ const localStyles: { [key: string]: CSSProperties } = {
     direction: 'rtl', boxSizing: 'border-box', padding: '15px'
   },
   topSection: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', width: '100%'
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', width: '100%'
   },
   entryLogo: { 
-    width: '80%', height: 'auto', maxHeight: '15vh', objectFit: 'contain'
+    width: '85%', height: 'auto', maxHeight: '22vh', objectFit: 'contain'
   },
   entryTitle: { 
-    color: '#ffd700', fontSize: '1.2rem', fontWeight: '900', 
-    textAlign: 'center', lineHeight: '1.2' 
+    color: '#ffd700', 
+    fontSize: 'clamp(1.1rem, 4.5vw, 1.6rem)', 
+    fontWeight: '900', 
+    textAlign: 'center', 
+    lineHeight: '1.2',
+    whiteSpace: 'nowrap',
+    width: '100%'
   },
   formSection: {
     width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '15px', flex: 1, justifyContent: 'center'
@@ -118,16 +123,16 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
 
   return (
     <div style={localStyles.flexLayout}>
-      {/* Top Section */}
+      {/* Top Section - לוגו מוגדל וכותרת בשורה אחת */}
       <div style={localStyles.topSection}>
         <img src="/logo.webp" alt="Logo" style={localStyles.entryLogo} />
         <h1 style={localStyles.entryTitle}>נראה אתכם תופסים את המילה הנרדפת</h1>
       </div>
 
-      {/* Main Form Section - הכל ממורכז אנכית ורספונסיבי */}
+      {/* Main Form Section */}
       <div style={localStyles.formSection}>
+        {/* Name Input - כותרת "איך קוראים לך" הוסרה */}
         <div style={localStyles.inputGroup}>
-          <label style={localStyles.label}>איך קוראים לך?</label>
           <input 
             type="text" value={name} 
             onChange={(e) => { setName(e.target.value); onSetName(e.target.value); }} 
@@ -153,7 +158,7 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
           </div>
         </div>
 
-        {/* JOIN SECTION - מצומצם וללא הטקסט המיותר */}
+        {/* JOIN SECTION */}
         <div style={localStyles.joinContainer}>
           <input 
             type="text" value={inputCode} 
