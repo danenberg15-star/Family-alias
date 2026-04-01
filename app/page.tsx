@@ -27,12 +27,30 @@ export default function FamilyAliasApp() {
         if (roomData.preGameTimer > 0) updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
         else updateRoom({ step: 5, timeLeft: 60, roundScore: 0 });
       } else if (step === 5) {
-        if (roomData.timeLeft > 0) updateRoom({ timeLeft: roomData.timeLeft - 1 });
-        else updateRoom({ step: 6 });
+        if (roomData.timeLeft > 0) {
+          updateRoom({ timeLeft: roomData.timeLeft - 1 });
+        } else {
+          // לוגיקת "שריפת מילה" - קידום האינדקס גם כשנגמר הזמן
+          const age = parseInt(currentP.age) || 10;
+          const isEasy = roomData.difficulty === "easy";
+          const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
+          
+          let poolKey: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
+          if (isEasy || age <= 6) poolKey = "KIDS";
+          else if (age <= 10) poolKey = "JUNIOR";
+          else if (age <= 16) poolKey = (idxs.TEEN + idxs.JUNIOR) % 2 === 0 ? "TEEN" : "JUNIOR";
+          else poolKey = (idxs.ADULT + idxs.TEEN) % 2 === 0 ? "ADULT" : "TEEN";
+
+          const newIndices = { ...idxs };
+          newIndices[poolKey] = (newIndices[poolKey] || 0) + 1;
+
+          // עדכון ה-step יחד עם האינדקסים החדשים
+          updateRoom({ step: 6, poolIndices: newIndices });
+        }
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [step, roomId, roomData?.preGameTimer, roomData?.timeLeft, roomData?.isPaused, isIDescriber, currentP]);
+  }, [step, roomId, roomData?.preGameTimer, roomData?.timeLeft, roomData?.isPaused, isIDescriber, currentP, updateRoom]);
 
   if (!mounted) return null;
 
@@ -140,7 +158,6 @@ export default function FamilyAliasApp() {
             const nextTeam = roomData.teamNames[nextP.teamIdx];
             const nextScore = Number(sc[nextTeam] || 0);
 
-            // לוגיקת כפולות 7 - מעבר ישיר ל-step 8 (7 בום)
             const boomScores = [7, 14, 21, 28, 35, 42, 49];
             const is7Boom = roomData.gameMode === 'team' && boomScores.includes(nextScore);
 
