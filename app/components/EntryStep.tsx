@@ -5,28 +5,33 @@ import React, { useState, useEffect, CSSProperties } from "react";
 const localStyles: { [key: string]: CSSProperties } = {
   flexLayout: { 
     flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', 
-    width: '100%', height: '100%', justifyContent: 'space-between', 
-    direction: 'rtl', boxSizing: 'border-box' 
+    width: '100%', height: '100dvh', justifyContent: 'space-between', 
+    direction: 'rtl', boxSizing: 'border-box', padding: '20px'
+  },
+  topSection: {
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%'
   },
   entryLogo: { 
-    width: '90%', height: 'auto', maxHeight: '30vh', objectFit: 'contain', 
-    marginTop: '10px' 
+    width: '80%', height: 'auto', maxHeight: '20vh', objectFit: 'contain'
   },
   entryTitle: { 
     color: '#ffd700', fontSize: '1.4rem', fontWeight: '900', 
     textAlign: 'center', lineHeight: '1.2' 
   },
+  formSection: {
+    width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, justifyContent: 'center'
+  },
+  inputGroup: {
+    display: 'flex', flexDirection: 'column', gap: '8px', width: '100%'
+  },
+  label: {
+    color: '#ffd700', fontSize: '0.9rem', fontWeight: 'bold', paddingRight: '5px'
+  },
   entryInput: { 
     width: '100%', minHeight: '52px', padding: '12px', borderRadius: '16px', 
-    backgroundColor: 'rgba(255,255,255,0.05)', color: 'white', 
-    border: '1px solid rgba(255,255,255,0.1)', fontSize: '1.2rem', 
+    backgroundColor: 'rgba(255,255,255,0.08)', color: 'white', 
+    border: '1px solid rgba(255,255,255,0.15)', fontSize: '1.2rem', 
     textAlign: 'center', boxSizing: 'border-box' 
-  },
-  lobbyButton: { 
-    width: '100%', minHeight: '60px', borderRadius: '18px', 
-    backgroundColor: '#ffd700', color: '#05081c', fontWeight: '900', 
-    border: 'none', fontSize: '1.3rem', cursor: 'pointer',
-    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)'
   },
   ageGrid: {
     display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%'
@@ -39,20 +44,21 @@ const localStyles: { [key: string]: CSSProperties } = {
   ageButtonActive: {
     backgroundColor: '#ffd700', color: '#05081c'
   },
-  lobbyJoinFrame: { 
-    width: '100%', padding: '10px 0', display: 'flex', 
-    flexDirection: 'column', alignItems: 'center', 
-    justifyContent: 'center', cursor: 'pointer' 
+  joinContainer: {
+    width: '100%', backgroundColor: 'rgba(255, 215, 0, 0.05)', borderRadius: '24px',
+    padding: '20px', border: '1px solid rgba(255, 215, 0, 0.2)', 
+    display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px'
   },
-  modalOverlay: { 
-    position: 'fixed', inset: 0, backgroundColor: 'rgba(5, 8, 28, 0.98)', 
-    display: 'flex', alignItems: 'center', justifyContent: 'center', 
-    zIndex: 3000, padding: '20px' 
+  primaryButton: { 
+    width: '100%', minHeight: '60px', borderRadius: '18px', 
+    backgroundColor: '#ffd700', color: '#05081c', fontWeight: '900', 
+    border: 'none', fontSize: '1.4rem', cursor: 'pointer',
+    boxShadow: '0 4px 20px rgba(255, 215, 0, 0.3)'
   },
-  modalContent: { 
-    width: '100%', maxWidth: '350px', backgroundColor: '#0f172a', 
-    borderRadius: '24px', padding: '25px', border: '1px solid #ffd700', 
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' 
+  secondaryButton: { 
+    width: '100%', minHeight: '50px', borderRadius: '16px', 
+    backgroundColor: 'transparent', color: 'rgba(255, 215, 0, 0.7)', fontWeight: 'bold', 
+    border: '1px solid rgba(255, 215, 0, 0.3)', fontSize: '1.1rem', cursor: 'pointer'
   }
 };
 
@@ -66,7 +72,6 @@ interface EntryStepProps {
 export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: EntryStepProps) {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [inputCode, setInputCode] = useState("");
   const [hasUrlCode, setHasUrlCode] = useState(false);
 
@@ -75,95 +80,118 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
       const params = new URLSearchParams(window.location.search);
       const roomFromUrl = params.get('room');
       if (roomFromUrl) {
-        setInputCode(roomFromUrl.trim());
+        setInputCode(roomFromUrl.trim().toUpperCase());
         setHasUrlCode(true);
       }
     }
   }, []);
 
-  const ageCategories = [
-    { label: "מתחת ל-7", value: "6" },
-    { label: "בין 7 ל-12", value: "12" },
-    { label: "בין 13 - 20", value: "20" },
-    { label: "מעל 21", value: "21" }
-  ];
-
   const handleAgeSelect = (val: string) => {
     setAge(val);
     onSetAge(val);
-  };
-
-  const validate = (action: 'create' | 'join') => {
-    if (name.trim() && age) {
-      if (action === 'join') {
-        if (hasUrlCode && inputCode) onJoin(inputCode);
-        else setIsModalOpen(true);
-      } else {
-        onCreate();
-      }
-    } else {
-      alert("אנא מלא שם ובחר קבוצת גיל! 🙂");
+    
+    // לוגיקת הצטרפות אוטומטית למוזמנים מהוואטסאפ
+    if (hasUrlCode && name.trim() && inputCode.trim()) {
+        // השהייה קלה כדי לוודא שסטייט השם עודכן בשרת/אצל האב
+        setTimeout(() => {
+            onJoin(inputCode.trim().toUpperCase());
+        }, 100);
     }
   };
 
+  const validate = (action: 'create' | 'join') => {
+    if (!name.trim()) {
+      alert("אנא הכנס שם שחקן 🙂");
+      return;
+    }
+    if (!age) {
+      alert("אנא בחר קבוצת גיל 🙂");
+      return;
+    }
+
+    if (action === 'join') {
+      if (!inputCode.trim()) {
+        alert("אנא הכנס קוד חדר כדי להצטרף");
+        return;
+      }
+      onJoin(inputCode.trim().toUpperCase());
+    } else {
+      onCreate();
+    }
+  };
+
+  const ageCategories = [
+    { label: "מתחת ל-7", value: "6" },
+    { label: "7 עד 12", value: "12" },
+    { label: "13 עד 20", value: "20" },
+    { label: "מעל 21", value: "21" }
+  ];
+
   return (
     <div style={localStyles.flexLayout}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+      {/* לוגו וכותרת */}
+      <div style={localStyles.topSection}>
         <img src="/logo.webp" alt="Logo" style={localStyles.entryLogo} />
         <h1 style={localStyles.entryTitle}>נראה אתכם תופסים את המילה הנרדפת</h1>
       </div>
 
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <input 
-          type="text" value={name} 
-          onChange={(e) => { setName(e.target.value); onSetName(e.target.value); }} 
-          placeholder="שם השחקן" style={localStyles.entryInput} 
-        />
+      {/* טופס פרטים ואזור הצטרפות בולט */}
+      <div style={localStyles.formSection}>
+        <div style={localStyles.inputGroup}>
+          <label style={localStyles.label}>איך קוראים לך?</label>
+          <input 
+            type="text" value={name} 
+            onChange={(e) => { setName(e.target.value); onSetName(e.target.value); }} 
+            placeholder="הכנס שם שחקן" style={localStyles.entryInput} 
+          />
+        </div>
         
-        <p style={{ textAlign: 'center', color: '#ffd700', fontSize: '0.9rem', marginBottom: '-5px' }}>בחרו קבוצת גיל:</p>
-        <div style={localStyles.ageGrid}>
-          {ageCategories.map((cat) => (
-            <button 
-              key={cat.value}
-              onClick={() => handleAgeSelect(cat.value)}
-              style={{
-                ...localStyles.ageButton,
-                ...(age === cat.value ? localStyles.ageButtonActive : {})
-              }}
-            >
-              {cat.label}
-            </button>
-          ))}
+        <div style={localStyles.inputGroup}>
+          <label style={localStyles.label}>באיזו קבוצת גיל אתה?</label>
+          <div style={localStyles.ageGrid}>
+            {ageCategories.map((cat) => (
+              <button 
+                key={cat.value}
+                onClick={() => handleAgeSelect(cat.value)}
+                style={{
+                  ...localStyles.ageButton,
+                  ...(age === cat.value ? localStyles.ageButtonActive : {})
+                }}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* אזור הצטרפות - המרכיב הכי בולט במסך */}
+        <div style={localStyles.joinContainer}>
+          <p style={{ ...localStyles.label, textAlign: 'center', fontSize: '1rem' }}>
+            {hasUrlCode ? "הוזמנת למשחק!" : "יש לכם קוד חדר?"}
+          </p>
+          <input 
+            type="text" value={inputCode} 
+            onChange={(e) => setInputCode(e.target.value.toUpperCase())} 
+            placeholder="הכנס קוד (למשל: עומר)" 
+            style={{ ...localStyles.entryInput, backgroundColor: 'rgba(0,0,0,0.2)' }} 
+          />
+          <button onClick={() => validate('join')} style={localStyles.primaryButton}>
+            הצטרפות למשחק
+          </button>
+          {hasUrlCode && (
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textAlign: 'center' }}>
+              ברגע שתבחר גיל, תיכנס אוטומטית לחדר {inputCode}
+            </p>
+          )}
         </div>
       </div>
 
-      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '10px' }}>
-        <button onClick={() => validate('create')} style={localStyles.lobbyButton}>צור חדר חדש +</button>
-        <div style={localStyles.lobbyJoinFrame} onClick={() => validate('join')}>
-          <div style={{ textAlign: 'center' }}>
-            <span style={{ color: '#ffd700', fontSize: '1.4rem', fontWeight: '900', display: 'block' }}>הצטרפות לחדר</span>
-            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>
-              {hasUrlCode ? `הצטרפות לחדר: ${inputCode}` : "לחצו כאן להזנת קוד חדר"}
-            </span>
-          </div>
-        </div>
+      {/* יצירת חדר - בתחתית ופחות בולט */}
+      <div style={{ width: '100%', paddingBottom: '10px' }}>
+        <button onClick={() => validate('create')} style={localStyles.secondaryButton}>
+          + פתיחת חדר חדש
+        </button>
       </div>
-
-      {isModalOpen && (
-        <div style={localStyles.modalOverlay} onClick={() => setIsModalOpen(false)}>
-          <div style={localStyles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ color: 'white', textAlign: 'center', fontWeight: 'bold' }}>קוד החדר:</h2>
-            <input 
-              type="text" value={inputCode} onChange={(e) => setInputCode(e.target.value)} 
-              placeholder="למשל: עומר" style={localStyles.entryInput} autoFocus 
-            />
-            <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
-              <button onClick={() => { if(inputCode.trim()) onJoin(inputCode.trim()); }} style={localStyles.lobbyButton}>כנס</button>
-              <button onClick={() => setIsModalOpen(false)} style={{ ...localStyles.lobbyButton, background: 'rgba(255,255,255,0.1)', color: 'white' }}>ביטול</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
