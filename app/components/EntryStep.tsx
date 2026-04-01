@@ -47,10 +47,13 @@ const localStyles: { [key: string]: CSSProperties } = {
 };
 
 interface EntryStepProps {
-  onNext: (name: string, age: string, action: 'create' | 'join', code?: string) => void;
+  onJoin: (code: string) => void;
+  onCreate: () => void;
+  onSetName: (name: string) => void;
+  onSetAge: (age: string) => void;
 }
 
-export default function EntryStep({ onNext }: EntryStepProps) {
+export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: EntryStepProps) {
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,7 +66,8 @@ export default function EntryStep({ onNext }: EntryStepProps) {
       const params = new URLSearchParams(window.location.search);
       const roomFromUrl = params.get('room');
       if (roomFromUrl) {
-        setInputCode(roomFromUrl);
+        // מנקה רווחים למקרה שהקישור העביר תווים נסתרים
+        setInputCode(roomFromUrl.trim());
         setHasUrlCode(true);
       }
     }
@@ -73,22 +77,26 @@ export default function EntryStep({ onNext }: EntryStepProps) {
     if (name.trim() && age.trim()) {
       if (action === 'join') {
         if (hasUrlCode && inputCode) {
-          // אם יש קוד מהקישור - מדלגים על הפופ-אפ ונכנסים ישר
-          onNext(name, age, 'join', inputCode);
+          onJoin(inputCode);
         } else {
           setIsModalOpen(true);
         }
       } else {
-        onNext(name, age, 'create');
+        onCreate();
       }
     } else {
       alert("אנא מלא שם וגיל כדי להמשיך! 🙂");
     }
   };
 
+  const handleModalJoin = () => {
+    if (inputCode.trim()) {
+      onJoin(inputCode.trim());
+    }
+  };
+
   return (
     <div style={localStyles.flexLayout}>
-      {/* חלק עליון */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
         <img src="/logo.webp" alt="Logo" style={localStyles.entryLogo} />
         <h1 style={localStyles.entryTitle}>נראה אתכם תופסים את המילה הנרדפת</h1>
@@ -96,21 +104,31 @@ export default function EntryStep({ onNext }: EntryStepProps) {
 
       <div style={{ flex: 0.5 }} />
 
-      {/* חלק אמצעי */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <input 
-          type="text" value={name} onChange={(e) => setName(e.target.value)} 
-          placeholder="שם" style={localStyles.entryInput} 
+          type="text" 
+          value={name} 
+          onChange={(e) => {
+            setName(e.target.value);
+            onSetName(e.target.value); // עדכון מיידי של השם במערכת
+          }} 
+          placeholder="שם" 
+          style={localStyles.entryInput} 
         />
         <input 
-          type="number" value={age} onChange={(e) => setAge(e.target.value)} 
-          placeholder="גיל" style={localStyles.entryInput} 
+          type="number" 
+          value={age} 
+          onChange={(e) => {
+            setAge(e.target.value);
+            onSetAge(e.target.value); // עדכון מיידי של הגיל במערכת
+          }} 
+          placeholder="גיל" 
+          style={localStyles.entryInput} 
         />
       </div>
 
       <div style={{ flex: 1 }} />
 
-      {/* חלק תחתון */}
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '10px' }}>
         <button onClick={() => validate('create')} style={localStyles.lobbyButton}>
           צור חדר חדש +
@@ -135,7 +153,7 @@ export default function EntryStep({ onNext }: EntryStepProps) {
               placeholder="למשל: עומר" style={localStyles.entryInput} autoFocus 
             />
             <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
-              <button onClick={() => onNext(name, age, 'join', inputCode)} style={localStyles.lobbyButton}>כנס</button>
+              <button onClick={handleModalJoin} style={localStyles.lobbyButton}>כנס</button>
               <button onClick={() => setIsModalOpen(false)} style={{ ...localStyles.lobbyButton, background: 'rgba(255,255,255,0.1)', color: 'white' }}>ביטול</button>
             </div>
           </div>
