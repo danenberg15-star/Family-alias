@@ -17,11 +17,15 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
 
   const wordData = useMemo(() => {
     const age = parseInt(currentP.age) || 21;
+    const difficulty = roomData.difficulty || "age-appropriate";
     const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
     const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
     
     let key: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
-    if (age <= 6) {
+
+    if (difficulty === "easy") {
+      key = (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
+    } else if (age <= 6) {
       key = (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
     } else if (age <= 12) {
       key = (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
@@ -38,9 +42,9 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
     
     return { 
       ...(pool[index % (pool.length || 1)] || { word: "טוען...", en: "" }), 
-      isYoung: (age <= 12) 
+      isYoung: (key === "KIDS" || key === "JUNIOR" || age <= 12) 
     };
-  }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools]);
+  }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty]);
 
   const handleCorrect = (teamName: string) => {
     handleAction(teamName, 2);
@@ -54,6 +58,7 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
     else setWordsCount(prev => prev + 1);
   };
 
+  // ... (שאר הקומפוננטה ללא שינוי)
   if (showExplanation) {
     return (
       <div style={{...s.layout, justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}>

@@ -16,8 +16,13 @@ export default function FamilyAliasApp() {
   const currentP = roomData?.players?.[roomData?.currentTurnIdx];
   const isIDescriber = currentP?.id === userId;
 
-  const calculatePoolKey = (age: number, idxs: any) => {
+  const calculatePoolKey = (age: number, idxs: any, difficulty: string) => {
     const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
+    
+    // רמת קושי קלה: ערבוב של KIDS ו-JUNIOR
+    if (difficulty === "easy") {
+      return (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
+    }
     
     if (age <= 6) { // מתחת ל-7: 4 KIDS, 1 JUNIOR
       return (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
@@ -52,7 +57,7 @@ export default function FamilyAliasApp() {
         } else {
           const age = parseInt(currentP.age) || 21;
           const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
-          const poolKey = calculatePoolKey(age, idxs);
+          const poolKey = calculatePoolKey(age, idxs, roomData.difficulty || "age-appropriate");
 
           const newIndices = { ...idxs };
           newIndices[poolKey] = (newIndices[poolKey] || 0) + 1;
@@ -69,7 +74,7 @@ export default function FamilyAliasApp() {
     if (roomData.isPaused) return;
     const age = parseInt(currentP.age) || 21;
     const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
-    const poolKey = calculatePoolKey(age, idxs);
+    const poolKey = calculatePoolKey(age, idxs, roomData.difficulty || "age-appropriate");
     
     const newIndices = { ...idxs };
     newIndices[poolKey] = (newIndices[poolKey] || 0) + 1;
