@@ -100,7 +100,14 @@ export default function FamilyAliasApp() {
         />
       )}
 
-      {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP?.name, team: roomData.teamNames[currentP?.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
+      {step === 4 && roomData && (
+        <CountdownStep 
+          timer={roomData.preGameTimer} 
+          turnInfo={{name: currentP?.name, team: roomData.teamNames[currentP?.teamIdx]}} 
+          isTeamMode={roomData.gameMode === "team"} 
+          onExit={handleFullReset} 
+        />
+      )}
       
       {step === 5 && roomData && <GameStep roomData={roomData} userId={userId!} targets={gameTargets} updateRoom={updateRoom} handleAction={handleScoreAction} onExit={handleFullReset} />}
 
