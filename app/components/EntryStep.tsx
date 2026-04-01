@@ -6,59 +6,59 @@ const localStyles: { [key: string]: CSSProperties } = {
   flexLayout: { 
     flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', 
     width: '100%', height: '100dvh', justifyContent: 'space-between', 
-    direction: 'rtl', boxSizing: 'border-box', padding: '20px'
+    direction: 'rtl', boxSizing: 'border-box', padding: '15px'
   },
   topSection: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', width: '100%'
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', width: '100%'
   },
   entryLogo: { 
-    width: '80%', height: 'auto', maxHeight: '20vh', objectFit: 'contain'
+    width: '80%', height: 'auto', maxHeight: '15vh', objectFit: 'contain'
   },
   entryTitle: { 
-    color: '#ffd700', fontSize: '1.4rem', fontWeight: '900', 
+    color: '#ffd700', fontSize: '1.2rem', fontWeight: '900', 
     textAlign: 'center', lineHeight: '1.2' 
   },
   formSection: {
-    width: '100%', display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, justifyContent: 'center'
+    width: '100%', maxWidth: '400px', display: 'flex', flexDirection: 'column', gap: '15px', flex: 1, justifyContent: 'center'
   },
   inputGroup: {
-    display: 'flex', flexDirection: 'column', gap: '8px', width: '100%'
+    display: 'flex', flexDirection: 'column', gap: '5px', width: '100%'
   },
   label: {
-    color: '#ffd700', fontSize: '0.9rem', fontWeight: 'bold', paddingRight: '5px'
+    color: '#ffd700', fontSize: '0.85rem', fontWeight: 'bold', paddingRight: '5px'
   },
   entryInput: { 
-    width: '100%', minHeight: '52px', padding: '12px', borderRadius: '16px', 
+    width: '100%', height: '3em', padding: '0 12px', borderRadius: '12px', 
     backgroundColor: 'rgba(255,255,255,0.08)', color: 'white', 
-    border: '1px solid rgba(255,255,255,0.15)', fontSize: '1.2rem', 
+    border: '1px solid rgba(255,255,255,0.15)', fontSize: '1.1rem', 
     textAlign: 'center', boxSizing: 'border-box' 
   },
   ageGrid: {
-    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%'
+    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', width: '100%'
   },
   ageButton: {
-    padding: '12px', borderRadius: '14px', border: '1px solid #ffd700',
+    padding: '10px', borderRadius: '12px', border: '1px solid #ffd700',
     backgroundColor: 'transparent', color: '#ffd700', fontWeight: 'bold',
-    fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s'
+    fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s'
   },
   ageButtonActive: {
     backgroundColor: '#ffd700', color: '#05081c'
   },
   joinContainer: {
-    width: '100%', backgroundColor: 'rgba(255, 215, 0, 0.05)', borderRadius: '24px',
-    padding: '20px', border: '1px solid rgba(255, 215, 0, 0.2)', 
-    display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px'
+    width: '100%', backgroundColor: 'rgba(255, 215, 0, 0.05)', borderRadius: '20px',
+    padding: '12px', border: '1px solid rgba(255, 215, 0, 0.2)', 
+    display: 'flex', flexDirection: 'column', gap: '10px'
   },
   primaryButton: { 
-    width: '100%', minHeight: '60px', borderRadius: '18px', 
+    width: '100%', height: '3.5em', borderRadius: '16px', 
     backgroundColor: '#ffd700', color: '#05081c', fontWeight: '900', 
-    border: 'none', fontSize: '1.4rem', cursor: 'pointer',
-    boxShadow: '0 4px 20px rgba(255, 215, 0, 0.3)'
+    border: 'none', fontSize: '1.3rem', cursor: 'pointer',
+    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)'
   },
   secondaryButton: { 
-    width: '100%', minHeight: '50px', borderRadius: '16px', 
+    width: '100%', height: '3em', borderRadius: '14px', 
     backgroundColor: 'transparent', color: 'rgba(255, 215, 0, 0.7)', fontWeight: 'bold', 
-    border: '1px solid rgba(255, 215, 0, 0.3)', fontSize: '1.1rem', cursor: 'pointer'
+    border: '1px solid rgba(255, 215, 0, 0.3)', fontSize: '1rem', cursor: 'pointer'
   }
 };
 
@@ -90,9 +90,7 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
     setAge(val);
     onSetAge(val);
     
-    // לוגיקת הצטרפות אוטומטית למוזמנים מהוואטסאפ
     if (hasUrlCode && name.trim() && inputCode.trim()) {
-        // השהייה קלה כדי לוודא שסטייט השם עודכן בשרת/אצל האב
         setTimeout(() => {
             onJoin(inputCode.trim().toUpperCase());
         }, 100);
@@ -100,20 +98,11 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
   };
 
   const validate = (action: 'create' | 'join') => {
-    if (!name.trim()) {
-      alert("אנא הכנס שם שחקן 🙂");
-      return;
-    }
-    if (!age) {
-      alert("אנא בחר קבוצת גיל 🙂");
-      return;
-    }
+    if (!name.trim()) { alert("אנא הכנס שם שחקן 🙂"); return; }
+    if (!age) { alert("אנא בחר קבוצת גיל 🙂"); return; }
 
     if (action === 'join') {
-      if (!inputCode.trim()) {
-        alert("אנא הכנס קוד חדר כדי להצטרף");
-        return;
-      }
+      if (!inputCode.trim()) { alert("אנא הכנס קוד חדר כדי להצטרף"); return; }
       onJoin(inputCode.trim().toUpperCase());
     } else {
       onCreate();
@@ -129,13 +118,13 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
 
   return (
     <div style={localStyles.flexLayout}>
-      {/* לוגו וכותרת */}
+      {/* Top Section */}
       <div style={localStyles.topSection}>
         <img src="/logo.webp" alt="Logo" style={localStyles.entryLogo} />
         <h1 style={localStyles.entryTitle}>נראה אתכם תופסים את המילה הנרדפת</h1>
       </div>
 
-      {/* טופס פרטים ואזור הצטרפות בולט */}
+      {/* Main Form Section - הכל ממורכז אנכית ורספונסיבי */}
       <div style={localStyles.formSection}>
         <div style={localStyles.inputGroup}>
           <label style={localStyles.label}>איך קוראים לך?</label>
@@ -164,30 +153,27 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
           </div>
         </div>
 
-        {/* אזור הצטרפות - המרכיב הכי בולט במסך */}
+        {/* JOIN SECTION - מצומצם וללא הטקסט המיותר */}
         <div style={localStyles.joinContainer}>
-          <p style={{ ...localStyles.label, textAlign: 'center', fontSize: '1rem' }}>
-            {hasUrlCode ? "הוזמנת למשחק!" : "יש לכם קוד חדר?"}
-          </p>
           <input 
             type="text" value={inputCode} 
             onChange={(e) => setInputCode(e.target.value.toUpperCase())} 
-            placeholder="הכנס קוד (למשל: עומר)" 
+            placeholder="קוד חדר (למשל: עומר)" 
             style={{ ...localStyles.entryInput, backgroundColor: 'rgba(0,0,0,0.2)' }} 
           />
           <button onClick={() => validate('join')} style={localStyles.primaryButton}>
             הצטרפות למשחק
           </button>
           {hasUrlCode && (
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem', textAlign: 'center' }}>
-              ברגע שתבחר גיל, תיכנס אוטומטית לחדר {inputCode}
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.8rem', textAlign: 'center', marginTop: '-5px' }}>
+              כניסה אוטומטית לחדר: {inputCode}
             </p>
           )}
         </div>
       </div>
 
-      {/* יצירת חדר - בתחתית ופחות בולט */}
-      <div style={{ width: '100%', paddingBottom: '10px' }}>
+      {/* Bottom Section */}
+      <div style={{ width: '100%', maxWidth: '400px' }}>
         <button onClick={() => validate('create')} style={localStyles.secondaryButton}>
           + פתיחת חדר חדש
         </button>
