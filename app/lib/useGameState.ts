@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
+import { doc, setDoc, onSnapshot, updateDoc, arrayUnion, getDoc, deleteDoc } from "firebase/firestore";
 import { generateRoomCode } from "./game-utils";
 
 export function useGameState() {
@@ -38,7 +38,20 @@ export function useGameState() {
   }, [roomId, step]);
 
   const updateRoom = async (newData: any) => { if (roomId) await updateDoc(doc(db, "rooms", roomId), newData); };
-  const handleFullReset = () => { localStorage.clear(); window.location.href = '/'; };
+
+  const handleFullReset = async () => { 
+    // אם אנחנו בחדר עומר, נאפס אותו גם בשרת לפני היציאה
+    if (roomId === "עומר") {
+      await updateDoc(doc(db, "rooms", "עומר"), { 
+        step: 3, 
+        totalScores: {}, 
+        roundScore: 0,
+        currentTurnIdx: 0
+      });
+    }
+    localStorage.clear(); 
+    window.location.href = '/'; 
+  };
 
   const handleCreateRoom = async (nameOverride?: string, ageOverride?: string) => {
     const finalName = nameOverride || userName;
@@ -65,10 +78,8 @@ export function useGameState() {
     const finalAge = ageOverride || userAge;
     const id = idInput.toUpperCase();
 
-    const snap = await getDoc(doc(db, "rooms", id));
-
-    // טיפול בחדר "עומר": אם הוא לא קיים, יוצרים אותו עם בוטים. אם הוא קיים, מצטרפים כרגיל.
-    if (id === "עומר" && !snap.exists()) {
+    // טיפול בחדר "עומר": תמיד מאפסים אותו לשלב 3 כשמישהו מצטרף כדי למנוע היתקעות
+    if (id === "עומר") {
       const qp = [
         { id: userId, name: finalName || "עומר", age: finalAge || "30", teamIdx: 0 }, 
         ...Array(5).fill(0).map((_, i) => ({ id: `d_${i}`, name: `שחקן ${i+2}`, age: "25", teamIdx: 1 }))
@@ -79,14 +90,21 @@ export function useGameState() {
         timeLeft: 60, isPaused: false, currentTurnIdx: 0, 
         poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {} 
       });
-      setRoomId("עומר"); setStep(3); localStorage.setItem("alias_roomId", "עומר");
+      setRoomId("עומר"); 
+      setStep(3); 
+      localStorage.setItem("alias_roomId", "עומר");
+      localStorage.setItem("alias_userName", finalName);
+      localStorage.setItem("alias_userAge", finalAge);
       return;
     }
 
+    const snap = await getDoc(doc(db, "rooms", id));
     if (snap.exists()) { 
       setRoomId(id); 
       setStep(snap.data().step); 
       localStorage.setItem("alias_roomId", id); 
+      localStorage.setItem("alias_userName", finalName);
+      localStorage.setItem("alias_userAge", finalAge);
       if (snap.data().step === 3) {
         await updateDoc(doc(db, "rooms", id), { 
           players: arrayUnion({ id: userId, name: finalName, age: finalAge, teamIdx: 0 }) 
