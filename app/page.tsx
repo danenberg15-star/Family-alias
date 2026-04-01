@@ -98,7 +98,7 @@ export default function FamilyAliasApp() {
           onStart={() => {
             const initialIndices: any = { 0: 0, 1: 0, 2: 0, 3: 0 };
             const firstP = roomData.players[0];
-            initialIndices[firstP.teamIdx] = 1; // השחקן הראשון כבר מתחיל
+            initialIndices[firstP.teamIdx] = 1; 
             
             updateRoom({ 
               step: 4, 
@@ -126,14 +126,11 @@ export default function FamilyAliasApp() {
             const newTeamPlayerIndices = { ...(roomData.teamPlayerIndices || { 0: 0, 1: 0, 2: 0, 3: 0 }) };
 
             if (roomData.gameMode === 'team') {
-                // לוגיקת החלפת קבוצות:
                 const nextTeamIdx = (currentP.teamIdx + 1) % roomData.numTeams;
                 const teamPlayers = roomData.players.filter((p: any) => p.teamIdx === nextTeamIdx);
                 const playerInTeamIdx = (newTeamPlayerIndices[nextTeamIdx] || 0) % teamPlayers.length;
                 const nextPlayer = teamPlayers[playerInTeamIdx];
-                
                 nextIdx = roomData.players.findIndex((p: any) => p.id === nextPlayer.id);
-                // עדכון המצביע לפעם הבאה שהקבוצה הזו תשחק
                 newTeamPlayerIndices[nextTeamIdx] = (playerInTeamIdx + 1) % teamPlayers.length;
             } else {
                 nextIdx = (roomData.currentTurnIdx + 1) % roomData.players.length;
@@ -141,9 +138,11 @@ export default function FamilyAliasApp() {
 
             const nextP = roomData.players[nextIdx];
             const nextTeam = roomData.teamNames[nextP.teamIdx];
-            const nextScore = sc[nextTeam] || 0;
+            const nextScore = Number(sc[nextTeam] || 0);
 
-            const is7Boom = roomData.gameMode === 'team' && nextScore > 0 && nextScore % 7 === 0;
+            // לוגיקת כפולות 7 - מעבר ישיר ל-step 8 (7 בום)
+            const boomScores = [7, 14, 21, 28, 35, 42, 49];
+            const is7Boom = roomData.gameMode === 'team' && boomScores.includes(nextScore);
 
             if (is7Boom) {
               updateRoom({ step: 8, currentTurnIdx: nextIdx, roundScore: 0, teamPlayerIndices: newTeamPlayerIndices });
