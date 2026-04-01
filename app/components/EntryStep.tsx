@@ -1,7 +1,6 @@
-// app/components/EntryStep.tsx
 "use client";
 
-import React, { useState, CSSProperties } from "react";
+import React, { useState, useEffect, CSSProperties } from "react";
 
 // --- חומת המגן: כל העיצוב של המסך הראשון נעול כאן בלבד ---
 const localStyles: { [key: string]: CSSProperties } = {
@@ -56,11 +55,32 @@ export default function EntryStep({ onNext }: EntryStepProps) {
   const [age, setAge] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [inputCode, setInputCode] = useState("");
+  const [hasUrlCode, setHasUrlCode] = useState(false);
+
+  // קריאת קוד החדר מהקישור של הוואטסאפ בעת טעינת המסך
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const roomFromUrl = params.get('room');
+      if (roomFromUrl) {
+        setInputCode(roomFromUrl);
+        setHasUrlCode(true);
+      }
+    }
+  }, []);
 
   const validate = (action: 'create' | 'join') => {
     if (name.trim() && age.trim()) {
-      if (action === 'join') setIsModalOpen(true);
-      else onNext(name, age, 'create');
+      if (action === 'join') {
+        if (hasUrlCode && inputCode) {
+          // אם יש קוד מהקישור - מדלגים על הפופ-אפ ונכנסים ישר
+          onNext(name, age, 'join', inputCode);
+        } else {
+          setIsModalOpen(true);
+        }
+      } else {
+        onNext(name, age, 'create');
+      }
     } else {
       alert("אנא מלא שם וגיל כדי להמשיך! 🙂");
     }
@@ -99,7 +119,9 @@ export default function EntryStep({ onNext }: EntryStepProps) {
         <div style={localStyles.lobbyJoinFrame} onClick={() => validate('join')}>
           <div style={{ textAlign: 'center' }}>
             <span style={{ color: '#ffd700', fontSize: '1.4rem', fontWeight: '900', display: 'block' }}>הצטרפות לחדר</span>
-            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>לחצו כאן להזנת קוד חדר</span>
+            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>
+              {hasUrlCode ? `הצטרפות אוטומטית לחדר: ${inputCode}` : "לחצו כאן להזנת קוד חדר"}
+            </span>
           </div>
         </div>
       </div>
