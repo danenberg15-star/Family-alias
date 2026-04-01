@@ -56,7 +56,6 @@ export function useGameState() {
       players: [{ id: userId, name: finalName, age: finalAge, teamIdx: 0 }],
       teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"],
       totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, 
-      teamPlayerIndices: { 0: 0, 1: 0, 2: 0, 3: 0 },
       poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {}
     });
   };
@@ -67,18 +66,14 @@ export function useGameState() {
     const id = idInput.toUpperCase();
 
     if (id === "עומר") {
-      // עדכון ל-4 משתתפים סה"כ (משתמש + 3 בוטים) וחלוקה לקבוצות לסירוגין
       const qp = [
-        { id: userId, name: finalName || "עומר", age: finalAge || "30", teamIdx: 0 }, 
-        { id: "d_0", name: "שחקן 2", age: "25", teamIdx: 1 },
-        { id: "d_1", name: "שחקן 3", age: "25", teamIdx: 0 },
-        { id: "d_2", name: "שחקן 4", age: "25", teamIdx: 1 }
+        { id: userId, name: finalName || "עומר", age: finalAge || "21", teamIdx: 0 }, 
+        ...Array(5).fill(0).map((_, i) => ({ id: `d_${i}`, name: `שחקן ${i+2}`, age: "21", teamIdx: 1 }))
       ];
       await setDoc(doc(db, "rooms", "עומר"), { 
         id: "עומר", step: 3, createdAt: Date.now(), gameMode: "team", numTeams: 2, 
         players: qp, teamNames: ["קבוצה א'", "קבוצה ב'"], totalScores: {}, roundScore: 0, 
         timeLeft: 60, isPaused: false, currentTurnIdx: 0, 
-        teamPlayerIndices: { 0: 0, 1: 0 },
         poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {} 
       });
       setRoomId("עומר"); setStep(3); localStorage.setItem("alias_roomId", "עומר");

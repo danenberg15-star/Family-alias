@@ -10,50 +10,48 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
   const me = roomData.players.find((p: any) => p.id === userId);
 
   const myDisplayScore = useMemo(() => {
-    if (roomData.gameMode === 'individual') {
-      return roomData.totalScores[me?.name] || 0;
-    } else {
-      const myTeamName = roomData.teamNames[me?.teamIdx];
-      return roomData.totalScores[myTeamName] || 0;
-    }
+    if (roomData.gameMode === 'individual') return roomData.totalScores[me?.name] || 0;
+    const myTeamName = roomData.teamNames[me?.teamIdx];
+    return roomData.totalScores[myTeamName] || 0;
   }, [roomData.totalScores, roomData.gameMode, me]);
 
   const wordData = useMemo(() => {
-    const age = parseInt(currentP.age) || 10;
-    const isEasy = roomData.difficulty === "easy";
+    const age = parseInt(currentP.age) || 21;
     const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
+    const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
     
     let key: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
-    if (isEasy || age <= 6) key = "KIDS";
-    else if (age <= 10) key = "JUNIOR";
-    else if (age <= 16) key = (idxs.TEEN + idxs.JUNIOR) % 2 === 0 ? "TEEN" : "JUNIOR";
-    else key = (idxs.ADULT + idxs.TEEN) % 2 === 0 ? "ADULT" : "TEEN";
+    if (age <= 6) {
+      key = (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
+    } else if (age <= 12) {
+      key = (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
+    } else if (age <= 20) {
+      const mod = totalIdx % 10;
+      key = mod === 0 ? "JUNIOR" : (mod < 9 ? "TEEN" : "ADULT");
+    } else {
+      const mod = totalIdx % 10;
+      key = mod === 0 ? "JUNIOR" : (mod === 1 ? "TEEN" : "ADULT");
+    }
 
     const pool = roomData.shuffledPools?.[key] || [];
     const index = idxs[key] || 0;
     
     return { 
       ...(pool[index % (pool.length || 1)] || { word: "טוען...", en: "" }), 
-      isYoung: (age <= 10 || isEasy) 
+      isYoung: (age <= 12) 
     };
-  }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty]);
+  }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools]);
 
   const handleCorrect = (teamName: string) => {
-    handleAction(teamName, 2); 
-    if (wordsCount + 1 >= 7) {
-      updateRoom({ step: 6 });
-    } else {
-      setWordsCount(prev => prev + 1);
-    }
+    handleAction(teamName, 2);
+    if (wordsCount + 1 >= 7) updateRoom({ step: 6 });
+    else setWordsCount(prev => prev + 1);
   };
 
   const handleSkip = () => {
     handleAction("SKIP");
-    if (wordsCount + 1 >= 7) {
-      updateRoom({ step: 6 });
-    } else {
-      setWordsCount(prev => prev + 1);
-    }
+    if (wordsCount + 1 >= 7) updateRoom({ step: 6 });
+    else setWordsCount(prev => prev + 1);
   };
 
   if (showExplanation) {
@@ -64,8 +62,7 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
           <div style={{ color: 'white', fontSize: '1.2rem', lineHeight: '1.6', marginBottom: '30px' }}>
             <p><strong>בשלב זה אין טיימר!</strong></p>
             <p>עליכם לתאר 7 מילים.</p>
-            <p>כל הקבוצות יכולות לנחש.</p>
-            <p style={{ color: '#ffd700', fontWeight: 'bold', marginTop: '10px' }}>כל ניחוש נכון שווה 2 נקודות!</p>
+            <p>כל הקבוצות יכולות לנחש. **כל ניחוש נכון שווה 2 נקודות!**</p>
           </div>
           <button onClick={() => setShowExplanation(false)} style={s.resume}>הבנתי, בואו נתחיל!</button>
         </div>
@@ -78,32 +75,16 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
       <div style={s.header}>
         <div style={s.scoreBox}>🏆 {myDisplayScore}</div>
         <div style={{...s.timer, color: '#ffd700', fontSize: '1.5rem', width: 'max-content'}}>מילה {wordsCount + 1} / 7</div>
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <button onClick={onExit} style={s.icon}>✕</button>
-        </div>
+        <button onClick={onExit} style={s.icon}>✕</button>
       </div>
-      
-      {/* הצגת כפתור דילוג רק למתאר */}
-      {isIDescriber && (
-        <button onClick={handleSkip} style={s.skip}>דלג (1-)</button>
-      )}
-
+      <button onClick={handleSkip} style={s.skip}>דלג (1-)</button>
       <div style={s.center}>
           <div style={s.card}>
             {isIDescriber ? (
               <>
-                {wordData.isYoung ? (
-                  <>
-                    {wordData.img && <div style={s.imgBox}><img src={wordData.img} alt="" style={s.img} /></div>}
-                    <div style={s.heb}>{wordData.word}</div>
-                    <div style={s.en}>{wordData.en}</div>
-                  </>
-                ) : (
-                  <>
-                    <div style={s.hebL}>{wordData.word}</div>
-                    <div style={s.enL}>{wordData.en}</div>
-                  </>
-                )}
+                {wordData.img && <div style={s.imgBox}><img src={wordData.img} alt="" style={s.img} /></div>}
+                <div style={wordData.isYoung ? s.heb : s.hebL}>{wordData.word}</div>
+                <div style={wordData.isYoung ? s.en : s.enL}>{wordData.en}</div>
               </>
             ) : (
               <div style={{ textAlign: 'center' }}>
@@ -113,39 +94,33 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
             )}
           </div>
       </div>
-
-      {/* הצגת ניהול ניקוד וגריד קבוצות רק למתאר */}
-      {isIDescriber && (
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <p style={{ textAlign: 'center', fontSize: '0.9rem', opacity: 0.8 }}>מי ניחש נכון? (2+)</p>
-          <div style={s.grid}>
-            {roomData.teamNames.slice(0, roomData.numTeams).map((n: string) => (
-              <button key={n} onClick={() => handleCorrect(n)} style={s.target}>{n}</button>
-            ))}
-          </div>
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <p style={{ textAlign: 'center', fontSize: '0.9rem', opacity: 0.8 }}>מי ניחש נכון? (2+)</p>
+        <div style={s.grid}>
+          {roomData.teamNames.slice(0, roomData.numTeams).map((n: string) => (
+            <button key={n} onClick={() => handleCorrect(n)} style={s.target}>{n}</button>
+          ))}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
 const s: any = {
   layout: { display: 'flex', flexDirection: 'column', height: '100dvh', padding: 'env(safe-area-inset-top) 20px 20px', gap: '10px', maxWidth: '600px', margin: '0 auto', direction: 'rtl' },
-  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px', position: 'relative', borderBottom: '1px solid rgba(255,255,255,0.1)' },
-  scoreBox: { backgroundColor: 'rgba(255,215,0,0.15)', padding: '8px 15px', borderRadius: '15px', color: '#ffd700', fontWeight: '900', fontSize: '1.2rem', minWidth: '70px', textAlign: 'center' },
-  timer: { fontSize: '2.5rem', fontWeight: '900', color: '#ef4444', position: 'absolute', left: '50%', transform: 'translateX(-50%)' },
-  icon: { background: 'none', border: 'none', color: 'white', fontSize: '1.8rem', cursor: 'pointer', padding: '5px' },
-  skip: { width: '100%', height: '55px', border: '2px dashed #ef4444', borderRadius: '15px', color: '#ef4444', fontWeight: 'bold', background: 'none', cursor: 'pointer', fontSize: '1.1rem' },
-  center: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '10px 0' },
-  card: { width: '100%', maxWidth: '320px', height: '100%', maxHeight: '280px', backgroundColor: '#1a1d2e', borderRadius: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  imgBox: { width: '100%', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px', overflow: 'hidden' },
-  img: { width: '100%', height: '100%', objectFit: 'contain' },
-  heb: { fontSize: '1.8rem', fontWeight: '900', textAlign: 'center' }, 
-  en: { fontSize: '1.3rem', opacity: 0.6, textAlign: 'center' },
-  hebL: { fontSize: '2.5rem', fontWeight: '900', textAlign: 'center' }, 
-  enL: { fontSize: '1.6rem', opacity: 0.6, textAlign: 'center' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', paddingBottom: '10px' },
-  target: { height: '75px', border: '2px solid #ffd700', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: '900', backgroundColor: 'rgba(255,215,0,0.05)', color: '#ffd700', cursor: 'pointer' },
-  pauseBox: { width: '100%', backgroundColor: '#1a1d2e', borderRadius: '35px', padding: '20px', display: 'flex', flexDirection: 'column' },
-  resume: { height: '50px', backgroundColor: '#ffd700', color: '#05081c', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', border: 'none', marginTop: '10px' }
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px', position: 'relative' },
+  scoreBox: { backgroundColor: 'rgba(255,215,0,0.15)', padding: '8px 15px', borderRadius: '15px', color: '#ffd700', fontWeight: '900', fontSize: '1.2rem' },
+  timer: { fontSize: '2rem', fontWeight: '900', color: '#ffd700' },
+  icon: { background: 'none', border: 'none', color: 'white', fontSize: '1.8rem' },
+  skip: { width: '100%', height: '55px', border: '2px dashed #ef4444', borderRadius: '15px', color: '#ef4444', fontWeight: 'bold', background: 'none' },
+  center: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  card: { width: '100%', backgroundColor: '#1a1d2e', borderRadius: '35px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' },
+  imgBox: { height: '150px', marginBottom: '10px' },
+  img: { height: '100%', objectFit: 'contain' },
+  heb: { fontSize: '1.8rem', fontWeight: '900' }, hebL: { fontSize: '2.5rem', fontWeight: '900' },
+  en: { fontSize: '1.2rem', opacity: 0.6 }, enL: { fontSize: '1.5rem', opacity: 0.6 },
+  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' },
+  target: { height: '60px', border: '2px solid #ffd700', borderRadius: '15px', color: '#ffd700', fontWeight: '900', background: 'none' },
+  pauseBox: { backgroundColor: '#0f172a', borderRadius: '24px', padding: '25px', border: '1px solid #ffd700' },
+  resume: { height: '55px', backgroundColor: '#ffd700', color: '#05081c', borderRadius: '15px', fontWeight: '900', border: 'none', width: '100%' }
 };

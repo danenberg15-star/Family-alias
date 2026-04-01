@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, CSSProperties } from "react";
 
-// --- חומת המגן: כל העיצוב של המסך הראשון נעול כאן בלבד ---
 const localStyles: { [key: string]: CSSProperties } = {
   flexLayout: { 
     flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', 
@@ -28,6 +27,17 @@ const localStyles: { [key: string]: CSSProperties } = {
     backgroundColor: '#ffd700', color: '#05081c', fontWeight: '900', 
     border: 'none', fontSize: '1.3rem', cursor: 'pointer',
     boxShadow: '0 4px 15px rgba(255, 215, 0, 0.3)'
+  },
+  ageGrid: {
+    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%'
+  },
+  ageButton: {
+    padding: '12px', borderRadius: '14px', border: '1px solid #ffd700',
+    backgroundColor: 'transparent', color: '#ffd700', fontWeight: 'bold',
+    fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s'
+  },
+  ageButtonActive: {
+    backgroundColor: '#ffd700', color: '#05081c'
   },
   lobbyJoinFrame: { 
     width: '100%', padding: '10px 0', display: 'flex', 
@@ -60,38 +70,39 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
   const [inputCode, setInputCode] = useState("");
   const [hasUrlCode, setHasUrlCode] = useState(false);
 
-  // קריאת קוד החדר מהקישור של הוואטסאפ בעת טעינת המסך
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const roomFromUrl = params.get('room');
       if (roomFromUrl) {
-        // מנקה רווחים למקרה שהקישור העביר תווים נסתרים
         setInputCode(roomFromUrl.trim());
         setHasUrlCode(true);
       }
     }
   }, []);
 
+  const ageCategories = [
+    { label: "מתחת ל-7", value: "6" },
+    { label: "בין 7 ל-12", value: "12" },
+    { label: "בין 13 - 20", value: "20" },
+    { label: "מעל 21", value: "21" }
+  ];
+
+  const handleAgeSelect = (val: string) => {
+    setAge(val);
+    onSetAge(val);
+  };
+
   const validate = (action: 'create' | 'join') => {
-    if (name.trim() && age.trim()) {
+    if (name.trim() && age) {
       if (action === 'join') {
-        if (hasUrlCode && inputCode) {
-          onJoin(inputCode);
-        } else {
-          setIsModalOpen(true);
-        }
+        if (hasUrlCode && inputCode) onJoin(inputCode);
+        else setIsModalOpen(true);
       } else {
         onCreate();
       }
     } else {
-      alert("אנא מלא שם וגיל כדי להמשיך! 🙂");
-    }
-  };
-
-  const handleModalJoin = () => {
-    if (inputCode.trim()) {
-      onJoin(inputCode.trim());
+      alert("אנא מלא שם ובחר קבוצת גיל! 🙂");
     }
   };
 
@@ -102,43 +113,37 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
         <h1 style={localStyles.entryTitle}>נראה אתכם תופסים את המילה הנרדפת</h1>
       </div>
 
-      <div style={{ flex: 0.5 }} />
-
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <input 
-          type="text" 
-          value={name} 
-          onChange={(e) => {
-            setName(e.target.value);
-            onSetName(e.target.value); // עדכון מיידי של השם במערכת
-          }} 
-          placeholder="שם" 
-          style={localStyles.entryInput} 
+          type="text" value={name} 
+          onChange={(e) => { setName(e.target.value); onSetName(e.target.value); }} 
+          placeholder="שם השחקן" style={localStyles.entryInput} 
         />
-        <input 
-          type="number" 
-          value={age} 
-          onChange={(e) => {
-            setAge(e.target.value);
-            onSetAge(e.target.value); // עדכון מיידי של הגיל במערכת
-          }} 
-          placeholder="גיל" 
-          style={localStyles.entryInput} 
-        />
+        
+        <p style={{ textAlign: 'center', color: '#ffd700', fontSize: '0.9rem', marginBottom: '-5px' }}>בחרו קבוצת גיל:</p>
+        <div style={localStyles.ageGrid}>
+          {ageCategories.map((cat) => (
+            <button 
+              key={cat.value}
+              onClick={() => handleAgeSelect(cat.value)}
+              style={{
+                ...localStyles.ageButton,
+                ...(age === cat.value ? localStyles.ageButtonActive : {})
+              }}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div style={{ flex: 1 }} />
-
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '15px', paddingBottom: '10px' }}>
-        <button onClick={() => validate('create')} style={localStyles.lobbyButton}>
-          צור חדר חדש +
-        </button>
-        
+        <button onClick={() => validate('create')} style={localStyles.lobbyButton}>צור חדר חדש +</button>
         <div style={localStyles.lobbyJoinFrame} onClick={() => validate('join')}>
           <div style={{ textAlign: 'center' }}>
             <span style={{ color: '#ffd700', fontSize: '1.4rem', fontWeight: '900', display: 'block' }}>הצטרפות לחדר</span>
             <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>
-              {hasUrlCode ? `הצטרפות אוטומטית לחדר: ${inputCode}` : "לחצו כאן להזנת קוד חדר"}
+              {hasUrlCode ? `הצטרפות לחדר: ${inputCode}` : "לחצו כאן להזנת קוד חדר"}
             </span>
           </div>
         </div>
@@ -153,7 +158,7 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
               placeholder="למשל: עומר" style={localStyles.entryInput} autoFocus 
             />
             <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '10px' }}>
-              <button onClick={handleModalJoin} style={localStyles.lobbyButton}>כנס</button>
+              <button onClick={() => { if(inputCode.trim()) onJoin(inputCode.trim()); }} style={localStyles.lobbyButton}>כנס</button>
               <button onClick={() => setIsModalOpen(false)} style={{ ...localStyles.lobbyButton, background: 'rgba(255,255,255,0.1)', color: 'white' }}>ביטול</button>
             </div>
           </div>
