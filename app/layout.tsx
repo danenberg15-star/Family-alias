@@ -1,13 +1,21 @@
-// app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Family Alias - משחק משפחתי",
-  description: "משחק אליאס משפחתי עם מילים ותמונות לכל הגילאים",
-  // מונע מהטלפון לנסות לזהות מספרי טלפון ולהפוך אותם ללינקים (יכול להרוס עיצוב)
+  title: "מילה בורחת - משחק זיהוי תמונות",
+  description: "הצילו את המילים הבורחות! משחק זיהוי תמונות לכל המשפחה",
+  manifest: "/manifest.json",
   formatDetection: {
     telephone: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "מילה בורחת",
+  },
+  icons: {
+    apple: "/icon-192x192.png",
+    shortcut: "/icon-192x192.png",
   },
 };
 
@@ -16,7 +24,6 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  // הפקודה הקריטית ביותר למכשירים מודרניים עם Notch
   viewportFit: "cover",
   themeColor: "#05081c",
 };
@@ -28,19 +35,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="he" dir="rtl">
-      <head>
-        {/* תגי מטא נוספים לאופטימיזציה של אפליקציית ווב (PWA ready) */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-      </head>
       <body
         style={{
           margin: 0,
           padding: 0,
           backgroundColor: "#05081c",
-          // מונע הקפצה של המסך בגלילה בטלפונים (Overscroll)
           overscrollBehavior: "none",
           WebkitTapHighlightColor: "transparent",
+          minHeight: "100vh",
         }}
       >
         {children}
