@@ -65,7 +65,10 @@ export function useGameState() {
     const finalAge = ageOverride || userAge;
     const id = idInput.toUpperCase();
 
-    if (id === "עומר") {
+    const snap = await getDoc(doc(db, "rooms", id));
+
+    // טיפול בחדר "עומר": אם הוא לא קיים, יוצרים אותו עם בוטים. אם הוא קיים, מצטרפים כרגיל.
+    if (id === "עומר" && !snap.exists()) {
       const qp = [
         { id: userId, name: finalName || "עומר", age: finalAge || "30", teamIdx: 0 }, 
         ...Array(5).fill(0).map((_, i) => ({ id: `d_${i}`, name: `שחקן ${i+2}`, age: "25", teamIdx: 1 }))
@@ -80,13 +83,11 @@ export function useGameState() {
       return;
     }
 
-    const snap = await getDoc(doc(db, "rooms", id));
     if (snap.exists()) { 
       setRoomId(id); 
       setStep(snap.data().step); 
       localStorage.setItem("alias_roomId", id); 
       if (snap.data().step === 3) {
-        // התיקון: שימוש ישיר ב-updateDoc עם ה-id כדי לעקוף את בעיית הסטייט
         await updateDoc(doc(db, "rooms", id), { 
           players: arrayUnion({ id: userId, name: finalName, age: finalAge, teamIdx: 0 }) 
         }); 
