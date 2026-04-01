@@ -55,9 +55,9 @@ export default function FamilyAliasApp() {
     const newIndices = { ...idxs };
     newIndices[poolKey] = (newIndices[poolKey] || 0) + 1;
     const newScores = { ...roomData.totalScores };
+    let winnerFound = null;
 
     if (targetName === "SKIP") {
-      // עדכון ניקוד בדילוג: הורדת נקודה למתאר (אישי) או לקבוצה (קבוצתי)
       if (roomData.gameMode === "individual") {
         newScores[currentP.name] = (newScores[currentP.name] || 0) - 1;
       } else {
@@ -75,13 +75,28 @@ export default function FamilyAliasApp() {
       
       if (roomData.gameMode === "individual") {
         newScores[currentP.name] = (newScores[currentP.name] || 0) + 1;
+        
+        if (newScores[targetName] >= 50) winnerFound = targetName;
+        if (newScores[currentP.name] >= 50) winnerFound = currentP.name;
+      } else {
+        if (newScores[targetName] >= 50) winnerFound = targetName;
       }
       
-      updateRoom({ 
-        roundScore: (roomData.roundScore || 0) + 1, 
-        poolIndices: newIndices, 
-        totalScores: newScores 
-      });
+      if (winnerFound) {
+         updateRoom({ 
+          roundScore: (roomData.roundScore || 0) + 1, 
+          poolIndices: newIndices, 
+          totalScores: newScores,
+          step: 7,
+          winner: winnerFound
+        });
+      } else {
+         updateRoom({ 
+          roundScore: (roomData.roundScore || 0) + 1, 
+          poolIndices: newIndices, 
+          totalScores: newScores 
+        });
+      }
     }
   };
 
@@ -93,12 +108,10 @@ export default function FamilyAliasApp() {
     <div style={{ backgroundColor: '#05081c', minHeight: '100dvh', color: 'white', direction: 'rtl', overscrollBehavior: 'none' }}>
       {step === 1 && (
         <EntryStep 
-          onNext={(n, a, action, code) => { 
-            setUserName(n); 
-            setUserAge(a); 
-            if (action === 'create') handleCreateRoom(n, a); 
-            else if (action === 'join' && code) handleJoinRoom(code, n, a); 
-          }} 
+          onJoin={handleJoinRoom} 
+          onCreate={handleCreateRoom} 
+          onSetName={setUserName} 
+          onSetAge={setUserAge} 
         />
       )}
       
