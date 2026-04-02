@@ -16,24 +16,24 @@ export default function FamilyAliasApp() {
   const currentP = roomData?.players?.[roomData?.currentTurnIdx];
   const isIDescriber = currentP?.id === userId;
 
+  // לוגיקת בחירת המאגר - מסונכרנת לכל רמות הקושי
   const calculatePoolKey = (age: number, idxs: any, difficulty: string) => {
     const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
     
-    // רמת קושי קלה: ערבוב של KIDS ו-JUNIOR
     if (difficulty === "easy") {
       return (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
     }
     
-    if (age <= 6) { // מתחת ל-7: 4 KIDS, 1 JUNIOR
+    if (age <= 6) { 
       return (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
-    } else if (age <= 12) { // 7-12: 2 KIDS, 8 JUNIOR
+    } else if (age <= 12) { 
       return (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
-    } else if (age <= 20) { // 13-20: 1 JUNIOR, 8 TEEN, 1 ADULT
+    } else if (age <= 20) { 
       const mod = totalIdx % 10;
       if (mod === 0) return "JUNIOR";
       if (mod < 9) return "TEEN";
       return "ADULT";
-    } else { // 21+: 1 JUNIOR, 1 TEEN, 8 ADULT
+    } else { 
       const mod = totalIdx % 10;
       if (mod === 0) return "JUNIOR";
       if (mod === 1) return "TEEN";

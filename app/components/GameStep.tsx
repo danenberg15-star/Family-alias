@@ -16,19 +16,26 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
   }, [roomData.totalScores, roomData.gameMode, me]);
 
   const wordData = useMemo(() => {
-    const age = parseInt(currentP.age) || 10;
-    const isEasy = roomData.difficulty === "easy";
+    const age = parseInt(currentP.age) || 21;
+    const difficulty = roomData.difficulty || "age-appropriate";
     const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
+    const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
     
     let key: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
-    if (isEasy || age <= 6) {
-      key = "KIDS";
-    } else if (age <= 10) {
-      key = "JUNIOR";
-    } else if (age <= 16) {
-      key = (idxs.TEEN + idxs.JUNIOR) % 2 === 0 ? "TEEN" : "JUNIOR";
+
+    // סנכרון מלא עם הלוגיקה ב-page.tsx
+    if (difficulty === "easy") {
+      key = (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
+    } else if (age <= 6) {
+      key = (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
+    } else if (age <= 12) {
+      key = (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
+    } else if (age <= 20) {
+      const mod = totalIdx % 10;
+      key = mod === 0 ? "JUNIOR" : (mod < 9 ? "TEEN" : "ADULT");
     } else {
-      key = (idxs.ADULT + idxs.TEEN) % 2 === 0 ? "ADULT" : "TEEN";
+      const mod = totalIdx % 10;
+      key = mod === 0 ? "JUNIOR" : (mod === 1 ? "TEEN" : "ADULT");
     }
 
     const pool = roomData.shuffledPools?.[key] || [];
@@ -36,9 +43,9 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     
     return { 
       ...(pool[index % (pool.length || 1)] || { word: "טוען...", en: "" }), 
-      isYoung: (age <= 10 || isEasy) 
+      isYoung: (key === "KIDS" || key === "JUNIOR" || age <= 12) 
     };
-  }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty]);
+  }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty, currentP.age]);
 
   if (!isIDescriber) {
     return (
@@ -101,19 +108,13 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
           <div style={s.card}>
             {wordData.isYoung ? (
               <>
-                {wordData.img && (
-                  <div style={s.imgBox}>
-                    <img src={wordData.img} alt="" style={s.img} />
-                  </div>
-                )}
+                {wordData.img && <div style={s.imgBox}><img src={wordData.img} alt="" style={s.img} /></div>}
                 <div style={s.heb}>{wordData.word}</div>
-                {/* הגדלת גופן אנגלית לצעירים */}
                 <div style={s.en}>{wordData.en}</div>
               </>
             ) : (
               <>
                 <div style={s.hebL}>{wordData.word}</div>
-                {/* הגדלת גופן אנגלית לבוגרים */}
                 <div style={s.enL}>{wordData.en}</div>
               </>
             )}
@@ -133,25 +134,19 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
 }
 
 const s: any = {
-  layout: { display: 'flex', flexDirection: 'column', height: '100dvh', padding: 'env(safe-area-inset-top) 20px 20px', gap: '10px', maxWidth: '600px', margin: '0 auto' },
+  layout: { display: 'flex', flexDirection: 'column', height: '100dvh', padding: 'env(safe-area-inset-top) 20px 20px', gap: '10px', maxWidth: '600px', margin: '0 auto', direction: 'rtl' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px', position: 'relative', borderBottom: '1px solid rgba(255,255,255,0.1)' },
   scoreBox: { backgroundColor: 'rgba(255,215,0,0.15)', padding: '8px 15px', borderRadius: '15px', color: '#ffd700', fontWeight: '900', fontSize: '1.2rem', minWidth: '70px', textAlign: 'center' },
   timer: { fontSize: '2.5rem', fontWeight: '900', color: '#ef4444', position: 'absolute', left: '50%', transform: 'translateX(-50%)' },
   icon: { background: 'none', border: 'none', color: 'white', fontSize: '1.8rem', cursor: 'pointer', padding: '5px' },
   skip: { width: '100%', height: '55px', border: '2px dashed #ef4444', borderRadius: '15px', color: '#ef4444', fontWeight: 'bold', background: 'none', cursor: 'pointer', fontSize: '1.1rem' },
   center: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: '10px 0' },
-  // גובה הוקטן ב-30% מ-400px ל-280px
   card: { width: '100%', maxWidth: '320px', height: '100%', maxHeight: '280px', backgroundColor: '#1a1d2e', borderRadius: '35px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' },
-  // הגדלת מרחב התמונה למקסימום
   imgBox: { width: '100%', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px', overflow: 'hidden' },
-  // הגדרת אובייקט למילוי המרחב תוך שמירה על יחס גובה-רוחב
   img: { width: '100%', height: '100%', objectFit: 'contain' },
-  // התאמת גופנים בהתאם לגובה הכרטיס המוקטן
   heb: { fontSize: '1.8rem', fontWeight: '900', textAlign: 'center' }, 
-  // הגדלת גופן אנגלית לצעירים מ-1.1rem ל-1.3rem
   en: { fontSize: '1.3rem', opacity: 0.6, textAlign: 'center' },
   hebL: { fontSize: '2.5rem', fontWeight: '900', textAlign: 'center' }, 
-  // הגדלת גופן אנגלית לבוגרים מ-1.4rem ל-1.6rem
   enL: { fontSize: '1.6rem', opacity: 0.6, textAlign: 'center' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', paddingBottom: '10px' },
   target: { height: '75px', border: '2px solid #ffd700', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: '900', backgroundColor: 'rgba(255,215,0,0.05)', color: '#ffd700', cursor: 'pointer' },
