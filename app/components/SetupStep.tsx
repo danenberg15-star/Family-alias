@@ -77,7 +77,7 @@ export default function SetupStep(props: SetupStepProps) {
 
   const handleWhatsAppShare = () => {
     const shareUrl = `https://family-alias.vercel.app/?room=${props.roomId}`;
-    const text = `בואו לשחק איתי אליאס! כנסו לקישור והצטרפו לחדר: ${shareUrl}`;
+    const text = `בואו לשחק איתי מילה נרדפת! כנסו לקישור והצטרפו לחדר: ${shareUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
