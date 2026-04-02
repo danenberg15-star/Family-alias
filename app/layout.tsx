@@ -2,16 +2,33 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "מילה נרדפת - משחק לשיפור אוצר המילים ויכולת ההתבטאות האישית",
-  description: "גלו את המילים הנרדפות! משחק מהנה לכל המשפחה",
+  title: "מילה נרדפת | SAME-SAME",
+  description: "משחק אוצר מילים משפחתי ומאתגר. בואו למצוא את המילה הנרדפת!",
   manifest: "/manifest.json",
   formatDetection: {
     telephone: false,
   },
+  // הגדרות עבור וואטסאפ ורשתות חברתיות (OpenGraph)
+  openGraph: {
+    title: "מילה נרדפת - SAME-SAME",
+    description: "גלו את המילים הנרדפות! משחק מהנה לכל המשפחה שמסדר לכם את המילים בראש.",
+    url: 'https://same-same.vercel.app/', // כתובת האתר החדשה
+    siteName: 'SAME-SAME',
+    images: [
+      {
+        url: '/logo.webp', // וודא שהקובץ קיים בתיקיית public
+        width: 800,
+        height: 600,
+        alt: 'SAME-SAME Logo',
+      },
+    ],
+    locale: 'he_IL',
+    type: 'website',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "מילה נרדפת",
+    title: "SAME-SAME",
   },
   icons: {
     apple: "/icon-192x192.png",
