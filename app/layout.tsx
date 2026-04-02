@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "מילה בורחת - משחק זיהוי תמונות",
-  description: "הצילו את המילים הבורחות! משחק זיהוי תמונות לכל המשפחה",
+  title: "מילה נרדפת - משחק לשיפור אוצר המילים ויכולת ההתבטאות האישית",
+  description: "גלו את המילים הנרדפות! משחק מהנה לכל המשפחה",
   manifest: "/manifest.json",
   formatDetection: {
     telephone: false,
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "מילה בורחת",
+    title: "מילה נרדפת",
   },
   icons: {
     apple: "/icon-192x192.png",
