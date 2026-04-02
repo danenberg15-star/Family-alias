@@ -11,13 +11,13 @@ export const metadata: Metadata = {
   },
   // הגדרות קריטיות עבור תצוגה מקדימה בוואטסאפ (OpenGraph)
   openGraph: {
-    title: "נרדפת - SAME-SAME",
+    title: "מילה נרדפת - SAME-SAME", // התיקון כאן: הוספתי את המילה "מילה"
     description: "אותה משמעות, מילה אחרת. מוכנים לאתגר המילים הגדול?",
     url: 'https://same-same.vercel.app/',
     siteName: 'SAME-SAME',
     images: [
       {
-        url: '/logo.webp', // וודא שהקובץ קיים בתיקיית public
+        url: '/logo.webp', 
         width: 800,
         height: 600,
         alt: 'SAME-SAME Logo',
@@ -62,7 +62,7 @@ export default function RootLayout({
           overscrollBehavior: "none",
           WebkitTapHighlightColor: "transparent",
           minHeight: "100vh",
-          overflow: "hidden", // מונע גלילה מיותרת של הדף כולו במובייל
+          overflow: "hidden", 
         }}
       >
         {children}
