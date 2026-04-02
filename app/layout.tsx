@@ -2,17 +2,18 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  // הכותרת שתופיע בלשונית הדפדפן
   title: "מילה נרדפת | SAME-SAME",
   description: "משחק אוצר מילים משפחתי ומאתגר. בואו למצוא את המילה הנרדפת!",
   manifest: "/manifest.json",
   formatDetection: {
     telephone: false,
   },
-  // הגדרות עבור וואטסאפ ורשתות חברתיות (OpenGraph)
+  // הגדרות קריטיות עבור תצוגה מקדימה בוואטסאפ (OpenGraph)
   openGraph: {
-    title: "מילה נרדפת - SAME-SAME",
-    description: "גלו את המילים הנרדפות! משחק מהנה לכל המשפחה שמסדר לכם את המילים בראש.",
-    url: 'https://same-same.vercel.app/', // כתובת האתר החדשה
+    title: "נרדפת - SAME-SAME",
+    description: "אותה משמעות, מילה אחרת. מוכנים לאתגר המילים הגדול?",
+    url: 'https://same-same.vercel.app/',
     siteName: 'SAME-SAME',
     images: [
       {
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
     locale: 'he_IL',
     type: 'website',
   },
+  // הגדרות להתקנה כאפליקציה (PWA) באייפון
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -60,6 +62,7 @@ export default function RootLayout({
           overscrollBehavior: "none",
           WebkitTapHighlightColor: "transparent",
           minHeight: "100vh",
+          overflow: "hidden", // מונע גלילה מיותרת של הדף כולו במובייל
         }}
       >
         {children}
