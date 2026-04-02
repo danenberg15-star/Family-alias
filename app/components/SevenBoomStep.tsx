@@ -44,7 +44,7 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
       ...(pool[index % (pool.length || 1)] || { word: "טוען...", en: "" }), 
       isYoung: (key === "KIDS" || key === "JUNIOR" || age <= 12) 
     };
-  }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty]);
+  }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty, currentP.age]);
 
   const handleCorrect = (teamName: string) => {
     handleAction(teamName, 2);
@@ -58,7 +58,6 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
     else setWordsCount(prev => prev + 1);
   };
 
-  // ... (שאר הקומפוננטה ללא שינוי)
   if (showExplanation) {
     return (
       <div style={{...s.layout, justifyContent: 'center', alignItems: 'center', textAlign: 'center'}}>

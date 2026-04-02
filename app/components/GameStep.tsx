@@ -23,7 +23,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     
     let key: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
 
-    // סנכרון מלא עם הלוגיקה ב-page.tsx
+    // לוגיקה מסונכרנת לבחירת המאגר
     if (difficulty === "easy") {
       key = (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
     } else if (age <= 6) {
@@ -32,10 +32,14 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
       key = (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
     } else if (age <= 20) {
       const mod = totalIdx % 10;
-      key = mod === 0 ? "JUNIOR" : (mod < 9 ? "TEEN" : "ADULT");
+      if (mod === 0) key = "JUNIOR";
+      else if (mod < 9) key = "TEEN";
+      else key = "ADULT";
     } else {
       const mod = totalIdx % 10;
-      key = mod === 0 ? "JUNIOR" : (mod === 1 ? "TEEN" : "ADULT");
+      if (mod === 0) key = "JUNIOR";
+      else if (mod === 1) key = "TEEN";
+      else key = "ADULT";
     }
 
     const pool = roomData.shuffledPools?.[key] || [];
