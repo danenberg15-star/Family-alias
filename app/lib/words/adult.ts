@@ -14,18 +14,18 @@ export const ADULT_WORDS: WordItem[] = [
   { word: "רכישה", en: "Acquisition" }, { word: "מיתון", en: "Recession" },
 
   // --- ניהול וקריירה ---
-  { word: "יזמות", en: "Entrepreneurship" }, { word: "אסטרטגיה", en: "Strategy" },
+  { word: "יזם", en: "Entrepreneur" }, { word: "אסטרטגיה", en: "Strategy" },
   { word: "לוגיסטיקה", en: "Logistics" }, { word: "ניהול סיכונים", en: "Risk Management" },
   { word: "משאבי אנוש", en: "HR" }, { word: "נטוורקינג", en: "Networking" },
-  { word: "מיתוג אישי", en: "Personal Branding" }, { word: "פיתוח עסקי", en: "Business Development" },
+  { word: "מיתוג", en: "Branding" }, { word: "פיתוח עסקי", en: "Business Development" },
   { word: "סינרגיה", en: "Synergy" }, { word: "ייעוץ", en: "Consulting" },
-  { word: "פרזנטציה", en: "Presentation" }, { word: "משא ומתן", en: "Negotiation" },
+  { word: "מצגת", en: "Presentation" }, { word: "משא ומתן", en: "Negotiation" },
   { word: "תקציב", en: "Budgeting" }, { word: "קבלת החלטות", en: "Decision Making" },
   { word: "מנהיגות", en: "Leadership" }, { word: "האצלת סמכויות", en: "Delegation" },
 
   // --- מושגים מופשטים ואקדמיה ---
   { word: "פרדוקס", en: "Paradox" }, { word: "פילוסופיה", en: "Philosophy" },
-  { word: "קוגניציה", en: "Cognition" }, { word: "אמפירי", en: "Empirical" },
+  { word: "חכם", en: "smart" }, { word: "אמפירי", en: "Empirical" },
   { word: "תיאוריה", en: "Theory" }, { word: "מתודולוגיה", en: "Methodology" },
   { word: "אתיקה", en: "Ethics" }, { word: "רלוונטיות", en: "Relevance" },
   { word: "אינטראקציה", en: "Interaction" }, { word: "פרספקטיבה", en: "Perspective" },
@@ -42,9 +42,9 @@ export const ADULT_WORDS: WordItem[] = [
   { word: "חוזה", en: "Contract" }, { word: "רגולציה", en: "Regulation" },
 
   // --- מילים קשות וביטויים ---
-  { word: "אקרונימיה", en: "Acronym" }, { word: "מיזנתרופיה", en: "Misanthropy" },
+  { word: "ראשי תיבות", en: "Acronym" }, { word: "מיזנתרופיה", en: "Misanthropy" },
   { word: "אלטרואיזם", en: "Altruism" }, { word: "דמגוגיה", en: "Demagoguery" },
-  { word: "אידיאולוגיה", en: "Ideology" }, { word: "קומפלקס", en: "Complex" },
+  { word: "אידיאולוגיה", en: "Ideology" }, { word: "מסובך", en: "Complex" },
   { word: "טרנספורמציה", en: "Transformation" }, { word: "מניפולציה", en: "Manipulation" },
   { word: "פרובוקציה", en: "Provocation" }, { word: "אינטואיציה", en: "Intuition" },
 
