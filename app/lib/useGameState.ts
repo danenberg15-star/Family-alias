@@ -8,7 +8,7 @@ export function useGameState() {
   const [userId, setUserId] = useState("");
   const [roomId, setRoomId] = useState<string | null>(null);
   const [roomData, setRoomData] = useState<any>(null);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // שונה מ-1 ל-0 כדי להתחיל מהחוקים
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState("");
 
@@ -35,7 +35,6 @@ export function useGameState() {
         // --- מנגנון ניקוי חדרים לא פעילים (5 דקות) ---
         const INACTIVITY_LIMIT = 5 * 60 * 1000; 
         if (d.lastActivity && (Date.now() - d.lastActivity > INACTIVITY_LIMIT)) {
-            // רק המארח (השחקן הראשון) מוחק בפועל כדי למנוע כפילויות
             if (d.players && d.players[0].id === userId) {
                 await deleteDoc(doc(db, "rooms", roomId));
             }
@@ -46,13 +45,11 @@ export function useGameState() {
         setRoomData(d);
         if (d.step !== step) setStep(d.step);
       } else {
-        // אם החדר נמחק (ידנית או עקב אי-פעילות), איפוס מקומי
         if (roomId) handleFullReset();
       }
     });
   }, [roomId, step, userId]);
 
-  // כל לחיצת כפתור שקוראת ל-updateRoom תעדכן את ה-lastActivity
   const updateRoom = async (newData: any) => { 
     if (roomId) {
       await updateDoc(doc(db, "rooms", roomId), { 
@@ -77,7 +74,7 @@ export function useGameState() {
 
     await setDoc(doc(db, "rooms", id), {
       id, step: 3, createdAt: Date.now(), 
-      lastActivity: Date.now(), // אתחול זמן פעילות
+      lastActivity: Date.now(), 
       gameMode: "individual", difficulty: "age-appropriate", numTeams: 2,
       players: [{ id: userId, name: finalName, age: finalAge, teamIdx: 0 }],
       teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"],
@@ -111,7 +108,6 @@ export function useGameState() {
     const snap = await getDoc(doc(db, "rooms", id));
     if (snap.exists()) { 
       const data = snap.data();
-      // בדיקה בעת הצטרפות אם החדר כבר "פג תוקף"
       if (data.lastActivity && (Date.now() - data.lastActivity > 5 * 60 * 1000)) {
           await deleteDoc(doc(db, "rooms", id));
           alert("חדר זה נסגר עקב חוסר פעילות.");
@@ -124,7 +120,7 @@ export function useGameState() {
       if (data.step === 3) {
         await updateDoc(doc(db, "rooms", id), { 
           players: arrayUnion({ id: userId, name: finalName, age: finalAge, teamIdx: 0 }),
-          lastActivity: Date.now() // עדכון פעילות בעת הצטרפות
+          lastActivity: Date.now() 
         }); 
       } 
     }

@@ -163,7 +163,7 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
           <input 
             type="text" value={inputCode} 
             onChange={(e) => setInputCode(e.target.value.toUpperCase())} 
-            placeholder="קוד חדר (למשל: עומר)" 
+            placeholder="קוד חדר (למשל: 1234)" 
             style={{ ...localStyles.entryInput, backgroundColor: 'rgba(0,0,0,0.2)' }} 
           />
           <button onClick={() => validate('join')} style={localStyles.primaryButton}>

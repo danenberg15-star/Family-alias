@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useGameState } from "./lib/useGameState";
 import { getInitialShuffledPools } from "./lib/game-utils";
+import RulesStep from "./components/RulesStep"; // יבוא חדש
 import EntryStep from "./components/EntryStep";
 import SetupStep from "./components/SetupStep";
 import CountdownStep from "./components/CountdownStep";
@@ -11,7 +12,7 @@ import VictoryStep from "./components/VictoryStep";
 import SevenBoomStep from "./components/SevenBoomStep";
 
 export default function FamilyAliasApp() {
-  const { mounted, userId, roomId, roomData, step, updateRoom, handleFullReset, handleCreateRoom, handleJoinRoom, setUserName, setUserAge } = useGameState();
+  const { mounted, userId, roomId, roomData, step, setStep, updateRoom, handleFullReset, handleCreateRoom, handleJoinRoom, setUserName, setUserAge } = useGameState();
 
   const currentP = roomData?.players?.[roomData?.currentTurnIdx];
   const isIDescriber = currentP?.id === userId;
@@ -110,6 +111,9 @@ export default function FamilyAliasApp() {
 
   return (
     <div style={{ backgroundColor: '#05081c', minHeight: '100dvh', color: 'white', direction: 'rtl', overscrollBehavior: 'none' }}>
+      {/* שלב 0 - חוקים */}
+      {step === 0 && <RulesStep onStart={() => setStep(1)} />}
+
       {step === 1 && <EntryStep onJoin={handleJoinRoom} onCreate={handleCreateRoom} onSetName={setUserName} onSetAge={setUserAge} />}
       
       {step === 3 && roomData && (
