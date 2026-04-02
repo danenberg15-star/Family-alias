@@ -1,7 +1,7 @@
 import { WordItem } from "../../game.config";
 
 export const JUNIOR_WORDS: WordItem[] = [
-  // שורה 1-2 (המילים שנוספו)
+  // --- המאגר הקיים (236 מילים) ---
   { word: "מזגן", en: "Air Conditioner", img: "/words/junior/air_conditioner.webp" },
   { word: "מטוס", en: "Airplane", img: "/words/junior/airplane.webp" },
   { word: "שעון מעורר", en: "Alarm Clock", img: "/words/junior/alarm_clock.webp" },
@@ -13,8 +13,6 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "קשתות", en: "Archery", img: "/words/junior/archery.webp" },
   { word: "אסטרונאוט", en: "Astronaut", img: "/words/junior/astronaut.webp" },
   { word: "גרזן", en: "Axe", img: "/words/junior/axe.webp" },
-
-  // המשך הרשימה האלפביתית
   { word: "בייגל", en: "Bagel", img: "/words/junior/bagel.webp" },
   { word: "בלט", en: "Ballet", img: "/words/junior/ballet.webp" },
   { word: "בננה", en: "Banana", img: "/words/junior/banana.webp" },
@@ -150,7 +148,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "פנדה", en: "Panda", img: "/words/junior/panda.webp" },
   { word: "תוכי", en: "Parrot", img: "/words/junior/parrot.webp" },
   { word: "טווס", en: "Peacock", img: "/words/junior/peacock.webp" },
-  { word: "עיקרון", en: "Pencil", img: "/words/junior/pencil.webp" },
+  { word: "עיפרון", en: "Pencil", img: "/words/junior/pencil.webp" },
   { word: "עפרונות", en: "Pencils", img: "/words/junior/pencils.webp" },
   { word: "פינגווין", en: "Penguin", img: "/words/junior/penguin.webp" },
   { word: "צלם", en: "Photographer", img: "/words/junior/photographer.webp" },
@@ -234,11 +232,55 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "זאב", en: "Wolf", img: "/words/junior/wolf.webp" },
   { word: "שעון יד", en: "Wristwatch", img: "/words/junior/wristwatch.webp" },
   { word: "יוגה", en: "Yoga", img: "/words/junior/yoga.webp" },
-  // השלמה ל-235 (מילים שסביר שנמצאות בסוף הגלילה)
   { word: "יויו", en: "Yoyo", img: "/words/junior/yoyo.webp" },
   { word: "יוגורט", en: "Yogurt", img: "/words/junior/yogurt.webp" },
   { word: "זברה", en: "Zebra", img: "/words/junior/zebra.webp" },
   { word: "גן חיות", en: "Zoo", img: "/words/junior/zoo.webp" },
   { word: "רוכסן", en: "Zipper", img: "/words/junior/zipper.webp" },
-  { word: "קישוא", en: "Zucchini", img: "/words/junior/zucchini.webp" }
+  { word: "קישוא", en: "Zucchini", img: "/words/junior/zucchini.webp" },
+
+  // --- המילים החדשות (43 מילים) ---
+  { word: "צרצר", en: "Cricket", img: "/words/junior/cricket.webp" },
+  { word: "בונה", en: "Beaver", img: "/words/junior/beaver.webp" },
+  { word: "בואש", en: "Skunk", img: "/words/junior/skunk.webp" },
+  { word: "איגואנה", en: "Iguana", img: "/words/junior/iguana.webp" },
+  { word: "עגל", en: "Calf", img: "/words/junior/calf.webp" },
+  { word: "חתלתול", en: "Kitten", img: "/words/junior/kitten.webp" },
+  { word: "כלבלב", en: "Puppy", img: "/words/junior/puppy.webp" },
+  { word: "סייח", en: "Foal", img: "/words/junior/foal.webp" },
+  { word: "חסידה", en: "Stork", img: "/words/junior/stork.webp" },
+  { word: "עורב", en: "Crow", img: "/words/junior/crow.webp" },
+  { word: "ברוקולי", en: "Broccoli", img: "/words/junior/broccoli.webp" },
+  { word: "שום", en: "Garlic", img: "/words/junior/garlic.webp" },
+  { word: "אפונה", en: "Peas", img: "/words/junior/peas.webp" },
+  { word: "כרוב", en: "Cabbage", img: "/words/junior/cabbage.webp" },
+  { word: "תרד", en: "Spinach", img: "/words/junior/spinach.webp" },
+  { word: "אספרגוס", en: "Asparagus", img: "/words/junior/asparagus.webp" },
+  { word: "אוכמניות", en: "Blueberry", img: "/words/junior/blueberry.webp" },
+  { word: "פטל שחור", en: "Blackberry", img: "/words/junior/blackberry.webp" },
+  { word: "תאנה", en: "Fig", img: "/words/junior/fig.webp" },
+  { word: "בייגלה", en: "Pretzel", img: "/words/junior/pretzel.webp" },
+  { word: "חביתה", en: "Omelet", img: "/words/junior/omelet.webp" },
+  { word: "טוסט", en: "Toast", img: "/words/junior/toast.webp" },
+  { word: "עט", en: "Pen", img: "/words/junior/pen.webp" },
+  { word: "ביצת עין", en: "Eye Egg", img: "/words/junior/eye_egg.webp" },
+  { word: "קנקן תה", en: "Teapot", img: "/words/junior/teapot.webp" },
+  { word: "מאפרה", en: "Ashtray", img: "/words/junior/ashtray.webp" },
+  { word: "צנצנת ממתקים", en: "Candy Jar", img: "/words/junior/candy_jar.webp" },
+  { word: "מייבש כביסה", en: "Dryer", img: "/words/junior/dryer.webp" },
+  { word: "קולב", en: "Hanger", img: "/words/junior/hanger.webp" },
+  { word: "מגירות", en: "Drawers", img: "/words/junior/drawers.webp" },
+  { word: "ברז", en: "Faucet", img: "/words/junior/faucet.webp" },
+  { word: "וילון", en: "Curtain", img: "/words/junior/curtain.webp" },
+  { word: "אגרטל", en: "Vase", img: "/words/junior/vase.webp" },
+  { word: "מסגרת תמונה", en: "Picture Frame", img: "/words/junior/picture_frame.webp" },
+  { word: "מסמר", en: "Nail", img: "/words/junior/nail.webp" },
+  { word: "בורג", en: "Screw", img: "/words/junior/screw.webp" },
+  { word: "דבק", en: "Glue", img: "/words/junior/glue.webp" },
+  { word: "גלגל ענק", en: "Ferris Wheel", img: "/words/junior/ferris_wheel.webp" },
+  { word: "תכשיטים", en: "Jewelry", img: "/words/junior/jewelry.webp" },
+  { word: "פאזל", en: "Puzzle", img: "/words/junior/puzzle.webp" },
+  { word: "פלפל", en: "Pepper", img: "/words/junior/pepper.webp" },
+  { word: "יאכטה", en: "Yacht", img: "/words/junior/yacht.webp" },
+  { word: "כביש", en: "Road", img: "/words/junior/road.webp" }
 ];
