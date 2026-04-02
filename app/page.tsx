@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useGameState } from "./lib/useGameState";
 import { getInitialShuffledPools } from "./lib/game-utils";
-import RulesStep from "./components/RulesStep"; // יבוא חדש
+import RulesStep from "./components/RulesStep"; 
 import EntryStep from "./components/EntryStep";
 import SetupStep from "./components/SetupStep";
 import CountdownStep from "./components/CountdownStep";
@@ -50,8 +50,11 @@ export default function FamilyAliasApp() {
 
     const interval = setInterval(() => {
       if (step === 4) {
-        if (roomData.preGameTimer > 0) updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
-        else updateRoom({ step: 5, timeLeft: 60, roundScore: 0 });
+        if (roomData.preGameTimer > 0) {
+          updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
+        } else {
+          updateRoom({ step: 5, timeLeft: 60, roundScore: 0 });
+        }
       } else if (step === 5) {
         if (roomData.timeLeft > 0) {
           updateRoom({ timeLeft: roomData.timeLeft - 1 });
@@ -89,7 +92,11 @@ export default function FamilyAliasApp() {
         const teamName = roomData.teamNames[currentP.teamIdx];
         newScores[teamName] = (newScores[teamName] || 0) - 1;
       }
-      updateRoom({ roundScore: (roomData.roundScore || 0) - 1, poolIndices: newIndices, totalScores: newScores });
+      updateRoom({ 
+        roundScore: (roomData.roundScore || 0) - 1, 
+        poolIndices: newIndices, 
+        totalScores: newScores 
+      });
     } else {
       newScores[targetName] = (newScores[targetName] || 0) + points;
       if (roomData.gameMode === "individual") {
@@ -100,8 +107,21 @@ export default function FamilyAliasApp() {
         if (newScores[targetName] >= 50) winnerFound = targetName;
       }
       
-      if (winnerFound) updateRoom({ roundScore: (roomData.roundScore || 0) + points, poolIndices: newIndices, totalScores: newScores, step: 7, winner: winnerFound });
-      else updateRoom({ roundScore: (roomData.roundScore || 0) + points, poolIndices: newIndices, totalScores: newScores });
+      if (winnerFound) {
+        updateRoom({ 
+          roundScore: (roomData.roundScore || 0) + points, 
+          poolIndices: newIndices, 
+          totalScores: newScores, 
+          step: 7, 
+          winner: winnerFound 
+        });
+      } else {
+        updateRoom({ 
+          roundScore: (roomData.roundScore || 0) + points, 
+          poolIndices: newIndices, 
+          totalScores: newScores 
+        });
+      }
     }
   };
 
@@ -110,7 +130,14 @@ export default function FamilyAliasApp() {
     : [roomData?.teamNames[currentP?.teamIdx]];
 
   return (
-    <div style={{ backgroundColor: '#05081c', minHeight: '100dvh', color: 'white', direction: 'rtl', overscrollBehavior: 'none' }}>
+    <div style={{ 
+      backgroundColor: '#05081c', 
+      height: '100dvh', // נעילה של הגובה כדי למנוע גלילה
+      color: 'white', 
+      direction: 'rtl', 
+      overscrollBehavior: 'none',
+      overflow: 'hidden' // מונע בריחה של אלמנטים
+    }}>
       {/* שלב 0 - חוקים */}
       {step === 0 && <RulesStep onStart={() => setStep(1)} />}
 
@@ -145,8 +172,11 @@ export default function FamilyAliasApp() {
             const nextScore = Number(roomData.totalScores[roomData.gameMode === 'team' ? roomData.teamNames[nextP.teamIdx] : nextP.name] || 0);
             const boomScores = [7, 14, 21, 28, 35, 42, 49];
             
-            if (roomData.gameMode === 'team' && boomScores.includes(nextScore)) updateRoom({ step: 8, currentTurnIdx: nextIdx, roundScore: 0 });
-            else updateRoom({ step: 4, currentTurnIdx: nextIdx, preGameTimer: 3, roundScore: 0 });
+            if (roomData.gameMode === 'team' && boomScores.includes(nextScore)) {
+              updateRoom({ step: 8, currentTurnIdx: nextIdx, roundScore: 0 });
+            } else {
+              updateRoom({ step: 4, currentTurnIdx: nextIdx, preGameTimer: 3, roundScore: 0 });
+            }
           }} 
         />
       )}
