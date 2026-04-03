@@ -5,51 +5,48 @@ export default function RulesStep({ onStart }: { onStart: () => void }) {
   return (
     <div style={s.layout}>
       <div style={s.container}>
-        <h1 style={s.title}>איך משחקים? 🏆</h1>
+        <h1 style={{ ...s.title, fontSize: '1.8rem', marginBottom: '15px' }}>איך משחקים? 🏆</h1>
         
-        <div style={s.scrollArea}>
-          <section style={s.section}>
-            <h2 style={s.subTitle}>💡 המטרה</h2>
-            <p style={s.text}>לתאר לחברים או לקבוצה כמה שיותר מילים לפני שהזמן נגמר. הראשון (או הקבוצה הראשונה) שמגיע ל-50 נקודות מנצח!</p>
+        <div style={{ ...s.scrollArea, overflowY: 'hidden' }}>
+          <section style={{ ...s.section, marginBottom: '15px', paddingBottom: '10px' }}>
+            <h2 style={{ ...s.subTitle, fontSize: '1.1rem' }}>1. התחברות</h2>
+            <p style={s.text}>פותחים חדר חדש ושולחים את הקוד לחברים, או מצטרפים לחדר קיים בעזרת קוד או קישור.</p>
           </section>
 
-          <section style={s.section}>
-            <h2 style={s.subTitle}>✨ הקסם: התאמת גיל</h2>
-            <p style={s.text}>המשחק חכם! הוא מזהה מי השחקן שמתאר כרגע ומתאים לו את המילים:</p>
-            <ul style={s.list}>
-              <li>👶 <b>ילדים (עד גיל 6):</b> מילים פשוטות עם תמונות.</li>
-              <li>👦 <b>צעירים (7-12):</b> מילים יומיומיות קלות.</li>
-              <li>🧑 <b>נוער ומבוגרים:</b> מושגים מופשטים ומאתגרים.</li>
-            </ul>
+          <section style={{ ...s.section, marginBottom: '15px', paddingBottom: '10px' }}>
+            <h2 style={{ ...s.subTitle, fontSize: '1.1rem' }}>2. הגדרות החדר</h2>
+            <p style={s.text}>בדף החדר תגדירו את סוג המשחק: <b>יחידים</b> או <b>קבוצות</b> ומי יהיה בכל קבוצה. ברמה הקלה תקבלו מילים עם תמונות שכל ילד בן 5 מכיר.</p>
           </section>
 
-          <section style={s.section}>
-            <h2 style={s.subTitle}>📊 ניקוד</h2>
-            <p style={s.text}>• <b>ניחוש נכון:</b> נקודה אחת פלוס (+1).</p>
-            <p style={s.text}>• <b>דילוג:</b> נקודה אחת פחות (-1). אל תדלגו בקלות!</p>
-            <p style={s.text}>• <b>ביחידים:</b> גם המתאר וגם המנחש מקבלים נקודה.</p>
+          <section style={{ ...s.section, borderBottom: 'none', marginBottom: '10px' }}>
+            <h2 style={{ ...s.subTitle, fontSize: '1.1rem' }}>3. מהלך המשחק והניקוד</h2>
+            <p style={s.text}>
+              בכל תור (דקה אחת) תקבל מילה שעליך לתאר <b>בלי להשתמש בשורש המילה או בשפה אחרת.</b>
+            </p>
+            <p style={{ ...s.text, marginTop: '8px' }}>
+              • <b>ניחשו נכון?</b> לחץ על שם השחקן/הקבוצה לניקוד (+1).<br/>
+              • <b>קשה מדי?</b> לחיצה על "דלג" תחליף מילה ותוריד נקודה (-1).
+            </p>
           </section>
 
-          <section style={s.section}>
-            <h2 style={s.subTitle}>💣 7 בום!</h2>
-            <p style={s.text}>כשהניקוד מגיע לכפולה של 7, נכנסים לסבב בונוס! אין טיימר, מתארים 7 מילים ברצף, וכל ניחוש שווה <b>2 נקודות</b>. זהירות - כולם יכולים לגנוב לכם את הנקודות!</p>
-          </section>
+          <div style={{ textAlign: 'center', color: '#ffd700', fontWeight: '900', fontSize: '1.1rem', marginTop: '5px' }}>
+            הראשון שמגיע ל-50 נקודות מנצח!
+          </div>
         </div>
 
-        <button onClick={onStart} style={s.button}>הבנתי, בואו נתחיל!</button>
+        <button onClick={onStart} style={{ ...s.button, height: '50px', marginTop: '10px' }}>הבנתי, בואו נתחיל!</button>
       </div>
     </div>
   );
 }
 
 const s: any = {
-  layout: { display: 'flex', flexDirection: 'column', height: '100dvh', backgroundColor: '#05081c', color: 'white', padding: '20px', direction: 'rtl', alignItems: 'center', justifyContent: 'center' },
-  container: { width: '100%', maxWidth: '500px', height: '90%', backgroundColor: '#1a1d2e', borderRadius: '30px', padding: '25px', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid rgba(255, 215, 0, 0.2)' },
-  title: { color: '#ffd700', fontSize: '2.2rem', textAlign: 'center', marginBottom: '20px', fontWeight: '900' },
-  scrollArea: { flex: 1, overflowY: 'auto', paddingLeft: '10px', marginBottom: '20px', scrollbarWidth: 'none' },
-  section: { marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '15px' },
-  subTitle: { color: '#ffd700', fontSize: '1.3rem', marginBottom: '8px', fontWeight: '700' },
-  text: { fontSize: '1rem', lineHeight: '1.5', opacity: 0.9 },
-  list: { marginTop: '10px', paddingRight: '20px', listStyleType: 'none', fontSize: '0.95rem' },
-  button: { width: '100%', height: '60px', backgroundColor: '#ffd700', color: '#05081c', border: 'none', borderRadius: '15px', fontSize: '1.3rem', fontWeight: '900', cursor: 'pointer' }
+  layout: { display: 'flex', flexDirection: 'column', height: '100dvh', backgroundColor: '#05081c', color: 'white', padding: '15px', direction: 'rtl', alignItems: 'center', justifyContent: 'center' },
+  container: { width: '100%', maxWidth: '450px', height: 'auto', maxHeight: '95%', backgroundColor: '#1a1d2e', borderRadius: '30px', padding: '20px', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', border: '1px solid rgba(255, 215, 0, 0.2)' },
+  title: { color: '#ffd700', textAlign: 'center', fontWeight: '900' },
+  scrollArea: { flex: 1, marginBottom: '10px' },
+  section: { borderBottom: '1px solid rgba(255,255,255,0.1)' },
+  subTitle: { color: '#ffd700', marginBottom: '5px', fontWeight: '700' },
+  text: { fontSize: '0.95rem', lineHeight: '1.4', opacity: 0.9 },
+  button: { width: '100%', backgroundColor: '#ffd700', color: '#05081c', border: 'none', borderRadius: '15px', fontSize: '1.2rem', fontWeight: '900', cursor: 'pointer' }
 };
