@@ -1,18 +1,16 @@
 import { WordItem } from "../../game.config";
 
 export const JUNIOR_WORDS: WordItem[] = [
-  // --- המאגר הקיים (236 מילים) ---
+  // --- המאגר הקיים ---
   { word: "מזגן", en: "Air Conditioner", img: "/words/junior/air_conditioner.webp" },
   { word: "מטוס", en: "Airplane", img: "/words/junior/airplane.webp" },
   { word: "שעון מעורר", en: "Alarm Clock", img: "/words/junior/alarm_clock.webp" },
-  
   { word: "פוטבול אמריקאי", en: "American Football", img: "/words/junior/american_football.webp" },
   { word: "נמלה", en: "Ant", img: "/words/junior/ant.webp" },
   { word: "בניין מגורים", en: "Apartment Building", img: "/words/junior/apartment_building.webp" },
   { word: "תפוח", en: "Apple", img: "/words/junior/apple.webp" },
   { word: "קשתות", en: "Archery", img: "/words/junior/archery.webp" },
   { word: "אסטרונאוט", en: "Astronaut", img: "/words/junior/astronaut.webp" },
-  
   { word: "בייגל", en: "Bagel", img: "/words/junior/bagel.webp" },
   { word: "בלט", en: "Ballet", img: "/words/junior/ballet.webp" },
   { word: "בננה", en: "Banana", img: "/words/junior/banana.webp" },
@@ -25,7 +23,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "אופניים", en: "Bicycle", img: "/words/junior/bicycle.webp" },
   { word: "לוח", en: "Board", img: "/words/junior/board.webp" },
   { word: "סירה", en: "Boat", img: "/words/junior/boat.webp" },
-  { word: "מדף ספרים", en: "Bookshelf", img: "/words/junior/books shelf.webp" },
+  { word: "מדף ספרים", en: "Bookshelf", img: "/words/junior/books_shelf.webp" },
   { word: "מגפיים", en: "Boots", img: "/words/junior/boots.webp" },
   { word: "עניבת פרפר", en: "Bow Tie", img: "/words/junior/bow_tie.webp" },
   { word: "באולינג", en: "Bowling", img: "/words/junior/bowling.webp" },
@@ -98,7 +96,6 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "קיפוד", en: "Hedgehog", img: "/words/junior/hedgehog.webp" },
   { word: "מסוק", en: "Helicopter", img: "/words/junior/helicopter.webp" },
   { word: "מרקר", en: "Highlighter", img: "/words/junior/highlighter.webp" },
-  
   { word: "היפופוטם", en: "Hippopotamus", img: "/words/junior/hippopotamus.webp" },
   { word: "הוקי", en: "Hockey", img: "/words/junior/hockey.webp" },
   { word: "דבש", en: "Honey", img: "/words/junior/honey.webp" },
@@ -232,14 +229,11 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "זאב", en: "Wolf", img: "/words/junior/wolf.webp" },
   { word: "שעון יד", en: "Wristwatch", img: "/words/junior/wristwatch.webp" },
   { word: "יוגה", en: "Yoga", img: "/words/junior/yoga.webp" },
-  
   { word: "יוגורט", en: "Yogurt", img: "/words/junior/yogurt.webp" },
   { word: "זברה", en: "Zebra", img: "/words/junior/zebra.webp" },
   { word: "גן חיות", en: "Zoo", img: "/words/junior/zoo.webp" },
-  
-  
 
-  // --- המילים החדשות (43 מילים) ---
+  // --- המילים החדשות (43 מילים קודמות) ---
   { word: "צרצר", en: "Cricket", img: "/words/junior/cricket.webp" },
   { word: "בונה", en: "Beaver", img: "/words/junior/beaver.webp" },
   { word: "בואש", en: "Skunk", img: "/words/junior/skunk.webp" },
@@ -282,5 +276,39 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "פאזל", en: "Puzzle", img: "/words/junior/puzzle.webp" },
   { word: "פלפל", en: "Pepper", img: "/words/junior/pepper.webp" },
   { word: "יאכטה", en: "Yacht", img: "/words/junior/yacht.webp" },
-  { word: "כביש", en: "Road", img: "/words/junior/road.webp" }
+  { word: "כביש", en: "Road", img: "/words/junior/road.webp" },
+
+  // --- המילים החדשות (עברו לתיקייה הראשית של junior) ---
+  { word: "שינה", en: "Sleep", img: "/words/junior/sleep.webp" },
+  { word: "מיטה", en: "Bed", img: "/words/junior/bed.webp" },
+  { word: "שולחן פיקניק", en: "Picnic Bench", img: "/words/junior/picnic_bench.webp" },
+  { word: "ויטרינה", en: "Showcase", img: "/words/junior/showcase.webp" },
+  { word: "אח", en: "Fireplace", img: "/words/junior/fire_place.webp" },
+  { word: "מכונת כביסה", en: "Washing Machine", img: "/words/junior/laundry_machine.webp" },
+  { word: "מטבח", en: "Kitchen", img: "/words/junior/Kitchen.webp" },
+  { word: "קוביה הונגרית", en: "Hungarian Cube", img: "/words/junior/Hungarian_cube.webp" },
+  { word: "ערסל", en: "Hammock", img: "/words/junior/hammock.webp" },
+  { word: "שולחן ביליארד", en: "Pool Table", img: "/words/junior/Pool_table.webp" },
+  { word: "מצעים", en: "Bedding", img: "/words/junior/bedding.webp" },
+  { word: "מחשב נייד", en: "Laptop", img: "/words/junior/Laptop.webp" },
+  { word: "ספסל", en: "Bench", img: "/words/junior/bench.webp" },
+  { word: "חדר ארונות", en: "Walk-in Closet", img: "/words/junior/closet_room.webp" },
+  { word: "שרשרת", en: "Necklace", img: "/words/junior/Necklace.webp" },
+  { word: "טבעת יהלום", en: "Diamond Ring", img: "/words/junior/diamond_ring.webp" },
+  { word: "תליון", en: "Pendant", img: "/words/junior/pendant.webp" },
+  { word: "צמיד", en: "Bracelet", img: "/words/junior/bracelet.webp" },
+  { word: "שעון חכם", en: "Smart Watch", img: "/words/junior/smart_watch.webp" },
+  { word: "גומיות", en: "Rubber Bands", img: "/words/junior/rubber_bands.webp" },
+  { word: "סיכות ראש", en: "Hair Pins", img: "/words/junior/hair_pins.webp" },
+  { word: "מאוורר", en: "Fan", img: "/words/junior/fan.webp" },
+  { word: "כובע צמר", en: "Wool Hat", img: "/words/junior/wool_hat.webp" },
+  { word: "כפפות", en: "Gloves", img: "/words/junior/gloves.webp" },
+  { word: "רקדן", en: "Dancer", img: "/words/junior/dancer.webp" },
+  { word: "מפצח אגוזים", en: "Nutcracker", img: "/words/junior/nutcracker.webp" },
+  { word: "טבח", en: "Cook", img: "/words/junior/cook.webp" },
+  { word: "קיר טיפוס", en: "Climbing Wall", img: "/words/junior/climbing_wall.webp" },
+  { word: "סנדלים", en: "Sandals", img: "/words/junior/sandals.webp" },
+  { word: "גלשן", en: "Surfboard", img: "/words/junior/surfboard.webp" },
+  { word: "חולצת טי", en: "T-Shirt", img: "/words/junior/T_shirt.webp" },
+  { word: "כפפת שוער", en: "Goalkeeper Glove", img: "/words/junior/goalkeeper_glove.webp" }
 ];
