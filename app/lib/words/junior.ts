@@ -98,7 +98,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "קיפוד", en: "Hedgehog", img: "/words/junior/hedgehog.webp" },
   { word: "מסוק", en: "Helicopter", img: "/words/junior/helicopter.webp" },
   { word: "מרקר", en: "Highlighter", img: "/words/junior/highlighter.webp" },
-  { word: "היפו", en: "Hippo", img: "/words/junior/hippo.webp" },
+  
   { word: "היפופוטם", en: "Hippopotamus", img: "/words/junior/hippopotamus.webp" },
   { word: "הוקי", en: "Hockey", img: "/words/junior/hockey.webp" },
   { word: "דבש", en: "Honey", img: "/words/junior/honey.webp" },
@@ -267,7 +267,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "קנקן תה", en: "Teapot", img: "/words/junior/teapot.webp" },
   { word: "מאפרה", en: "Ashtray", img: "/words/junior/ashtray.webp" },
   { word: "צנצנת ממתקים", en: "Candy Jar", img: "/words/junior/candy_jar.webp" },
-  { word: "מייבש כביסה", en: "Dryer", img: "/words/junior/dryer.webp" },
+  { word: "מייבש שיער", en: "Dryer", img: "/words/junior/dryer.webp" },
   { word: "קולב", en: "Hanger", img: "/words/junior/hanger.webp" },
   { word: "מגירות", en: "Drawers", img: "/words/junior/drawers.webp" },
   { word: "ברז", en: "Faucet", img: "/words/junior/faucet.webp" },
