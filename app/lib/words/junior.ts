@@ -5,7 +5,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "מזגן", en: "Air Conditioner", img: "/words/junior/air_conditioner.webp" },
   { word: "מטוס", en: "Airplane", img: "/words/junior/airplane.webp" },
   { word: "שעון מעורר", en: "Alarm Clock", img: "/words/junior/alarm_clock.webp" },
-  { word: "אמבולנס", en: "Ambulance", img: "/words/junior/ambulance.webp" },
+  
   { word: "פוטבול אמריקאי", en: "American Football", img: "/words/junior/american_football.webp" },
   { word: "נמלה", en: "Ant", img: "/words/junior/ant.webp" },
   { word: "בניין מגורים", en: "Apartment Building", img: "/words/junior/apartment_building.webp" },
@@ -191,7 +191,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "חללית", en: "Spaceship", img: "/words/junior/spaceship.webp" },
   { word: "סנאי", en: "Squirrel", img: "/words/junior/squirrel.webp" },
   { word: "אצטדיון", en: "Stadium", img: "/words/junior/stadium.webp" },
-  { word: "בול", en: "Stamp", img: "/words/junior/stamp.webp" },
+  { word: "חותמת", en: "Stamp", img: "/words/junior/stamp.webp" },
   { word: "מהדק", en: "Stapler", img: "/words/junior/stapler.webp" },
   { word: "כוכב ים", en: "Starfish", img: "/words/junior/starfish.webp" },
   { word: "סטייק", en: "Steak", img: "/words/junior/steak.webp" },
@@ -232,7 +232,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "זאב", en: "Wolf", img: "/words/junior/wolf.webp" },
   { word: "שעון יד", en: "Wristwatch", img: "/words/junior/wristwatch.webp" },
   { word: "יוגה", en: "Yoga", img: "/words/junior/yoga.webp" },
-  { word: "יויו", en: "Yoyo", img: "/words/junior/yoyo.webp" },
+  
   { word: "יוגורט", en: "Yogurt", img: "/words/junior/yogurt.webp" },
   { word: "זברה", en: "Zebra", img: "/words/junior/zebra.webp" },
   { word: "גן חיות", en: "Zoo", img: "/words/junior/zoo.webp" },

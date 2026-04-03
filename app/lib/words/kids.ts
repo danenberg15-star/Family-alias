@@ -153,7 +153,7 @@ export const KIDS_WORDS: WordItem[] = [
   { word: "בּוֹטֶן", en: "Peanut", img: "/words/kids/peanut.webp" },
   { word: "קוֹקוֹס", en: "Coconut", img: "/words/kids/coconut.webp" },
   { word: "מָרָק", en: "Soup", img: "/words/kids/soup.webp" },
-  { word: "סֻכָּרִיָּה עַל מַקֵּל", en: "Lollipop", img: "/words/kids/lollipop.webp" },
+  { word: "ארטיק", en: "Lollipop", img: "/words/kids/lollipop.webp" },
   { word: "עוּגָה", en: "Cake", img: "/words/kids/cake.webp" },
   { word: "עוּגִיּוֹת", en: "Cookies", img: "/words/kids/cookies.webp" },
   { word: "הַמְבּוּרְגֶּר", en: "Burger", img: "/words/kids/burger.webp" },
