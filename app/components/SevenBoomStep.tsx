@@ -36,8 +36,8 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
     const pool = roomData.shuffledPools?.[key] || [];
     const index = idxs[key] || 0;
     
-    // לוגיקה: רק גילאים עד 12 רואים תמונה (showImage)
-    const showImage = age <= 12;
+    // תיקון לוגיקה: כולם רואים תמונה ברמה קלה, אחרת רק עד גיל 12
+    const showImage = age <= 12 || difficulty === "easy";
 
     return { 
       ...(pool[index % (pool.length || 1)] || { word: "טוען...", en: "" }), 

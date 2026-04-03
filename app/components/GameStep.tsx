@@ -23,7 +23,6 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     
     let key: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
 
-    // לוגיקה מסונכרנת לבחירת המאגר
     if (difficulty === "easy") {
       key = (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
     } else if (age <= 6) {
@@ -45,8 +44,8 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     const pool = roomData.shuffledPools?.[key] || [];
     const index = idxs[key] || 0;
     
-    // שינוי לוגיקה: רק מי שגילו 12 ומטה רואה תמונה
-    const showImage = age <= 12;
+    // תיקון לוגיקה: כולם רואים תמונה ברמה קלה, אחרת רק עד גיל 12
+    const showImage = age <= 12 || difficulty === "easy";
     
     return { 
       ...(pool[index % (pool.length || 1)] || { word: "טוען...", en: "" }), 
