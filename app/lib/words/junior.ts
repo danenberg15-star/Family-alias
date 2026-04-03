@@ -12,7 +12,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "תפוח", en: "Apple", img: "/words/junior/apple.webp" },
   { word: "קשתות", en: "Archery", img: "/words/junior/archery.webp" },
   { word: "אסטרונאוט", en: "Astronaut", img: "/words/junior/astronaut.webp" },
-  { word: "גרזן", en: "Axe", img: "/words/junior/axe.webp" },
+  
   { word: "בייגל", en: "Bagel", img: "/words/junior/bagel.webp" },
   { word: "בלט", en: "Ballet", img: "/words/junior/ballet.webp" },
   { word: "בננה", en: "Banana", img: "/words/junior/banana.webp" },
@@ -237,7 +237,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "זברה", en: "Zebra", img: "/words/junior/zebra.webp" },
   { word: "גן חיות", en: "Zoo", img: "/words/junior/zoo.webp" },
   { word: "רוכסן", en: "Zipper", img: "/words/junior/zipper.webp" },
-  { word: "קישוא", en: "Zucchini", img: "/words/junior/zucchini.webp" },
+  
 
   // --- המילים החדשות (43 מילים) ---
   { word: "צרצר", en: "Cricket", img: "/words/junior/cricket.webp" },
@@ -274,7 +274,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "וילון", en: "Curtain", img: "/words/junior/curtain.webp" },
   { word: "אגרטל", en: "Vase", img: "/words/junior/vase.webp" },
   { word: "מסגרת תמונה", en: "Picture Frame", img: "/words/junior/picture_frame.webp" },
-  { word: "מסמר", en: "Nail", img: "/words/junior/nail.webp" },
+  { word: "ציפורניים", en: "Nail", img: "/words/junior/nails.webp" },
   { word: "בורג", en: "Screw", img: "/words/junior/screw.webp" },
   { word: "דבק", en: "Glue", img: "/words/junior/glue.webp" },
   { word: "גלגל ענק", en: "Ferris Wheel", img: "/words/junior/ferris_wheel.webp" },
