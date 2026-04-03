@@ -168,7 +168,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "קרנף קטן", en: "Rhino", img: "/words/junior/rhino.webp" },
   { word: "טבעת", en: "Ring", img: "/words/junior/ring.webp" },
   { word: "עוף צלוי", en: "Roast Chicken", img: "/words/junior/roast_chicken.webp" },
-  { word: "רקטה", en: "Rocket", img: "/words/junior/rocket.webp" },
+  { word: "חללית", en: "Rocket", img: "/words/junior/rocket.webp" },
   { word: "גלגיליות", en: "Rollerblades", img: "/words/junior/rollerblades.webp" },
   { word: "נעל ריצה", en: "Running Shoe", img: "/words/junior/running_shoe.webp" },
   { word: "סלט", en: "Salad", img: "/words/junior/salad.webp" },
