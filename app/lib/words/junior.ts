@@ -94,7 +94,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "פטיש", en: "Hammer", img: "/words/junior/hammer.webp" },
   { word: "יד", en: "Hand", img: "/words/junior/hand.webp" },
   { word: "תיק יד", en: "Handbag", img: "/words/junior/handbag.webp" },
-  { word: "נבל", en: "Harp", img: "/words/junior/harp.webp" },
+  { word: "מפוחית", en: "Harp", img: "/words/junior/harp.webp" },
   { word: "קיפוד", en: "Hedgehog", img: "/words/junior/hedgehog.webp" },
   { word: "מסוק", en: "Helicopter", img: "/words/junior/helicopter.webp" },
   { word: "מרקר", en: "Highlighter", img: "/words/junior/highlighter.webp" },
@@ -236,7 +236,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "יוגורט", en: "Yogurt", img: "/words/junior/yogurt.webp" },
   { word: "זברה", en: "Zebra", img: "/words/junior/zebra.webp" },
   { word: "גן חיות", en: "Zoo", img: "/words/junior/zoo.webp" },
-  { word: "רוכסן", en: "Zipper", img: "/words/junior/zipper.webp" },
+  
   
 
   // --- המילים החדשות (43 מילים) ---
