@@ -25,7 +25,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "אופניים", en: "Bicycle", img: "/words/junior/bicycle.webp" },
   { word: "לוח", en: "Board", img: "/words/junior/board.webp" },
   { word: "סירה", en: "Boat", img: "/words/junior/boat.webp" },
-  { word: "מדף ספרים", en: "Bookshelf", img: "/words/junior/bookshelf.webp" },
+  { word: "מדף ספרים", en: "Bookshelf", img: "/words/junior/books shelf.webp" },
   { word: "מגפיים", en: "Boots", img: "/words/junior/boots.webp" },
   { word: "עניבת פרפר", en: "Bow Tie", img: "/words/junior/bow_tie.webp" },
   { word: "באולינג", en: "Bowling", img: "/words/junior/bowling.webp" },
