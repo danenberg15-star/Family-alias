@@ -111,7 +111,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "מגהץ", en: "Iron", img: "/words/junior/iron.webp" },
   { word: "מדוזה", en: "Jellyfish", img: "/words/junior/jellyfish.webp" },
   { word: "מטוס סילון", en: "Jet", img: "/words/junior/jet.webp" },
-  { word: "קפיצה", en: "Jump", img: "/words/junior/jump.webp" },
+  
   { word: "קנגורו", en: "Kangaroo", img: "/words/junior/kangaroo.webp" },
   { word: "קראטה", en: "Karate", img: "/words/junior/karate.webp" },
   { word: "קומקום", en: "Kettle", img: "/words/junior/kettle.webp" },
@@ -173,7 +173,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "עקרב", en: "Scorpion", img: "/words/junior/scorpion.webp" },
   { word: "פסל", en: "Sculptor", img: "/words/junior/sculptor.webp" },
   { word: "ים", en: "Sea", img: "/words/junior/sea.webp" },
-  { word: "כלב ים", en: "Seal", img: "/words/junior/seal.webp" },
+  
   { word: "כריש", en: "Shark", img: "/words/junior/shark.webp" },
   { word: "ספינה", en: "Ship", img: "/words/junior/ship.webp" },
   { word: "זמר", en: "Singer", img: "/words/junior/singer.webp" },
