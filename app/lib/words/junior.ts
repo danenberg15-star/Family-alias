@@ -300,7 +300,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "שעון חכם", en: "Smart Watch", img: "/words/junior/smart_watch.webp" },
   { word: "גומיות", en: "Rubber Bands", img: "/words/junior/rubber_bands.webp" },
   { word: "סיכות ראש", en: "Hair Pins", img: "/words/junior/hair_pins.webp" },
-  { word: "מאוורר", en: "Fan", img: "/words/junior/fan.webp" },
+  { word: "מניפה", en: "Fan", img: "/words/junior/fan.webp" },
   { word: "כובע צמר", en: "Wool Hat", img: "/words/junior/wool_hat.webp" },
   { word: "כפפות", en: "Gloves", img: "/words/junior/gloves.webp" },
   { word: "רקדן", en: "Dancer", img: "/words/junior/dancer.webp" },
