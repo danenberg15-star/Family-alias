@@ -54,7 +54,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "מנוף", en: "Crane", img: "/words/junior/crane.webp" },
   { word: "תנין", en: "Crocodile", img: "/words/junior/crocodile.webp" },
   { word: "רכיבה על אופניים", en: "Cycling", img: "/words/junior/cycling.webp" },
-  { word: "רקדן", en: "Dancer", img: "/words/junior/dancer.webp" },
+  { word: "רקדנית", en: "Dancer", img: "/words/junior/dancer.webp" },
   { word: "אייל", en: "Deer", img: "/words/junior/deer.webp" },
   { word: "רופא שיניים", en: "Dentist", img: "/words/junior/dentist.webp" },
   { word: "מדבר", en: "Desert", img: "/words/junior/desert.webp" },
@@ -229,7 +229,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "זאב", en: "Wolf", img: "/words/junior/wolf.webp" },
   { word: "שעון יד", en: "Wristwatch", img: "/words/junior/wristwatch.webp" },
   { word: "יוגה", en: "Yoga", img: "/words/junior/yoga.webp" },
-  { word: "יוגורט", en: "Yogurt", img: "/words/junior/yogurt.webp" },
+  
   
   
 
