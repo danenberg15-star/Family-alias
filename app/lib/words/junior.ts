@@ -184,7 +184,7 @@ export const JUNIOR_WORDS: WordItem[] = [
   { word: "נחש", en: "Snake", img: "/words/junior/snake.webp" },
   { word: "כדורגל", en: "Soccer", img: "/words/junior/soccer.webp" },
   { word: "מרק", en: "Soup", img: "/words/junior/soup.webp" },
-  { word: "מעבורת חלל", en: "Space Shuttle", img: "/words/junior/space_shuttle.webp" },
+  { word: "משגר רקטות", en: "Space Shuttle", img: "/words/junior/space_shuttle.webp" },
   { word: "חללית", en: "Spaceship", img: "/words/junior/spaceship.webp" },
   { word: "סנאי", en: "Squirrel", img: "/words/junior/squirrel.webp" },
   { word: "אצטדיון", en: "Stadium", img: "/words/junior/stadium.webp" },
