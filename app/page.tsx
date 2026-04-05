@@ -132,13 +132,12 @@ export default function FamilyAliasApp() {
   return (
     <div style={{ 
       backgroundColor: '#05081c', 
-      height: '100dvh', // נעילה של הגובה כדי למנוע גלילה
+      height: '100dvh', 
       color: 'white', 
       direction: 'rtl', 
       overscrollBehavior: 'none',
-      overflow: 'hidden' // מונע בריחה של אלמנטים
+      overflow: 'hidden' 
     }}>
-      {/* שלב 0 - חוקים */}
       {step === 0 && <RulesStep onStart={() => setStep(1)} />}
 
       {step === 1 && <EntryStep onJoin={handleJoinRoom} onCreate={handleCreateRoom} onSetName={setUserName} onSetAge={setUserAge} />}
@@ -167,7 +166,18 @@ export default function FamilyAliasApp() {
         <ScoreStep 
           scores={roomData.totalScores} entities={roomData.gameMode === 'individual' ? roomData.players.map((p: any) => p.name) : roomData.teamNames.slice(0, roomData.numTeams)} 
           onNextRound={() => {
-            const nextIdx = (roomData.currentTurnIdx + 1) % roomData.players.length;
+            // לוגיקה לסיבוב הוגן: קודם מחליפים קבוצה, ורק אז שחקן
+            let nextIdx = (roomData.currentTurnIdx + 1) % roomData.players.length;
+            
+            if (roomData.gameMode === 'team') {
+              const currentTeamIdx = roomData.players[roomData.currentTurnIdx].teamIdx;
+              // חיפוש השחקן הבא ברשימה שאינו משתייך לקבוצה הנוכחית
+              while (roomData.players[nextIdx].teamIdx === currentTeamIdx) {
+                nextIdx = (nextIdx + 1) % roomData.players.length;
+                if (nextIdx === roomData.currentTurnIdx) break; // הגנה מפני לולאה אינסופית
+              }
+            }
+
             const nextP = roomData.players[nextIdx];
             const nextScore = Number(roomData.totalScores[roomData.gameMode === 'team' ? roomData.teamNames[nextP.teamIdx] : nextP.name] || 0);
             const boomScores = [7, 14, 21, 28, 35, 42, 49];
