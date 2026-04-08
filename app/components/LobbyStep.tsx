@@ -27,7 +27,13 @@ export default function LobbyStep({ onCreateRoom, onJoinRoom }: LobbyStepProps) 
         <div style={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
             <h2 style={{ color: 'white', textAlign: 'center' }}>מה קוד החדר?</h2>
-            <input type="text" value={inputCode} onChange={(e) => setInputCode(e.target.value)} style={styles.entryInput} autoFocus />
+            <input 
+              type="text" 
+              value={inputCode} 
+              onChange={(e) => setInputCode(e.target.value)} 
+              style={{ ...styles.entryInput, userSelect: 'text', WebkitUserSelect: 'text' }} 
+              autoFocus 
+            />
             <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
               <button onClick={() => onJoinRoom(inputCode.toUpperCase())} style={styles.lobbyButton}>כנס</button>
               <button onClick={() => setIsModalOpen(false)} style={{ ...styles.lobbyButton, background: 'rgba(255,255,255,0.1)', color: 'white' }}>ביטול</button>

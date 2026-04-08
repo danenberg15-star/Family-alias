@@ -36,7 +36,9 @@ const localStyles: { [key: string]: CSSProperties } = {
     width: '100%', height: '3em', padding: '0 12px', borderRadius: '12px', 
     backgroundColor: 'rgba(255,255,255,0.08)', color: 'white', 
     border: '1px solid rgba(255,255,255,0.15)', fontSize: '1.1rem', 
-    textAlign: 'center', boxSizing: 'border-box' 
+    textAlign: 'center', boxSizing: 'border-box',
+    userSelect: 'text',
+    WebkitUserSelect: 'text'
   },
   ageGrid: {
     display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', width: '100%'
@@ -131,7 +133,7 @@ export default function EntryStep({ onJoin, onCreate, onSetName, onSetAge }: Ent
 
       {/* Main Form Section */}
       <div style={localStyles.formSection}>
-        {/* Name Input - כותרת "איך קוראים לך" הוסרה */}
+        {/* Name Input */}
         <div style={localStyles.inputGroup}>
           <input 
             type="text" value={name} 

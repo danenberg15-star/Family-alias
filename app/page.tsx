@@ -136,7 +136,10 @@ export default function FamilyAliasApp() {
       color: 'white', 
       direction: 'rtl', 
       overscrollBehavior: 'none',
-      overflow: 'hidden' 
+      overflow: 'hidden',
+      userSelect: 'none',
+      WebkitUserSelect: 'none',
+      WebkitTouchCallout: 'none'
     }}>
       {step === 0 && <RulesStep onStart={() => setStep(1)} />}
 
