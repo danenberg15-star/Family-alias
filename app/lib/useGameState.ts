@@ -8,7 +8,7 @@ export function useGameState() {
   const [userId, setUserId] = useState("");
   const [roomId, setRoomId] = useState<string | null>(null);
   const [roomData, setRoomData] = useState<any>(null);
-  const [step, setStep] = useState(0); // שונה מ-1 ל-0 כדי להתחיל מהחוקים
+  const [step, setStep] = useState(0); 
   const [userName, setUserName] = useState("");
   const [userAge, setUserAge] = useState("");
 
@@ -32,7 +32,6 @@ export function useGameState() {
       if (snap.exists()) {
         const d = snap.data();
         
-        // --- מנגנון ניקוי חדרים לא פעילים (5 דקות) ---
         const INACTIVITY_LIMIT = 5 * 60 * 1000; 
         if (d.lastActivity && (Date.now() - d.lastActivity > INACTIVITY_LIMIT)) {
             if (d.players && d.players[0].id === userId) {
@@ -78,7 +77,9 @@ export function useGameState() {
       gameMode: "individual", difficulty: "age-appropriate", numTeams: 2,
       players: [{ id: userId, name: finalName, age: finalAge, teamIdx: 0 }],
       teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"],
-      totalScores: {}, roundScore: 0, timeLeft: 60, isPaused: false, currentTurnIdx: 0, 
+      totalScores: {}, roundScore: 0, 
+      turnEndTime: 0, pausedTimeLeft: 60, // הטיימר מבוסס הזמן החדש
+      isPaused: false, currentTurnIdx: 0, 
       poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {}
     });
   };
@@ -98,7 +99,8 @@ export function useGameState() {
         lastActivity: Date.now(), 
         gameMode: "team", numTeams: 2, 
         players: qp, teamNames: ["קבוצה א'", "קבוצה ב'"], totalScores: {}, roundScore: 0, 
-        timeLeft: 60, isPaused: false, currentTurnIdx: 0, 
+        turnEndTime: 0, pausedTimeLeft: 60, // הטיימר מבוסס הזמן החדש
+        isPaused: false, currentTurnIdx: 0, 
         poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {} 
       });
       setRoomId("עומר"); setStep(3); localStorage.setItem("alias_roomId", "עומר");

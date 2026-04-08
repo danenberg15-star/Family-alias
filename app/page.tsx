@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGameState } from "./lib/useGameState";
 import { getInitialShuffledPools } from "./lib/game-utils";
 import RulesStep from "./components/RulesStep"; 
@@ -17,20 +17,16 @@ export default function FamilyAliasApp() {
   const currentP = roomData?.players?.[roomData?.currentTurnIdx];
   const isIDescriber = currentP?.id === userId;
   const wakeLockRef = useRef<any>(null);
+  
+  // טיימר מקומי חדש למניעת עומס על השרת
+  const [localTimeLeft, setLocalTimeLeft] = useState(60);
 
-  // לוגיקת בחירת המאגר - מסונכרנת לכל רמות הקושי
   const calculatePoolKey = (age: number, idxs: any, difficulty: string) => {
     const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
-    
-    if (difficulty === "easy") {
-      return (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
-    }
-    
-    if (age <= 6) { 
-      return (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
-    } else if (age <= 12) { 
-      return (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
-    } else if (age <= 20) { 
+    if (difficulty === "easy") return (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
+    if (age <= 6) return (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
+    if (age <= 12) return (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
+    if (age <= 20) { 
       const mod = totalIdx % 10;
       if (mod === 0) return "JUNIOR";
       if (mod < 9) return "TEEN";
@@ -43,55 +39,61 @@ export default function FamilyAliasApp() {
     }
   };
 
-  // שמירה על מסך דולק (Wake Lock API)
   useEffect(() => {
     if (!mounted) return;
-
     const requestWakeLock = async () => {
       try {
         if ('wakeLock' in navigator) {
           wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
         }
-      } catch (err) {
-        console.log('Wake Lock error:', err);
-      }
+      } catch (err) { console.log('Wake Lock error:', err); }
     };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        requestWakeLock();
-      }
-    };
-
+    const handleVisibilityChange = () => { if (document.visibilityState === 'visible') requestWakeLock(); };
     requestWakeLock();
     document.addEventListener('visibilitychange', handleVisibilityChange);
-
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (wakeLockRef.current) {
-        wakeLockRef.current.release().catch(() => {});
-        wakeLockRef.current = null;
-      }
+      if (wakeLockRef.current) { wakeLockRef.current.release().catch(() => {}); wakeLockRef.current = null; }
     };
   }, [mounted]);
 
+  // טיימר ל-3 שניות לפני התחלת סיבוב (שלב 4)
   useEffect(() => {
-    if (!roomId || !roomData || roomData.isPaused || step < 4 || step === 8) return;
+    if (!roomId || !roomData || roomData.isPaused || step !== 4) return;
     const isBot = currentP?.id?.startsWith('d_');
     const isHost = roomData.players[0].id === userId;
     if (!isIDescriber && !(isBot && isHost)) return;
 
     const interval = setInterval(() => {
-      if (step === 4) {
-        if (roomData.preGameTimer > 0) {
-          updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
-        } else {
-          updateRoom({ step: 5, timeLeft: 60, roundScore: 0 });
-        }
-      } else if (step === 5) {
-        if (roomData.timeLeft > 0) {
-          updateRoom({ timeLeft: roomData.timeLeft - 1 });
-        } else {
+      if (roomData.preGameTimer > 0) {
+        updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
+      } else {
+        // מעבר לשלב 5: מגדירים את סיום התור לעוד 60 שניות מהרגע הנוכחי
+        updateRoom({ step: 5, turnEndTime: Date.now() + 60000, pausedTimeLeft: 60, roundScore: 0, isPaused: false });
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [step, roomId, roomData?.preGameTimer, roomData?.isPaused, isIDescriber, currentP, updateRoom]);
+
+  // הטיימר המקומי למשחק (שלב 5) - עובד בלי לכתוב לשרת!
+  useEffect(() => {
+    if (step === 5 && roomData) {
+      if (roomData.isPaused) {
+        setLocalTimeLeft(roomData.pausedTimeLeft || 60);
+        return;
+      }
+
+      const interval = setInterval(() => {
+        if (!roomData.turnEndTime) return;
+        const remaining = Math.max(0, Math.ceil((roomData.turnEndTime - Date.now()) / 1000));
+        setLocalTimeLeft(remaining);
+
+        const isBot = currentP?.id?.startsWith('d_');
+        const isHost = roomData.players?.[0]?.id === userId;
+        const describerOrHost = isIDescriber || (isBot && isHost);
+
+        // רק המתאר מעביר לשלב הבא כשהזמן נגמר
+        if (remaining === 0 && describerOrHost) {
           const age = parseInt(currentP.age) || 21;
           const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
           const poolKey = calculatePoolKey(age, idxs, roomData.difficulty || "age-appropriate");
@@ -100,10 +102,11 @@ export default function FamilyAliasApp() {
           newIndices[poolKey] = (newIndices[poolKey] || 0) + 1;
           updateRoom({ step: 6, poolIndices: newIndices });
         }
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [step, roomId, roomData?.preGameTimer, roomData?.timeLeft, roomData?.isPaused, isIDescriber, currentP, updateRoom]);
+      }, 100); 
+
+      return () => clearInterval(interval);
+    }
+  }, [step, roomData?.turnEndTime, roomData?.isPaused, roomData?.pausedTimeLeft, isIDescriber, currentP, updateRoom]);
 
   if (!mounted) return null;
 
@@ -125,11 +128,7 @@ export default function FamilyAliasApp() {
         const teamName = roomData.teamNames[currentP.teamIdx];
         newScores[teamName] = (newScores[teamName] || 0) - 1;
       }
-      updateRoom({ 
-        roundScore: (roomData.roundScore || 0) - 1, 
-        poolIndices: newIndices, 
-        totalScores: newScores 
-      });
+      updateRoom({ roundScore: (roomData.roundScore || 0) - 1, poolIndices: newIndices, totalScores: newScores });
     } else {
       newScores[targetName] = (newScores[targetName] || 0) + points;
       if (roomData.gameMode === "individual") {
@@ -141,19 +140,9 @@ export default function FamilyAliasApp() {
       }
       
       if (winnerFound) {
-        updateRoom({ 
-          roundScore: (roomData.roundScore || 0) + points, 
-          poolIndices: newIndices, 
-          totalScores: newScores, 
-          step: 7, 
-          winner: winnerFound 
-        });
+        updateRoom({ roundScore: (roomData.roundScore || 0) + points, poolIndices: newIndices, totalScores: newScores, step: 7, winner: winnerFound });
       } else {
-        updateRoom({ 
-          roundScore: (roomData.roundScore || 0) + points, 
-          poolIndices: newIndices, 
-          totalScores: newScores 
-        });
+        updateRoom({ roundScore: (roomData.roundScore || 0) + points, poolIndices: newIndices, totalScores: newScores });
       }
     }
   };
@@ -163,50 +152,18 @@ export default function FamilyAliasApp() {
     : [roomData?.teamNames[currentP?.teamIdx]];
 
   return (
-    <div style={{ 
-      backgroundColor: '#05081c', 
-      height: '100dvh', 
-      color: 'white', 
-      direction: 'rtl', 
-      overscrollBehavior: 'none',
-      overflow: 'hidden',
-      userSelect: 'none',
-      WebkitUserSelect: 'none',
-      WebkitTouchCallout: 'none'
-    }}>
+    <div style={{ backgroundColor: '#05081c', height: '100dvh', color: 'white', direction: 'rtl', overscrollBehavior: 'none', overflow: 'hidden', userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}>
       {step === 0 && <RulesStep onStart={() => setStep(1)} />}
-
       {step === 1 && <EntryStep onJoin={handleJoinRoom} onCreate={handleCreateRoom} onSetName={setUserName} onSetAge={setUserAge} />}
-      
       {step === 3 && roomData && (
-        <SetupStep 
-          roomId={roomId!} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} 
-          difficulty={roomData.difficulty || "age-appropriate"} setDifficulty={(d) => updateRoom({ difficulty: d })} 
-          numTeams={roomData.numTeams} setNumTeams={(n) => updateRoom({ numTeams: n })} players={roomData.players} 
-          teamNames={roomData.teamNames} updateTeamNames={(names) => updateRoom({ teamNames: names })} 
-          onPlayerMove={(pId, tIdx) => { const p = roomData.players.map((pl: any) => pl.id === pId ? {...pl, teamIdx: tIdx} : pl); updateRoom({ players: p }); }} 
-          editTeamName={(idx: number) => { const n = prompt("שם קבוצה:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} 
-          onStart={() => {
-            updateRoom({ 
-              step: 4, preGameTimer: 3, shuffledPools: getInitialShuffledPools(), 
-              poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, roundScore: 0
-            });
-          }} 
-          onExit={handleFullReset} 
-        />
+        <SetupStep roomId={roomId!} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} difficulty={roomData.difficulty || "age-appropriate"} setDifficulty={(d) => updateRoom({ difficulty: d })} numTeams={roomData.numTeams} setNumTeams={(n) => updateRoom({ numTeams: n })} players={roomData.players} teamNames={roomData.teamNames} updateTeamNames={(names) => updateRoom({ teamNames: names })} onPlayerMove={(pId, tIdx) => { const p = roomData.players.map((pl: any) => pl.id === pId ? {...pl, teamIdx: tIdx} : pl); updateRoom({ players: p }); }} editTeamName={(idx: number) => { const n = prompt("שם קבוצה:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} onStart={() => { updateRoom({ step: 4, preGameTimer: 3, shuffledPools: getInitialShuffledPools(), poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, roundScore: 0 }); }} onExit={handleFullReset} />
       )}
-
       {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP?.name, team: roomData.teamNames[currentP?.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
-      {step === 5 && roomData && <GameStep roomData={roomData} userId={userId!} targets={gameTargets} updateRoom={updateRoom} handleAction={handleScoreAction} onExit={handleFullReset} />}
+      {/* העברנו ל-GameStep את הטיימר המקומי החדש */}
+      {step === 5 && roomData && <GameStep roomData={roomData} localTimeLeft={localTimeLeft} userId={userId!} targets={gameTargets} updateRoom={updateRoom} handleAction={handleScoreAction} onExit={handleFullReset} />}
       {step === 6 && roomData && (
-        <ScoreStep 
-          scores={roomData.totalScores} 
-          entities={roomData.gameMode === 'individual' ? roomData.players.map((p: any) => p.name) : roomData.teamNames.slice(0, roomData.numTeams)} 
-          gameMode={roomData.gameMode}
-          players={roomData.players}
-          onNextRound={() => {
+        <ScoreStep scores={roomData.totalScores} entities={roomData.gameMode === 'individual' ? roomData.players.map((p: any) => p.name) : roomData.teamNames.slice(0, roomData.numTeams)} gameMode={roomData.gameMode} players={roomData.players} onNextRound={() => {
             let nextIdx = (roomData.currentTurnIdx + 1) % roomData.players.length;
-            
             if (roomData.gameMode === 'team') {
               const currentTeamIdx = roomData.players[roomData.currentTurnIdx].teamIdx;
               while (roomData.players[nextIdx].teamIdx === currentTeamIdx) {
@@ -214,18 +171,15 @@ export default function FamilyAliasApp() {
                 if (nextIdx === roomData.currentTurnIdx) break;
               }
             }
-
             const nextP = roomData.players[nextIdx];
             const nextScore = Number(roomData.totalScores[roomData.gameMode === 'team' ? roomData.teamNames[nextP.teamIdx] : nextP.name] || 0);
             const boomScores = [7, 14, 21, 28, 35, 42, 49];
-            
             if (roomData.gameMode === 'team' && boomScores.includes(nextScore)) {
               updateRoom({ step: 8, currentTurnIdx: nextIdx, roundScore: 0 });
             } else {
               updateRoom({ step: 4, currentTurnIdx: nextIdx, preGameTimer: 3, roundScore: 0 });
             }
-          }} 
-        />
+          }} />
       )}
       {step === 7 && roomData && <VictoryStep winnerName={roomData.winner} onRestart={handleFullReset} />}
       {step === 8 && roomData && <SevenBoomStep roomData={roomData} userId={userId!} updateRoom={updateRoom} handleAction={handleScoreAction} onExit={handleFullReset} />}

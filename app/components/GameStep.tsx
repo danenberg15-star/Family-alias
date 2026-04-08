@@ -1,12 +1,11 @@
 "use client";
 import React, { useMemo } from "react";
 
-export default function GameStep({ roomData, userId, targets, updateRoom, handleAction, onExit }: any) {
+export default function GameStep({ roomData, localTimeLeft, userId, targets, updateRoom, handleAction, onExit }: any) {
   const currentP = roomData.players[roomData.currentTurnIdx];
   const isIDescriber = currentP.id === userId;
   const me = roomData.players.find((p: any) => p.id === userId);
 
-  // בדיקה אם המשתמש הוא באותה קבוצה של המתאר
   const isTeammate = roomData.gameMode === 'team' && me?.teamIdx === currentP.teamIdx;
 
   const myDisplayScore = useMemo(() => {
@@ -55,15 +54,23 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     };
   }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty, currentP.age]);
 
-  // --- תצוגת שאר השחקנים (מנחשים או יריבים) ---
+  // פונקציית העזר להשהיית/המשך המשחק המסונכרנת
+  const togglePause = () => {
+    if (roomData.isPaused) {
+      updateRoom({ isPaused: false, turnEndTime: Date.now() + ((roomData.pausedTimeLeft || 0) * 1000) });
+    } else {
+      updateRoom({ isPaused: true, pausedTimeLeft: localTimeLeft });
+    }
+  };
+
   if (!isIDescriber) {
     return (
       <div style={s.layout}>
         <div style={s.header}>
           <div style={s.scoreBox}>🏆 {myDisplayScore}</div>
-          <div style={s.timer}>{roomData.timeLeft}</div>
+          <div style={s.timer}>{localTimeLeft}</div>
           <div style={{ display: 'flex', gap: '15px' }}>
-            <button onClick={() => updateRoom({ isPaused: !roomData.isPaused })} style={s.icon}>
+            <button onClick={togglePause} style={s.icon}>
               {roomData.isPaused ? '▶️' : '⏸️'}
             </button>
             <button onClick={onExit} style={s.icon}>✕</button>
@@ -94,7 +101,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
                   </div>
                 ))}
               </div>
-              <button onClick={() => updateRoom({ isPaused: false })} style={s.resume}>המשך</button>
+              <button onClick={togglePause} style={s.resume}>המשך</button>
             </div>
           ) : (
             <div style={{ textAlign: 'center', padding: '0 20px', width: '100%' }}>
@@ -129,14 +136,13 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     );
   }
 
-  // --- תצוגת המתאר ---
   return (
     <div style={s.layout}>
       <div style={s.header}>
         <div style={s.scoreBox}>🏆 {myDisplayScore}</div>
-        <div style={s.timer}>{roomData.timeLeft}</div>
+        <div style={s.timer}>{localTimeLeft}</div>
         <div style={{ display: 'flex', gap: '15px' }}>
-          <button onClick={() => updateRoom({ isPaused: !roomData.isPaused })} style={s.icon}>
+          <button onClick={togglePause} style={s.icon}>
             {roomData.isPaused ? '▶️' : '⏸️'}
           </button>
           <button onClick={onExit} style={s.icon}>✕</button>
@@ -169,7 +175,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
                 </div>
               ))}
             </div>
-            <button onClick={() => updateRoom({ isPaused: false })} style={s.resume}>המשך</button>
+            <button onClick={togglePause} style={s.resume}>המשך</button>
           </div>
         ) : (
           <div style={s.card}>
