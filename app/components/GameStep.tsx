@@ -61,32 +61,44 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
         <div style={s.header}>
           <div style={s.scoreBox}>🏆 {myDisplayScore}</div>
           <div style={s.timer}>{roomData.timeLeft}</div>
-          <button onClick={onExit} style={s.icon}>✕</button>
+          <div style={{ display: 'flex', gap: '15px' }}>
+            <button onClick={() => updateRoom({ isPaused: !roomData.isPaused })} style={s.icon}>
+              {roomData.isPaused ? '▶️' : '⏸️'}
+            </button>
+            <button onClick={onExit} style={s.icon}>✕</button>
+          </div>
         </div>
         <div style={{ textAlign: 'center', marginTop: '60px', padding: '0 20px' }}>
-          {roomData.gameMode === 'team' ? (
-            isTeammate ? (
-              <>
-                <h2 style={{ color: '#ffd700', fontSize: '2rem', fontWeight: '900', marginBottom: '15px' }}>
-                  תהיו קשובים ל-{currentP.name} מקבוצתכם שמתאר/ת את המילה!
-                </h2>
-              </>
+          {roomData.isPaused ? (
+            <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
+              <h3 style={{ color: '#ffd700', fontSize: '2rem', marginBottom: '15px' }}>המשחק מושהה ⏸️</h3>
+              <p style={{ color: 'white', opacity: 0.8, fontSize: '1.2rem' }}>ממתינים לחידוש המשחק...</p>
+            </div>
+          ) : (
+            roomData.gameMode === 'team' ? (
+              isTeammate ? (
+                <>
+                  <h2 style={{ color: '#ffd700', fontSize: '2rem', fontWeight: '900', marginBottom: '15px' }}>
+                    תהיו קשובים ל-{currentP.name} מקבוצתכם שמתאר/ת את המילה!
+                  </h2>
+                </>
+              ) : (
+                <>
+                  <h2 style={{ color: '#ffd700', fontSize: '1.4rem', marginBottom: '20px' }}>
+                    {currentP.name} מ-{roomData.teamNames[currentP.teamIdx]} מנסה לתאר את המילה:
+                  </h2>
+                  <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
+                    <div style={{ fontSize: '2.5rem', fontWeight: '900' }}>{wordData.word}</div>
+                    <div style={{ fontSize: '1.5rem', opacity: 0.6 }}>({wordData.en})</div>
+                  </div>
+                </>
+              )
             ) : (
               <>
-                <h2 style={{ color: '#ffd700', fontSize: '1.4rem', marginBottom: '20px' }}>
-                  {currentP.name} מ-{roomData.teamNames[currentP.teamIdx]} מנסה לתאר את המילה:
-                </h2>
-                <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
-                  <div style={{ fontSize: '2.5rem', fontWeight: '900' }}>{wordData.word}</div>
-                  <div style={{ fontSize: '1.5rem', opacity: 0.6 }}>({wordData.en})</div>
-                </div>
+                <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{currentP.name} מתאר/ת...</h2>
+                <p style={{ opacity: 0.7 }}>היו מוכנים לנחש!</p>
               </>
             )
-          ) : (
-            <>
-              <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{currentP.name} מתאר/ת...</h2>
-              <p style={{ opacity: 0.7 }}>היו מוכנים לנחש!</p>
-            </>
           )}
         </div>
       </div>
