@@ -18,10 +18,17 @@ export default function CountdownStep({ timer, turnInfo, isTeamMode }: Countdown
       </div>
 
       <div style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '24px', width: '320px', textAlign: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <div style={{ fontSize: '18px', color: '#64748b', marginBottom: '8px' }}>תור השחקן:</div>
-        <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff' }}>{turnInfo.name}</div>
-        {isTeamMode && (
-          <div style={{ fontSize: '20px', color: '#ffd700', marginTop: '5px' }}>{turnInfo.team}</div>
+        {isTeamMode ? (
+          <div style={{ fontSize: '20px', color: '#fff', lineHeight: '1.5' }}>
+            תור <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{turnInfo.name}</span><br/>
+            מקבוצה <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{turnInfo.team}</span><br/>
+            לתאר את המילה
+          </div>
+        ) : (
+          <>
+            <div style={{ fontSize: '18px', color: '#64748b', marginBottom: '8px' }}>תור השחקן:</div>
+            <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#fff' }}>{turnInfo.name}</div>
+          </>
         )}
       </div>
     </div>

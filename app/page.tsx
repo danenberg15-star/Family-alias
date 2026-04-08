@@ -164,17 +164,18 @@ export default function FamilyAliasApp() {
       {step === 5 && roomData && <GameStep roomData={roomData} userId={userId!} targets={gameTargets} updateRoom={updateRoom} handleAction={handleScoreAction} onExit={handleFullReset} />}
       {step === 6 && roomData && (
         <ScoreStep 
-          scores={roomData.totalScores} entities={roomData.gameMode === 'individual' ? roomData.players.map((p: any) => p.name) : roomData.teamNames.slice(0, roomData.numTeams)} 
+          scores={roomData.totalScores} 
+          entities={roomData.gameMode === 'individual' ? roomData.players.map((p: any) => p.name) : roomData.teamNames.slice(0, roomData.numTeams)} 
+          gameMode={roomData.gameMode}
+          players={roomData.players}
           onNextRound={() => {
-            // לוגיקה לסיבוב הוגן: קודם מחליפים קבוצה, ורק אז שחקן
             let nextIdx = (roomData.currentTurnIdx + 1) % roomData.players.length;
             
             if (roomData.gameMode === 'team') {
               const currentTeamIdx = roomData.players[roomData.currentTurnIdx].teamIdx;
-              // חיפוש השחקן הבא ברשימה שאינו משתייך לקבוצה הנוכחית
               while (roomData.players[nextIdx].teamIdx === currentTeamIdx) {
                 nextIdx = (nextIdx + 1) % roomData.players.length;
-                if (nextIdx === roomData.currentTurnIdx) break; // הגנה מפני לולאה אינסופית
+                if (nextIdx === roomData.currentTurnIdx) break;
               }
             }
 

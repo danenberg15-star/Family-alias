@@ -6,6 +6,9 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
   const isIDescriber = currentP.id === userId;
   const me = roomData.players.find((p: any) => p.id === userId);
 
+  // בדיקה אם המשתמש הוא באותה קבוצה של המתאר
+  const isTeammate = roomData.gameMode === 'team' && me?.teamIdx === currentP.teamIdx;
+
   const myDisplayScore = useMemo(() => {
     if (roomData.gameMode === 'individual') {
       return roomData.totalScores[me?.name] || 0;
@@ -44,7 +47,6 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     const pool = roomData.shuffledPools?.[key] || [];
     const index = idxs[key] || 0;
     
-    // תיקון לוגיקה: כולם רואים תמונה ברמה קלה, אחרת רק עד גיל 12
     const showImage = age <= 12 || difficulty === "easy";
     
     return { 
@@ -61,9 +63,31 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
           <div style={s.timer}>{roomData.timeLeft}</div>
           <button onClick={onExit} style={s.icon}>✕</button>
         </div>
-        <div style={{ textAlign: 'center', marginTop: '80px' }}>
-          <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{currentP.name} מתאר/ת...</h2>
-          <p style={{ opacity: 0.7 }}>היו מוכנים לנחש!</p>
+        <div style={{ textAlign: 'center', marginTop: '60px', padding: '0 20px' }}>
+          {roomData.gameMode === 'team' ? (
+            isTeammate ? (
+              <>
+                <h2 style={{ color: '#ffd700', fontSize: '2rem', fontWeight: '900', marginBottom: '15px' }}>
+                  תהיו קשובים ל-{currentP.name} מקבוצתכם שמתאר/ת את המילה!
+                </h2>
+              </>
+            ) : (
+              <>
+                <h2 style={{ color: '#ffd700', fontSize: '1.4rem', marginBottom: '20px' }}>
+                  שחקן {currentP.name} מקבוצה {roomData.teamNames[currentP.teamIdx]} מנסה לתאר את המילה:
+                </h2>
+                <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
+                  <div style={{ fontSize: '2.5rem', fontWeight: '900' }}>{wordData.word}</div>
+                  <div style={{ fontSize: '1.5rem', opacity: 0.6 }}>({wordData.en})</div>
+                </div>
+              </>
+            )
+          ) : (
+            <>
+              <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{currentP.name} מתאר/ת...</h2>
+              <p style={{ opacity: 0.7 }}>היו מוכנים לנחש!</p>
+            </>
+          )}
         </div>
       </div>
     );
