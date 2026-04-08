@@ -55,6 +55,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
     };
   }, [roomData.currentTurnIdx, roomData.poolIndices, roomData.shuffledPools, roomData.difficulty, currentP.age]);
 
+  // --- תצוגת שאר השחקנים (מנחשים או יריבים) ---
   if (!isIDescriber) {
     return (
       <div style={s.layout}>
@@ -68,43 +69,67 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
             <button onClick={onExit} style={s.icon}>✕</button>
           </div>
         </div>
-        <div style={{ textAlign: 'center', marginTop: '60px', padding: '0 20px' }}>
+
+        <div style={s.center}>
           {roomData.isPaused ? (
-            <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
-              <h3 style={{ color: '#ffd700', fontSize: '2rem', marginBottom: '15px' }}>המשחק מושהה ⏸️</h3>
-              <p style={{ color: 'white', opacity: 0.8, fontSize: '1.2rem' }}>ממתינים לחידוש המשחק...</p>
+            <div style={s.pauseBox}>
+              <h3 style={{ color: '#ffd700', textAlign: 'center' }}>ניהול ניקוד</h3>
+              <div style={s.scroll}>
+                {(roomData.gameMode === 'individual' ? roomData.players.map((p: any) => p.name) : roomData.teamNames.slice(0, roomData.numTeams)).map((n: string) => (
+                  <div key={n} style={s.row}>
+                    <span>{n}</span>
+                    <div style={s.rowBtn}>
+                      <button style={s.miniBtn} onClick={() => { 
+                        const sc = {...roomData.totalScores}; 
+                        sc[n] = (sc[n] || 0) - 1; 
+                        updateRoom({totalScores: sc}); 
+                      }}>-</button>
+                      <span style={{ minWidth: '30px', textAlign: 'center' }}>{roomData.totalScores[n] || 0}</span>
+                      <button style={s.miniBtn} onClick={() => { 
+                        const sc = {...roomData.totalScores}; 
+                        sc[n] = (sc[n] || 0) + 1; 
+                        updateRoom({totalScores: sc}); 
+                      }}>+</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => updateRoom({ isPaused: false })} style={s.resume}>המשך</button>
             </div>
           ) : (
-            roomData.gameMode === 'team' ? (
-              isTeammate ? (
-                <>
-                  <h2 style={{ color: '#ffd700', fontSize: '2rem', fontWeight: '900', marginBottom: '15px' }}>
-                    תהיו קשובים ל-{currentP.name} מקבוצתכם שמתאר/ת את המילה!
-                  </h2>
-                </>
+            <div style={{ textAlign: 'center', padding: '0 20px', width: '100%' }}>
+              {roomData.gameMode === 'team' ? (
+                isTeammate ? (
+                  <>
+                    <h2 style={{ color: '#ffd700', fontSize: '2rem', fontWeight: '900', marginBottom: '15px' }}>
+                      תהיו קשובים ל-{currentP.name} מקבוצתכם שמתאר/ת את המילה!
+                    </h2>
+                  </>
+                ) : (
+                  <>
+                    <h2 style={{ color: '#ffd700', fontSize: '1.4rem', marginBottom: '20px' }}>
+                      {currentP.name} מ-{roomData.teamNames[currentP.teamIdx]} מנסה לתאר את המילה:
+                    </h2>
+                    <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
+                      <div style={{ fontSize: '2.5rem', fontWeight: '900' }}>{wordData.word}</div>
+                      <div style={{ fontSize: '1.5rem', opacity: 0.6 }}>({wordData.en})</div>
+                    </div>
+                  </>
+                )
               ) : (
                 <>
-                  <h2 style={{ color: '#ffd700', fontSize: '1.4rem', marginBottom: '20px' }}>
-                    {currentP.name} מ-{roomData.teamNames[currentP.teamIdx]} מנסה לתאר את המילה:
-                  </h2>
-                  <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
-                    <div style={{ fontSize: '2.5rem', fontWeight: '900' }}>{wordData.word}</div>
-                    <div style={{ fontSize: '1.5rem', opacity: 0.6 }}>({wordData.en})</div>
-                  </div>
+                  <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{currentP.name} מתאר/ת...</h2>
+                  <p style={{ opacity: 0.7 }}>היו מוכנים לנחש!</p>
                 </>
-              )
-            ) : (
-              <>
-                <h2 style={{ color: '#ffd700', fontSize: '2rem' }}>{currentP.name} מתאר/ת...</h2>
-                <p style={{ opacity: 0.7 }}>היו מוכנים לנחש!</p>
-              </>
-            )
+              )}
+            </div>
           )}
         </div>
       </div>
     );
   }
 
+  // --- תצוגת המתאר ---
   return (
     <div style={s.layout}>
       <div style={s.header}>

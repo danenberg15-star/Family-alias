@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useGameState } from "./lib/useGameState";
 import { getInitialShuffledPools } from "./lib/game-utils";
 import RulesStep from "./components/RulesStep"; 
@@ -16,6 +16,7 @@ export default function FamilyAliasApp() {
 
   const currentP = roomData?.players?.[roomData?.currentTurnIdx];
   const isIDescriber = currentP?.id === userId;
+  const wakeLockRef = useRef<any>(null);
 
   // לוגיקת בחירת המאגר - מסונכרנת לכל רמות הקושי
   const calculatePoolKey = (age: number, idxs: any, difficulty: string) => {
@@ -41,6 +42,38 @@ export default function FamilyAliasApp() {
       return "ADULT";
     }
   };
+
+  // שמירה על מסך דולק (Wake Lock API)
+  useEffect(() => {
+    if (!mounted) return;
+
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+        }
+      } catch (err) {
+        console.log('Wake Lock error:', err);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock();
+      }
+    };
+
+    requestWakeLock();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+    };
+  }, [mounted]);
 
   useEffect(() => {
     if (!roomId || !roomData || roomData.isPaused || step < 4 || step === 8) return;
