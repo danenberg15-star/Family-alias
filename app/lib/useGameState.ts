@@ -80,6 +80,7 @@ export function useGameState() {
       totalScores: {}, roundScore: 0, 
       turnEndTime: 0, pausedTimeLeft: 60, 
       isPaused: false, currentTurnIdx: 0, 
+      teamPointers: [0, 0, 0, 0], // מעקב תורות פנימי לקבוצות
       poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {}
     });
   };
@@ -102,6 +103,7 @@ export function useGameState() {
         turnEndTime: 0, 
         pausedTimeLeft: 5, // QA: 5 שניות לחדר עומר
         isPaused: false, currentTurnIdx: 0, 
+        teamPointers: [0, 0, 0, 0], // מעקב תורות פנימי לקבוצות
         poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {} 
       });
       setRoomId("עומר"); setStep(3); localStorage.setItem("alias_roomId", "עומר");
