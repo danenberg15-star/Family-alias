@@ -25,7 +25,7 @@ export default function SetupStep(props: SetupStepProps) {
     return () => document.removeEventListener('touchmove', preventDefault);
   }, [draggedPlayer]);
 
-  const HEBREW_LETTERS = ['א', 'ב', 'ג', 'ד'];
+  const HEBREW_LETTERS = ["א'", "ב'", "ג'", "ד'"];
 
   const getNextTeamName = () => {
     for (let letter of HEBREW_LETTERS) {
