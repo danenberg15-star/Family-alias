@@ -22,21 +22,24 @@ export default function SevenBoomStep({ roomData, userId, updateRoom, handleActi
     const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
     
     let key: "KIDS" | "JUNIOR" | "TEEN" | "ADULT";
-    if (difficulty === "easy") key = (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
-    else if (age <= 6) key = (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
-    else if (age <= 12) key = (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
-    else if (age <= 20) {
+    
+    if (difficulty === "easy") {
+      key = (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
+    } else if (age <= 6) {
+      key = (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
+    } else if (age <= 12) {
+      key = (totalIdx % 10 < 1) ? "KIDS" : "JUNIOR";
+    } else if (age <= 20) {
       const mod = totalIdx % 10;
-      key = mod === 0 ? "JUNIOR" : (mod < 9 ? "TEEN" : "ADULT");
+      key = mod < 3 ? "JUNIOR" : (mod < 9 ? "TEEN" : "ADULT");
     } else {
       const mod = totalIdx % 10;
-      key = mod === 0 ? "JUNIOR" : (mod === 1 ? "TEEN" : "ADULT");
+      key = mod < 2 ? "JUNIOR" : (mod < 4 ? "TEEN" : "ADULT");
     }
 
     const pool = roomData.shuffledPools?.[key] || [];
     const index = idxs[key] || 0;
     
-    // תיקון לוגיקה: כולם רואים תמונה ברמה קלה, אחרת רק עד גיל 12
     const showImage = age <= 12 || difficulty === "easy";
 
     return { 

@@ -24,19 +24,25 @@ export default function FamilyAliasApp() {
   const calculatePoolKey = (age: number, idxs: any, difficulty: string) => {
     const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
     if (difficulty === "easy") return (totalIdx % 2 === 0) ? "KIDS" : "JUNIOR";
-    if (age <= 6) return (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
-    if (age <= 12) return (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
+    
+    // לוגיקה מעודכנת לפי דרישות גיל
+    if (age <= 6) {
+      return (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR"; // 80% KIDS, 20% JUNIOR
+    } 
+    if (age <= 12) {
+      return (totalIdx % 10 < 1) ? "KIDS" : "JUNIOR"; // 10% KIDS, 90% JUNIOR
+    } 
     if (age <= 20) { 
       const mod = totalIdx % 10;
-      if (mod === 0) return "JUNIOR";
-      if (mod < 9) return "TEEN";
-      return "ADULT";
-    } else { 
-      const mod = totalIdx % 10;
-      if (mod === 0) return "JUNIOR";
-      if (mod === 1) return "TEEN";
-      return "ADULT";
-    }
+      if (mod < 3) return "JUNIOR"; // 30% JUNIOR
+      if (mod < 9) return "TEEN";   // 60% TEEN
+      return "ADULT";               // 10% ADULT
+    } 
+    // גיל 21 ומעלה
+    const mod = totalIdx % 10;
+    if (mod < 2) return "JUNIOR";   // 20% JUNIOR
+    if (mod < 4) return "TEEN";     // 20% TEEN
+    return "ADULT";                 // 60% ADULT
   };
 
   useEffect(() => {

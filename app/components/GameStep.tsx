@@ -30,16 +30,16 @@ export default function GameStep({ roomData, localTimeLeft, userId, targets, upd
     } else if (age <= 6) {
       key = (totalIdx % 5 < 4) ? "KIDS" : "JUNIOR";
     } else if (age <= 12) {
-      key = (totalIdx % 10 < 2) ? "KIDS" : "JUNIOR";
+      key = (totalIdx % 10 < 1) ? "KIDS" : "JUNIOR";
     } else if (age <= 20) {
       const mod = totalIdx % 10;
-      if (mod === 0) key = "JUNIOR";
+      if (mod < 3) key = "JUNIOR";
       else if (mod < 9) key = "TEEN";
       else key = "ADULT";
     } else {
       const mod = totalIdx % 10;
-      if (mod === 0) key = "JUNIOR";
-      else if (mod === 1) key = "TEEN";
+      if (mod < 2) key = "JUNIOR";
+      else if (mod < 4) key = "TEEN";
       else key = "ADULT";
     }
 
