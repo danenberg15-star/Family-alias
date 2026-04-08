@@ -78,7 +78,7 @@ export function useGameState() {
       players: [{ id: userId, name: finalName, age: finalAge, teamIdx: 0 }],
       teamNames: ["קבוצה א'", "קבוצה ב'", "קבוצה ג'", "קבוצה ד'"],
       totalScores: {}, roundScore: 0, 
-      turnEndTime: 0, pausedTimeLeft: 60, // הטיימר מבוסס הזמן החדש
+      turnEndTime: 0, pausedTimeLeft: 60, 
       isPaused: false, currentTurnIdx: 0, 
       poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {}
     });
@@ -99,7 +99,8 @@ export function useGameState() {
         lastActivity: Date.now(), 
         gameMode: "team", numTeams: 2, 
         players: qp, teamNames: ["קבוצה א'", "קבוצה ב'"], totalScores: {}, roundScore: 0, 
-        turnEndTime: 0, pausedTimeLeft: 60, // הטיימר מבוסס הזמן החדש
+        turnEndTime: 0, 
+        pausedTimeLeft: 5, // QA: 5 שניות לחדר עומר
         isPaused: false, currentTurnIdx: 0, 
         poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, preGameTimer: 3, shuffledPools: {} 
       });

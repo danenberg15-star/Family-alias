@@ -18,8 +18,8 @@ export default function FamilyAliasApp() {
   const isIDescriber = currentP?.id === userId;
   const wakeLockRef = useRef<any>(null);
   
-  // טיימר מקומי חדש למניעת עומס על השרת
-  const [localTimeLeft, setLocalTimeLeft] = useState(60);
+  // טיימר מקומי. QA: ברירת מחדל 5 לחדר עומר
+  const [localTimeLeft, setLocalTimeLeft] = useState(roomId === "עומר" ? 5 : 60);
 
   const calculatePoolKey = (age: number, idxs: any, difficulty: string) => {
     const totalIdx = (idxs.KIDS + idxs.JUNIOR + idxs.TEEN + idxs.ADULT);
@@ -68,18 +68,25 @@ export default function FamilyAliasApp() {
       if (roomData.preGameTimer > 0) {
         updateRoom({ preGameTimer: roomData.preGameTimer - 1 });
       } else {
-        // מעבר לשלב 5: מגדירים את סיום התור לעוד 60 שניות מהרגע הנוכחי
-        updateRoom({ step: 5, turnEndTime: Date.now() + 60000, pausedTimeLeft: 60, roundScore: 0, isPaused: false });
+        // QA Logic: חדר עומר מקבל 5 שניות, חדרים אחרים 60
+        const durationSeconds = roomId === "עומר" ? 5 : 60;
+        updateRoom({ 
+          step: 5, 
+          turnEndTime: Date.now() + (durationSeconds * 1000), 
+          pausedTimeLeft: durationSeconds, 
+          roundScore: 0, 
+          isPaused: false 
+        });
       }
     }, 1000);
     return () => clearInterval(interval);
   }, [step, roomId, roomData?.preGameTimer, roomData?.isPaused, isIDescriber, currentP, updateRoom]);
 
-  // הטיימר המקומי למשחק (שלב 5) - עובד בלי לכתוב לשרת!
+  // הטיימר המקומי למשחק (שלב 5)
   useEffect(() => {
     if (step === 5 && roomData) {
       if (roomData.isPaused) {
-        setLocalTimeLeft(roomData.pausedTimeLeft || 60);
+        setLocalTimeLeft(roomData.pausedTimeLeft || (roomId === "עומר" ? 5 : 60));
         return;
       }
 
@@ -92,7 +99,6 @@ export default function FamilyAliasApp() {
         const isHost = roomData.players?.[0]?.id === userId;
         const describerOrHost = isIDescriber || (isBot && isHost);
 
-        // רק המתאר מעביר לשלב הבא כשהזמן נגמר
         if (remaining === 0 && describerOrHost) {
           const age = parseInt(currentP.age) || 21;
           const idxs = roomData.poolIndices || { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 };
@@ -106,7 +112,7 @@ export default function FamilyAliasApp() {
 
       return () => clearInterval(interval);
     }
-  }, [step, roomData?.turnEndTime, roomData?.isPaused, roomData?.pausedTimeLeft, isIDescriber, currentP, updateRoom]);
+  }, [step, roomId, roomData?.turnEndTime, roomData?.isPaused, roomData?.pausedTimeLeft, isIDescriber, currentP, updateRoom]);
 
   if (!mounted) return null;
 
@@ -159,7 +165,6 @@ export default function FamilyAliasApp() {
         <SetupStep roomId={roomId!} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} difficulty={roomData.difficulty || "age-appropriate"} setDifficulty={(d) => updateRoom({ difficulty: d })} numTeams={roomData.numTeams} setNumTeams={(n) => updateRoom({ numTeams: n })} players={roomData.players} teamNames={roomData.teamNames} updateTeamNames={(names) => updateRoom({ teamNames: names })} onPlayerMove={(pId, tIdx) => { const p = roomData.players.map((pl: any) => pl.id === pId ? {...pl, teamIdx: tIdx} : pl); updateRoom({ players: p }); }} editTeamName={(idx: number) => { const n = prompt("שם קבוצה:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} onStart={() => { updateRoom({ step: 4, preGameTimer: 3, shuffledPools: getInitialShuffledPools(), poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, roundScore: 0 }); }} onExit={handleFullReset} />
       )}
       {step === 4 && roomData && <CountdownStep timer={roomData.preGameTimer} turnInfo={{name: currentP?.name, team: roomData.teamNames[currentP?.teamIdx]}} isTeamMode={roomData.gameMode === "team"} />}
-      {/* העברנו ל-GameStep את הטיימר המקומי החדש */}
       {step === 5 && roomData && <GameStep roomData={roomData} localTimeLeft={localTimeLeft} userId={userId!} targets={gameTargets} updateRoom={updateRoom} handleAction={handleScoreAction} onExit={handleFullReset} />}
       {step === 6 && roomData && (
         <ScoreStep scores={roomData.totalScores} entities={roomData.gameMode === 'individual' ? roomData.players.map((p: any) => p.name) : roomData.teamNames.slice(0, roomData.numTeams)} gameMode={roomData.gameMode} players={roomData.players} onNextRound={() => {
