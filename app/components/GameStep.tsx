@@ -74,7 +74,7 @@ export default function GameStep({ roomData, userId, targets, updateRoom, handle
             ) : (
               <>
                 <h2 style={{ color: '#ffd700', fontSize: '1.4rem', marginBottom: '20px' }}>
-                  שחקן {currentP.name} מקבוצה {roomData.teamNames[currentP.teamIdx]} מנסה לתאר את המילה:
+                  {currentP.name} מ-{roomData.teamNames[currentP.teamIdx]} מנסה לתאר את המילה:
                 </h2>
                 <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
                   <div style={{ fontSize: '2.5rem', fontWeight: '900' }}>{wordData.word}</div>

@@ -41,7 +41,7 @@ export default function GuesserView(props: GuesserViewProps) {
             ) : (
               <>
                 <h2 style={{ color: '#ffd700', fontSize: '1.4rem', marginBottom: '20px' }}>
-                  שחקן {props.describerName} מקבוצה {props.describerTeam} מנסה לתאר את המילה:
+                  {props.describerName} מ-{props.describerTeam} מנסה לתאר את המילה:
                 </h2>
                 {props.currentWord && (
                   <div style={{ backgroundColor: '#1a1d2e', padding: '30px', borderRadius: '35px', border: '2px solid #ffd700' }}>
