@@ -170,11 +170,18 @@ export default function FamilyAliasApp() {
       {step === 3 && roomData && (
         <SetupStep roomId={roomId!} gameMode={roomData.gameMode} setGameMode={(m) => updateRoom({ gameMode: m })} difficulty={roomData.difficulty || "age-appropriate"} setDifficulty={(d) => updateRoom({ difficulty: d })} numTeams={roomData.numTeams} setNumTeams={(n) => updateRoom({ numTeams: n })} players={roomData.players} teamNames={roomData.teamNames} updateTeamNames={(names) => updateRoom({ teamNames: names })} onPlayerMove={(pId, tIdx) => { const p = roomData.players.map((pl: any) => pl.id === pId ? {...pl, teamIdx: tIdx} : pl); updateRoom({ players: p }); }} editTeamName={(idx: number) => { const n = prompt("שם קבוצה:", roomData.teamNames[idx]); if(n) { const t = [...roomData.teamNames]; t[idx] = n; updateRoom({ teamNames: t }); } }} 
           onStart={() => { 
+            let startIdx = 0;
+            if (roomData.gameMode === 'team') {
+              const firstPlayerInTeam0 = roomData.players.find((p: any) => p.teamIdx === 0);
+              if (firstPlayerInTeam0) {
+                startIdx = roomData.players.findIndex((p: any) => p.id === firstPlayerInTeam0.id);
+              }
+            }
             // איפוס מוחלט של מוני התורות בתחילת המשחק
             updateRoom({ 
               step: 4, preGameTimer: 3, shuffledPools: getInitialShuffledPools(), 
               poolIndices: { KIDS: 0, JUNIOR: 0, TEEN: 0, ADULT: 0 }, roundScore: 0,
-              currentTurnIdx: 0, teamPointers: [0, 0, 0, 0]
+              currentTurnIdx: startIdx, teamPointers: [0, 0, 0, 0]
             }); 
           }} 
           onExit={handleFullReset} 
